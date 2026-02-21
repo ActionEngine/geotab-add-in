@@ -98,7 +98,7 @@ API documentation will be available at:
 - ReDoc: http://localhost:8004/redoc
 
 
-### 6.3 Testing
+### 6.3 Running unit tests
 
 
 ```bash
