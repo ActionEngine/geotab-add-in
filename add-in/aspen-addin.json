@@ -1,14 +1,14 @@
 {
-  "name": "Geotab Add-In",
-  "supportEmail": "support@example.com",
+  "name": "Aspen Add-In",
+  "supportEmail": "victor.belomestnov@actionengine.com",
   "version": "1.0.0",
   "items": [
     {
-      "page": "customPage",
-      "url": "https://main.dft0pgrl9511o.amplifyapp.com/",
+      "page": "Aspen DQ",
+      "url": "https://main.dft0pgrl9511o.amplifyapp.com",
       "path": "",
       "menuName": {
-        "en": "Custom Page"
+        "en": "Aspen DQ"
       },
       "icon": "https://main.dft0pgrl9511o.amplifyapp.com/public/favicon.ico"
     }

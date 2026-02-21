@@ -40,3 +40,6 @@ scala-cli.json
 
 # Build
 /dist
+
+#Environment variables
+.env
