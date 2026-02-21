@@ -10,7 +10,8 @@ interface AppProps {
 const App = ({ api }: AppProps) => {
   useEffect(() => {
     // eslint-disable-next-line no-console
-    api.getSession().then((session) => console.log(session));
+    console.log(api);
+    // api.getSession().then((session) => console.log(session));
   });
   // Example: Using the Geotab API
   // const handleFetchDevices = () => {
