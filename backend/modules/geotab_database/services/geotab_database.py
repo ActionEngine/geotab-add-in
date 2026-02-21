@@ -1,6 +1,6 @@
 import logging
 from sqlalchemy import select
-from backend.modules.geotab_database.enums import IngestionStatus
+from modules.geotab_database.enums import IngestionStatus
 from modules.geotab_database.models.geotab_database import GeotabDatabase
 from modules.auth.services.auth import create_access_token
 from database.database import SessionLocal
