@@ -3,11 +3,8 @@ FROM python:3.13-alpine
 WORKDIR /app
 
 COPY requirements.txt ./
-RUN python -m venv /opt/venv \
-    && /opt/venv/bin/pip install --upgrade pip \
-    && /opt/venv/bin/pip install -r requirements.txt
-
-ENV PATH="/opt/venv/bin:$PATH"
+RUN pip --upgrade pip \
+    && pip install -r requirements.txt
 
 COPY . .
 

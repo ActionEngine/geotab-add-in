@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "vite --config ./vite.config.ts",
     "lint": "eslint 'src/**/*.{ts,tsx,js,jsx}'",
-    "build": "vite build --config ./vite.config.ts"
+    "build": "vite build --config ./vite.config.ts",
+    "preview": "vite preview --config ./vite.config.ts"
   },
   "dependencies": {
     "@geotab/zenith": "^3.5.0",

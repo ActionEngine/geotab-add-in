@@ -37,3 +37,6 @@ scala-cli.json
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+
+# Build
+/dist
