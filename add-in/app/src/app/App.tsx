@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Button } from "@geotab/zenith";
 import "@geotab/zenith/dist/index.css";
 import "./style.css";
@@ -7,7 +8,10 @@ interface AppProps {
 }
 
 const App = ({ api }: AppProps) => {
-  console.log("App component initialized with API:", api);
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    api.getSession().then((session) => console.log(session));
+  });
   // Example: Using the Geotab API
   // const handleFetchDevices = () => {
   //   api.call("Get", { typeName: "Device" }, (devices) => {
