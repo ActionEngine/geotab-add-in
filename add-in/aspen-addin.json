@@ -1,0 +1,17 @@
+{
+  "name": "Geotab Add-In",
+  "supportEmail": "support@example.com",
+  "version": "1.0.0",
+  "items": [
+    {
+      "page": "customPage",
+      "url": "https://main.d2otmhaog56ztn.amplifyapp.com/",
+      "path": "",
+      "menuName": {
+        "en": "Custom Page"
+      },
+      "icon": "https://main.d2otmhaog56ztn.amplifyapp.com/public/favicon.ico"
+    }
+  ],
+  "isSigned": false
+}
