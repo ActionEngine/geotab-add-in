@@ -1105,6 +1105,7 @@ __metadata:
     eslint: "npm:^10.0.0"
     eslint-config-prettier: "npm:^10.1.8"
     eslint-plugin-prettier: "npm:^5.5.5"
+    mg-api-js: "npm:^3.0.0"
     prettier: "npm:^3.8.1"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
@@ -1988,6 +1989,13 @@ __metadata:
     promise-retry: "npm:^2.0.1"
     ssri: "npm:^13.0.0"
   checksum: 10c0/525f74915660be60b616bcbd267c4a5b59481b073ba125e45c9c3a041bb1a47a2bd0ae79d028eb6f5f95bf9851a4158423f5068539c3093621abb64027e8e461
+  languageName: node
+  linkType: hard
+
+"mg-api-js@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "mg-api-js@npm:3.0.0"
+  checksum: 10c0/2ddf8b20a8c54844bb6fdf35ca6477c9167b22bc6756eb63c2a1b8addc9ff01ea80877bde70747461c708afc07b4b78658de10296473cdf4604be6f80f1a28c9
   languageName: node
   linkType: hard
 
