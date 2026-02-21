@@ -96,3 +96,13 @@ API documentation will be available at:
 
 - Swagger UI: http://localhost:8004/docs
 - ReDoc: http://localhost:8004/redoc
+
+
+### 6.3 Testing
+
+
+```bash
+pip install -r requirements.txt -r requirements-test.txt
+
+PYTHONPATH=. pytest
+```
