@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Button } from "@geotab/zenith";
 import "@geotab/zenith/dist/index.css";
+import { getSessionAsync } from "../utils/geotabApi";
 import "./style.css";
 
 interface AppProps {
@@ -10,22 +11,14 @@ interface AppProps {
 const App = ({ api }: AppProps) => {
   useEffect(() => {
     // eslint-disable-next-line no-console
-    console.log(api);
-    // api.getSession().then((session) => console.log(session));
+    getSessionAsync(api).then((session) => console.log(session));
   });
-  // Example: Using the Geotab API
-  // const handleFetchDevices = () => {
-  //   api.call("Get", { typeName: "Device" }, (devices) => {
-  //     console.warn("Devices:", devices);
-  //   }, (message, error) => {
-  //     console.error("Error fetching devices:", message, error);
-  //   });
-  // };
-  //
-  // Or using promises:
+
+  // Example: Using the Geotab API with promisified wrapper
+  // import { callAsync } from "../utils/geotabApi";
   // const handleFetchDevices = async () => {
   //   try {
-  //     const devices = await api.call("Get", { typeName: "Device" });
+  //     const devices = await callAsync(api, "Get", { typeName: "Device" });
   //     console.warn("Devices:", devices);
   //   } catch (error) {
   //     console.error("Error fetching devices:", error);
