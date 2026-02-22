@@ -33,7 +33,10 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from database.database import Base
-from modules.geotab_database.models.geotab_database import GeotabDatabase # noqa: F401
+from modules.geotab_database.models.geotab_database import GeotabDatabase  # noqa: F401
+from modules.geotab_database.models.geotab_feed import GeotabFeed  # noqa: F401
+from modules.geotab_location.models.geotab_location import GeotabLocation  # noqa: F401
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

@@ -14,7 +14,17 @@ logger = logging.getLogger(__name__)
 
 
 def create_access_token(data: dict) -> str:
+    """Create a JWT access token from data dictionary"""
     return jwt.encode(data, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def decode_access_token(token: str) -> dict:
+    """Decode a JWT token and return the payload"""
+    try:
+        return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    except Exception as e:
+        logger.error(f"Failed to decode token: {e}")
+        raise ValueError(f"Invalid token: {str(e)}")
 
 
 async def authenticate_geotab_credentials(

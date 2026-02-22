@@ -31,5 +31,17 @@ services:
     ports:
       - "8004:8004"
     restart: unless-stopped
+  feeds:
+    build:
+      context: .
+      dockerfile: Dockerfile.feeds
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 volumes:
   pgdata:
