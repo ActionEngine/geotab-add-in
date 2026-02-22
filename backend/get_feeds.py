@@ -22,6 +22,10 @@ from modules.geotab_location.services.geotab_location import (
     get_feed_log_records,
     log_record_to_geotab_location,
 )
+from modules.geotab_status_data.services.geotab_status_data import (
+    get_feed_status_data,
+    status_data_to_geotab_status_data,
+)
 from modules.auth.services.auth import decode_access_token
 
 # Configure logging
@@ -72,7 +76,7 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                     await asyncio.sleep(poll_interval)
                     continue
             
-            # Currently only LogRecord is supported
+            # Handle different object types
             if object_type == "LogRecord":
                 # Fetch new log records using GetFeed
                 log_records, new_version = await get_feed_log_records(
@@ -112,6 +116,49 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                         feed_entry.feed_version = new_version
                         feed_entry.last_sync = datetime.utcnow()
                         await session.commit()
+            
+            elif object_type == "StatusData":
+                # Fetch new status data using GetFeed
+                status_data_list, new_version = await get_feed_status_data(
+                    username=email,
+                    password=password,
+                    database=database,
+                    server="my.geotab.com",
+                    feed_version=feed_version,
+                )
+                
+                # Insert new status data into database
+                if status_data_list:
+                    logger.info(f"Feed {feed_id} found {len(status_data_list)} new status data records")
+                    
+                    async with SessionLocal() as session:
+                        for status_data in status_data_list:
+                            try:
+                                status_data_to_geotab_status_data(
+                                    session=session,
+                                    status_data=status_data,
+                                    geotab_database_id=feed_entry.geotab_database_id,
+                                )
+                            except Exception as e:
+                                logger.warning(f"Failed to process status data {status_data.get('id')}: {e}")
+                                continue
+                        
+                        await session.commit()
+                
+                # Update feed version and last_sync
+                async with SessionLocal() as session:
+                    result = await session.execute(
+                        select(GeotabFeed).where(GeotabFeed.id == feed_id)
+                    )
+                    feed_entry = result.scalars().first()
+                    
+                    if feed_entry:
+                        feed_entry.feed_version = new_version
+                        feed_entry.last_sync = datetime.utcnow()
+                        await session.commit()
+            
+            else:
+                logger.warning(f"Unsupported object type: {object_type}")
             
             # Wait before next poll
             await asyncio.sleep(poll_interval)
