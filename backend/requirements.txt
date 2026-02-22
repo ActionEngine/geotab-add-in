@@ -9,3 +9,5 @@ python-jose[cryptography]==3.5.0
 httpx==0.28.1
 pydantic==2.12.5
 mygeotab==0.9.4
+geoalchemy2==0.15.2
+shapely==2.1.1
