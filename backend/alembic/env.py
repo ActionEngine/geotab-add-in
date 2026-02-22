@@ -21,7 +21,7 @@ database_url = os.getenv(
 # Replace asyncpg with psycopg2 for Alembic (sync driver)
 if "+asyncpg" in database_url:
     database_url = database_url.replace("+asyncpg", "")
-    
+
 # Override the sqlalchemy.url in alembic.ini with the environment variable
 config.set_main_option("sqlalchemy.url", database_url)
 
@@ -33,6 +33,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from database.database import Base
+from modules.geotab_database.models.geotab_database import GeotabDatabase # noqa: F401
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -42,39 +43,69 @@ target_metadata = Base.metadata
 
 # PostGIS and TIGER tables to ignore
 POSTGIS_TABLES = {
-    'spatial_ref_sys', 'geometry_columns', 'geography_columns',
-    'raster_columns', 'raster_overviews',
+    "spatial_ref_sys",
+    "geometry_columns",
+    "geography_columns",
+    "raster_columns",
+    "raster_overviews",
 }
 
 TIGER_TABLES = {
-    'addr', 'addrfeat', 'bg', 'county', 'county_lookup', 'countysub_lookup',
-    'cousub', 'direction_lookup', 'edges', 'faces', 'featnames',
-    'geocode_settings', 'geocode_settings_default', 'layer',
-    'loader_lookuptables', 'loader_platform', 'loader_variables',
-    'pagc_gaz', 'pagc_lex', 'pagc_rules', 'place', 'place_lookup',
-    'secondary_unit_lookup', 'state', 'state_lookup', 'street_type_lookup',
-    'tabblock', 'tabblock20', 'topology', 'tract', 'zcta5',
-    'zip_lookup', 'zip_lookup_all', 'zip_lookup_base', 'zip_state',
-    'zip_state_loc',
+    "addr",
+    "addrfeat",
+    "bg",
+    "county",
+    "county_lookup",
+    "countysub_lookup",
+    "cousub",
+    "direction_lookup",
+    "edges",
+    "faces",
+    "featnames",
+    "geocode_settings",
+    "geocode_settings_default",
+    "layer",
+    "loader_lookuptables",
+    "loader_platform",
+    "loader_variables",
+    "pagc_gaz",
+    "pagc_lex",
+    "pagc_rules",
+    "place",
+    "place_lookup",
+    "secondary_unit_lookup",
+    "state",
+    "state_lookup",
+    "street_type_lookup",
+    "tabblock",
+    "tabblock20",
+    "topology",
+    "tract",
+    "zcta5",
+    "zip_lookup",
+    "zip_lookup_all",
+    "zip_lookup_base",
+    "zip_state",
+    "zip_state_loc",
 }
 
-EXCLUDED_SCHEMAS = {'tiger', 'tiger_data', 'topology'}
+EXCLUDED_SCHEMAS = {"tiger", "tiger_data", "topology"}
 
 
 def include_object(object, name, type_, reflected, compare_to):
     """
     Filter out PostGIS and TIGER schemas/tables from migrations.
-    
+
     Returns False for objects that should be ignored by Alembic.
     """
     # Ignore objects from PostGIS-related schemas
-    if hasattr(object, 'schema') and object.schema in EXCLUDED_SCHEMAS:
+    if hasattr(object, "schema") and object.schema in EXCLUDED_SCHEMAS:
         return False
-    
+
     # Ignore PostGIS and TIGER tables in the public schema
     if type_ == "table" and name in (POSTGIS_TABLES | TIGER_TABLES):
         return False
-    
+
     return True
 
 
