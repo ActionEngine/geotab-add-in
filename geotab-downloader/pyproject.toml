@@ -12,6 +12,12 @@ dev = [
     "ruff>=0.15.2",
 ]
 
+[project.scripts]
+geotab-downloader = "geotab_downloader.__main__:run"
+
+[tool.uv]
+package = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]

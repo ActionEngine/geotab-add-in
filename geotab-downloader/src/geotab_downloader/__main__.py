@@ -1,10 +1,10 @@
-# Geotab Downloader
 import argparse
 
 from geotab_downloader.client import create_geotab_client
 from geotab_downloader.download import download_all
 
-if __name__ == "__main__":
+
+def run():
     parser = argparse.ArgumentParser(
         prog="geotab_downloader", description="Geotab Data Downloader"
     )
@@ -20,3 +20,7 @@ if __name__ == "__main__":
         password=args.password,
     )
     download_all(api)
+
+
+if __name__ == "__main__":
+    run()
