@@ -12,7 +12,7 @@ Currently supported entities:
 
 Install uv following insructions from their site: https://docs.astral.sh/uv/getting-started/installation/
 
-Run this script: `uv run -m geotab_downloader -u <username> -p <password> -d <geotab-database>`
+Run this script: `uv run geotab-downloader -u <username> -p <password> -d <geotab-database>`
 
 This will download all of the supported entities that exist in the database
 
