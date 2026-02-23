@@ -1,5 +1,5 @@
 ---
-applyTo: "geotab-downloader/**/*.py"
+applyTo: "geotab-downloader/**/*.py, backend/**/*.py"
 ---
 
 # Code Style

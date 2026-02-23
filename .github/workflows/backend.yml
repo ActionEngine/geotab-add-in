@@ -1,0 +1,17 @@
+name: backend
+run-name: ${{ github.event.head_commit.message }}
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+jobs:
+  build:
+    runs-on: ubuntu
+    steps:
+      - uses: actions/checkout@v6
+
+      # Check that backend and feed services build successfully
+      - name: build backend
+        working-directory: ./backend
+        run: docker compose -f docker-compose.yml build
