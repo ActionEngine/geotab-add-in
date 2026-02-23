@@ -1,8 +1,7 @@
 import logging
-from fastapi import HTTPException, status, Header
+from fastapi import HTTPException, Header
 from dotenv import load_dotenv
 import mygeotab
-from typing import Optional
 
 load_dotenv()
 
@@ -10,10 +9,18 @@ logger = logging.getLogger(__name__)
 
 
 async def get_current_user(
-    geotab_session_id: str = Header(..., description="Geotab session ID", alias="geotab-session-id"),
-    geotab_database: str = Header(..., description="Geotab database name", alias="geotab-database"),
-    geotab_username: str = Header(..., description="Geotab username", alias="geotab-username"),
-    geotab_server: str = Header("my.geotab.com", description="Geotab server", alias="geotab-server"),
+    geotab_session_id: str = Header(
+        ..., description="Geotab session ID", alias="geotab-session-id"
+    ),
+    geotab_database: str = Header(
+        ..., description="Geotab database name", alias="geotab-database"
+    ),
+    geotab_username: str = Header(
+        ..., description="Geotab username", alias="geotab-username"
+    ),
+    geotab_server: str = Header(
+        "my.geotab.com", description="Geotab server", alias="geotab-server"
+    ),
 ) -> dict:
     """Validate Geotab session_id and return user data from Geotab"""
 

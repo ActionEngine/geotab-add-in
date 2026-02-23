@@ -14,3 +14,14 @@ class InitDatabaseResponse(BaseModel):
     email: str
     database_name: str
     ingestion_status: str
+
+
+class DatabaseEntryResponse(BaseModel):
+    """Represents a Geotab database configuration entry for a user."""
+
+    email: str
+    database_name: str
+    ingestion_status: str
+    last_sync: str | None
+
+    model_config = ConfigDict(from_attributes=True)
