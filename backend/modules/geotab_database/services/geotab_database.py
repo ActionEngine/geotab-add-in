@@ -21,6 +21,24 @@ from database.database import SessionLocal
 logger = logging.getLogger(__name__)
 
 
+async def get_database_by_email_and_name(
+    email: str, database_name: str
+) -> GeotabDatabase | None:
+    """
+    Get Geotab database entry by user email and database name.
+    """
+
+    async with SessionLocal() as session:
+        result = await session.execute(
+            select(GeotabDatabase).where(
+                GeotabDatabase.email == email,
+                GeotabDatabase.database_name == database_name,
+            )
+        )
+
+        return result.scalars().first()
+
+
 async def add_or_replace_database(
     email: str, password: str, database: str
 ) -> GeotabDatabase:
@@ -301,12 +319,16 @@ async def ingest_status_data(
         last_date = None
         last_id = None
 
-        logger.info(f"Starting status data batch ingestion with batch_size={batch_size}")
+        logger.info(
+            f"Starting status data batch ingestion with batch_size={batch_size}"
+        )
 
         while True:
             # Fetch batch of StatusData using offset pagination
-            logger.info(f"Fetching status data batch at offset={last_date}, lastId={last_id}...")
-            
+            logger.info(
+                f"Fetching status data batch at offset={last_date}, lastId={last_id}..."
+            )
+
             sort_params = {
                 "sortBy": "date",
                 "sortDirection": "asc",
@@ -315,7 +337,7 @@ async def ingest_status_data(
                 sort_params["offset"] = last_date
             if last_id is not None:
                 sort_params["lastId"] = last_id
-            
+
             batch = api.get(
                 "StatusData",
                 search={"fromDate": from_date.isoformat()},
@@ -327,7 +349,9 @@ async def ingest_status_data(
                 logger.info(f"No more status data records at lastId {last_id}")
                 break
 
-            logger.info(f"Fetched {len(batch)} status data records, saving to database...")
+            logger.info(
+                f"Fetched {len(batch)} status data records, saving to database..."
+            )
 
             # Save batch to database immediately
             async with SessionLocal() as session:
@@ -347,7 +371,9 @@ async def ingest_status_data(
                 await session.commit()
 
             total_ingested += len(batch)
-            logger.info(f"Saved status data batch successfully. Total ingested: {total_ingested}")
+            logger.info(
+                f"Saved status data batch successfully. Total ingested: {total_ingested}"
+            )
 
             # If we got fewer results than the limit, we've reached the end
             if len(batch) < batch_size:
@@ -361,7 +387,9 @@ async def ingest_status_data(
             last_date = last_record.get("dateTime")
             last_id = last_record.get("id")
 
-        logger.info(f"Fetched and saved {total_ingested} status data records from Geotab")
+        logger.info(
+            f"Fetched and saved {total_ingested} status data records from Geotab"
+        )
 
         # Initialize GetFeed for future polling
         logger.info("Initializing GetFeed for status data polling...")
