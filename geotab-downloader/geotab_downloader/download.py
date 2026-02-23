@@ -12,20 +12,26 @@ class GeoTabEntity:
     csv_output_name: str
     expected_input_fields: Iterable[str]
     output_fields: Iterable[str]
-    
+
     @classmethod
     def validate_fields(cls, rows: list[dict]) -> None:
         for row in rows:
             for field in cls.expected_input_fields:
                 if field not in row:
-                    raise ValueError(f"Expected field '{field}' missing from {cls.__name__} row")
+                    raise ValueError(
+                        f"Expected field '{field}' missing from {cls.__name__} row"
+                    )
 
     @classmethod
     @contextlib.contextmanager
-    def open_csv_for_write(cls, base_dir: pathlib.PurePath, write_header: bool = True) -> Iterable[csv.DictWriter]:
+    def open_csv_for_write(
+        cls, base_dir: pathlib.PurePath, write_header: bool = True
+    ) -> Iterable[csv.DictWriter]:
         path = base_dir / cls.csv_output_name
         with open(path, "w", newline="") as buffer:
-            writer = csv.DictWriter(buffer, fieldnames=cls.output_fields, extrasaction="ignore")
+            writer = csv.DictWriter(
+                buffer, fieldnames=cls.output_fields, extrasaction="ignore"
+            )
             if write_header:
                 writer.writeheader()
             yield writer
@@ -41,29 +47,62 @@ class Device(GeoTabEntity):
 @dataclasses.dataclass(frozen=True)
 class LogRecord(GeoTabEntity):
     csv_output_name: str = "logrecord.csv"
-    expected_input_fields: Iterable[str] = ("id", "dateTime", "speed", "latitude", "longitude")
-    output_fields: Iterable[str] = ("device_id", "id", "dateTime", "speed", "latitude", "longitude")
+    expected_input_fields: Iterable[str] = (
+        "id",
+        "dateTime",
+        "speed",
+        "latitude",
+        "longitude",
+    )
+    output_fields: Iterable[str] = (
+        "device_id",
+        "id",
+        "dateTime",
+        "speed",
+        "latitude",
+        "longitude",
+    )
 
 
 @dataclasses.dataclass(frozen=True)
 class StatusData(GeoTabEntity):
     csv_output_name: str = "statusdata.csv"
     expected_input_fields: Iterable[str] = ("id", "dateTime", "data", "diagnostic")
-    output_fields: Iterable[str] = ("device_id", "diagnostic_id", "id", "dateTime", "data")
+    output_fields: Iterable[str] = (
+        "device_id",
+        "diagnostic_id",
+        "id",
+        "dateTime",
+        "data",
+    )
 
 
 @dataclasses.dataclass(frozen=True)
 class Trip(GeoTabEntity):
     csv_output_name: str = "trip.csv"
     expected_input_fields: Iterable[str] = ("id", "start", "stop", "distance")
-    output_fields: Iterable[str] = ("device_id", "id", "start", "stop", "distance", "drivingDuration", "stopDuration")
+    output_fields: Iterable[str] = (
+        "device_id",
+        "id",
+        "start",
+        "stop",
+        "distance",
+        "drivingDuration",
+        "stopDuration",
+    )
 
 
 @dataclasses.dataclass(frozen=True)
 class Diagnostic(GeoTabEntity):
     csv_output_name: str = "diagnostic.csv"
     expected_input_fields: Iterable[str] = ("id", "name", "diagnosticType", "source")
-    output_fields: Iterable[str] = ("id", "name", "diagnosticType", "source", "unitOfMeasure")
+    output_fields: Iterable[str] = (
+        "id",
+        "name",
+        "diagnosticType",
+        "source",
+        "unitOfMeasure",
+    )
 
 
 def fetch_diagnostics_by_ids(api, diagnostic_ids: set[str]) -> list[dict]:
@@ -71,15 +110,15 @@ def fetch_diagnostics_by_ids(api, diagnostic_ids: set[str]) -> list[dict]:
     for diag_id in diagnostic_ids:
         response = api.get("Diagnostic", id=diag_id)
         if not isinstance(response, list) or len(response) != 1:
-            raise ValueError(f"Expected exactly 1 diagnostic with id {diag_id}, got {response}")
+            raise ValueError(
+                f"Expected exactly 1 diagnostic with id {diag_id}, got {response}"
+            )
         diagnostics.append(response[0])
     return diagnostics
 
 
 def download_all(
-    api,
-    *,
-    output_dir: pathlib.Path = pathlib.Path("geotab_db_data")
+    api, *, output_dir: pathlib.Path = pathlib.Path("geotab_db_data")
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -89,11 +128,13 @@ def download_all(
         writer.writerows(devices)
 
     utilized_diagnostics = set()
-    
+
     with contextlib.ExitStack() as stack:
         trips_writer = stack.enter_context(Trip.open_csv_for_write(output_dir))
         statuses_writer = stack.enter_context(StatusData.open_csv_for_write(output_dir))
-        log_records_writer = stack.enter_context(LogRecord.open_csv_for_write(output_dir))
+        log_records_writer = stack.enter_context(
+            LogRecord.open_csv_for_write(output_dir)
+        )
 
         for device in devices:
             device_id = device["id"]
@@ -118,7 +159,7 @@ def download_all(
             for trip in trips:
                 trip["device_id"] = device_id
             trips_writer.writerows(trips)
-    
+
     if utilized_diagnostics:
         diagnostics = fetch_diagnostics_by_ids(api, utilized_diagnostics)
         Diagnostic.validate_fields(diagnostics)
