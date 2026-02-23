@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
-from backend.database.database import Base
+from database.database import Base
 
 
 class GeotabDiagnostic(Base):
@@ -11,7 +11,6 @@ class GeotabDiagnostic(Base):
         Integer, ForeignKey("geotab_database.id"), nullable=False, index=True
     )
 
-    diagnostic_id = Column(Integer, nullable=False, index=True)
     name = Column(String, nullable=False)
     unit_of_measure = Column(String, nullable=True)
     diagnostic_type = Column(String, nullable=False)
