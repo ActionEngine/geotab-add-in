@@ -13,7 +13,7 @@ from modules.geotab_database.dependencies.geotab_database import (
 router = APIRouter(prefix="/database", tags=["database"])
 
 
-@router.post("/init", response_model=InitDatabaseResponse)
+@router.post("/", response_model=InitDatabaseResponse)
 async def init_database(
     request: InitDatabaseRequest,
     current_user: dict = Depends(get_current_user),
@@ -28,7 +28,7 @@ async def init_database(
     return await init_database_impl(request, current_user)
 
 
-@router.get("/database", response_model=DatabaseEntryResponse)
+@router.get("/", response_model=DatabaseEntryResponse)
 async def get_database(
     current_user: dict = Depends(get_current_user),
 ) -> DatabaseEntryResponse:
