@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from modules.auth.dependencies.auth import get_current_user
 from modules.geotab_database.schemas.geotab_database import (
     DatabaseEntryResponse,
@@ -28,12 +28,10 @@ async def init_database(
     return await init_database_impl(request, current_user)
 
 
-@router.get("/get_database", response_model=DatabaseEntryResponse)
+@router.get("/database", response_model=DatabaseEntryResponse)
 async def get_database(
     current_user: dict = Depends(get_current_user),
 ) -> DatabaseEntryResponse:
-    """
-    Retrieve the Geotab database configuration for the authenticated user.
-    """
+    """Retrieve the Geotab database configuration for the authenticated user."""
 
     return await get_database_impl(current_user)
