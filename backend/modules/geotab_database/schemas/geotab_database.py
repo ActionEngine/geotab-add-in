@@ -23,5 +23,6 @@ class DatabaseEntryResponse(BaseModel):
     database_name: str
     ingestion_status: str
     last_sync: str | None
+    stats: dict
 
     model_config = ConfigDict(from_attributes=True)

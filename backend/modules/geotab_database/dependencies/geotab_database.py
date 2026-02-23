@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from modules.geotab_database.services.geotab_database import (
     add_or_replace_database,
     get_database_by_email_and_name,
+    get_database_statistics,
 )
 from modules.geotab_database.schemas.geotab_database import (
     InitDatabaseRequest,
@@ -62,9 +63,22 @@ async def get_database_impl(current_user: dict) -> DatabaseEntryResponse:
             detail=f"No database configuration found for user {email} and database {database_name}",
         )
 
+    # Get statistics
+    stats_data = await get_database_statistics(db_entry.id)
+
     return DatabaseEntryResponse(
         email=db_entry.email,
         database_name=db_entry.database_name,
         ingestion_status=db_entry.ingestion_status.value,
         last_sync=db_entry.last_sync.isoformat() if db_entry.last_sync else None,
+        stats={
+            "device_count": stats_data["device_count"],
+            "location_rows": stats_data["location_rows"],
+            "status_data_rows": stats_data["status_data_rows"],
+            "actual_last_sync": (
+                stats_data["actual_last_sync"].isoformat()
+                if stats_data["actual_last_sync"]
+                else None
+            ),
+        },
     )
