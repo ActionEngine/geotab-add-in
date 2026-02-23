@@ -36,7 +36,12 @@ from database.database import Base
 from modules.geotab_database.models.geotab_database import GeotabDatabase  # noqa: F401
 from modules.geotab_database.models.geotab_feed import GeotabFeed  # noqa: F401
 from modules.geotab_location.models.geotab_location import GeotabLocation  # noqa: F401
-from modules.geotab_status_data.models.geotab_status_data import GeotabStatusData  # noqa: F401
+from modules.geotab_status_data.models.geotab_status_data import (
+    GeotabStatusData,
+)  # noqa: F401
+from modules.overture_segments.models.overture_segments import (
+    OvertureSegments,
+)  # noqa: F401
 
 target_metadata = Base.metadata
 
