@@ -18,6 +18,7 @@ from modules.geotab_status_data.services.geotab_status_data import (
     get_feed_status_data,
     status_data_to_geotab_status_data,
 )
+from modules.overture_segments.services.overture_segments import ingest_overture_segments
 from database.database import SessionLocal
 
 logger = logging.getLogger(__name__)
@@ -321,6 +322,10 @@ async def ingest_log_records(
             f"Successfully ingested {total_ingested} log records "
             f"for database_id={geotab_database_id}"
         )
+
+        # Ingest Overture segments after log records are done
+        logger.info(f"Starting Overture segments ingestion for database_id={geotab_database_id}")
+        await ingest_overture_segments(geotab_database_id)
 
     except Exception as e:
         logger.error(f"Error during log record ingestion: {e}")
