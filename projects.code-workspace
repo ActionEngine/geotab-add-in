@@ -1,0 +1,27 @@
+{
+  "folders": [
+    {
+      "name": "--- REPO ROOT ---",
+      "path": "."
+    },
+    {
+      "name": "add-in",
+      "path": "add-in"
+    },
+    {
+      "name": "backend",
+      "path": "backend"
+    },
+    {
+      "name": "geotab-downloader",
+      "path": "geotab-downloader"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "add-in": true,
+      "backend": true,
+      "geotab-downloader": true
+    }
+  }
+}

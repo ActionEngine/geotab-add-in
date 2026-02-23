@@ -15,9 +15,6 @@ target/
 .scala-build
 scala-cli.json
 
-# VSCode
-.vscode
-
 # Output folders
 **/output/*
 
