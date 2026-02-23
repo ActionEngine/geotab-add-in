@@ -8,8 +8,14 @@
   },
   "dependencies": {
     "@geotab/zenith": "^3.5.0",
+    "@tanstack/react-query": "^5.90.21",
+    "@types/mg-api-js": "^2.1.0",
+    "@types/node": "^25.3.0",
+    "maplibre-gl": "^5.18.0",
+    "mg-api-js": "^3.0.0",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "react-map-gl": "^8.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
