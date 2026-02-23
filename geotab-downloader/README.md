@@ -2,11 +2,19 @@
 
 This tool downloads the GeoTab entities and saves them locally as csv files.
 
+Currently supported entities:
+- Device
+- StatusData
+- LogRecord
+- Diagnostic
+
 ## Usage
 
 Install uv following insructions from their site: https://docs.astral.sh/uv/getting-started/installation/
 
 Run this script: `uv run -m geotab_downloader -u <username> -p <password> -d <geotab-database>`
+
+This will download all of the supported entities that exist in the database
 
 ## Dependency management
 
