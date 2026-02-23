@@ -1,17 +1,22 @@
 import { useRef, useMemo } from "react";
 import Map, { MapRef, Marker } from "react-map-gl/maplibre";
-import { getAllVehicleStatusInfo } from "@/api/vehicle";
 import { useFetch } from "@/hooks/useFetch";
 import VehicleIcon from "@/image/vehicle-icon";
+import { VehicleStatusInfo } from "@/types/vehicle";
+import { callAsync } from "@/utils/geotabApi";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-const GeotabMap = () => {
+interface GeotabMapProps {
+  api: GeotabApi;
+}
+
+const GeotabMap = ({ api }: GeotabMapProps) => {
   const mapRef = useRef<MapRef>(null);
 
-  const data = useFetch({
-    fn: getAllVehicleStatusInfo,
+  const data = useFetch<VehicleStatusInfo[]>({
+    fn: () => callAsync(api, "Get", { typeName: "DeviceStatusInfo" }),
     key: "all-vehicle-status-info",
-    refetchInterval: 15 * 1000,
+    refetchInterval: 5 * 1000,
   });
 
   const vehicles = useMemo(() => data?.data ?? [], [data]);

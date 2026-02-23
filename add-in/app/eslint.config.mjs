@@ -21,7 +21,11 @@ export default [
       eqeqeq: "error",
       "no-console": ["error", { allow: ["warn", "error"] }],
       "dot-notation": "error",
-      "no-unused-vars": "error",
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { args: "after-used", vars: "all", ignoreRestSiblings: true },
+      ],
       "import/order": "off",
       "simple-import-sort/imports": "off",
       "sort-imports": "off",
