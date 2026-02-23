@@ -1,0 +1,17 @@
+{
+  "name": "Aspen Add-In",
+  "supportEmail": "victor.belomestnov@actionengine.com",
+  "version": "1.0.0",
+  "items": [
+    {
+      "page": "Aspen DQ",
+      "url": "https://main.d14o3o9kbo1n4h.amplifyapp.com",
+      "path": "",
+      "menuName": {
+        "en": "Aspen DQ"
+      },
+      "icon": "https://main.d14o3o9kbo1n4h.amplifyapp.com/public/favicon.ico"
+    }
+  ],
+  "isSigned": false
+}

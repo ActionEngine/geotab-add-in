@@ -1,0 +1,13 @@
+fastapi==0.129.0
+uvicorn[standard]==0.41.0
+asyncpg==0.31.0
+psycopg2-binary==2.9.10
+sqlalchemy==2.0.46
+alembic==1.18.4
+python-dotenv==1.2.1
+python-jose[cryptography]==3.5.0
+httpx==0.28.1
+pydantic==2.12.5
+mygeotab==0.9.4
+geoalchemy2==0.15.2
+shapely==2.1.1

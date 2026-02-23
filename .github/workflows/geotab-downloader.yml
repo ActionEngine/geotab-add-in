@@ -1,0 +1,27 @@
+name: geotab-downloader-quality
+run-name: ${{ github.event.head_commit.message }}
+on:
+  pull_request:
+    paths:
+      - "geotab-add-in/geotab-downloader/**"
+      - ".github/workflows/geotab-downloader.yml"
+jobs:
+  test-downloader:
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Check lockfile is up to date
+        working-directory: ./geotab-downloader
+        run: uv lock --check
+
+      - name: Install dependencies, including dev
+        working-directory: ./geotab-downloader
+        run: uv sync
+
+      - name: Run unit tests
+        working-directory: ./geotab-downloader
+        run: uv run pytest
