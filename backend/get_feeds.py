@@ -10,6 +10,8 @@ import asyncio
 import os
 import sys
 from datetime import datetime
+
+import mygeotab
 from sqlalchemy import select
 
 # Add the backend directory to the path
@@ -28,12 +30,29 @@ from modules.geotab_status_data.services.geotab_status_data import (
 )
 from modules.auth.services.auth import decode_access_token
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+
+
+# class GeoTabEntityIngestion:
+#     def fetch_from_api(self) -> list[dict]:
+#         """Fetch log records from Geotab API."""
+    
+#     def ensure_expected_fields_present(self, geotab_objects: list[dict]) -> None:
+#         """Validate log records against expected schema."""
+    
+#     def transform(self, geotab_objects: list[dict]) -> list[dict]:
+#         """Transform log records into GeotabLocation database entries."""
+    
+#     def save(self, geotab_objects: list[dict]) -> None:
+#         """Save GeotabLocation entries to the database."""
+    
+#     def update_feed_version(self, feed_id: int, new_version: str) -> None:
+#         """Update the feed version in the database after successful ingestion."""
 
 
 async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
@@ -45,7 +64,7 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
         poll_interval: Seconds between polls (default: 30)
     """
     logger.info(f"Starting polling for feed_id={feed_id}")
-    
+
     while True:
         try:
             # Get feed entry and associated database
@@ -75,15 +94,18 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                     logger.error(f"Invalid credentials for feed {feed_id}")
                     await asyncio.sleep(poll_interval)
                     continue
-            
+
+            api = mygeotab.API(
+                username=email,
+                password=password,
+                database=database,
+            )
+
             # Handle different object types
             if object_type == "LogRecord":
                 # Fetch new log records using GetFeed
                 log_records, new_version = await get_feed_log_records(
-                    username=email,
-                    password=password,
-                    database=database,
-                    server="my.geotab.com",
+                    api,
                     feed_version=feed_version,
                 )
                 
@@ -120,10 +142,7 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
             elif object_type == "StatusData":
                 # Fetch new status data using GetFeed
                 status_data_list, new_version = await get_feed_status_data(
-                    username=email,
-                    password=password,
-                    database=database,
-                    server="my.geotab.com",
+                    api,
                     feed_version=feed_version,
                 )
                 
@@ -145,6 +164,8 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                         
                         await session.commit()
                 
+                # diagnostic_ids = set(sd["diagnostic"]["id"] for sd in status_data_list)
+
                 # Update feed version and last_sync
                 async with SessionLocal() as session:
                     result = await session.execute(
@@ -186,7 +207,7 @@ async def discover_and_poll_feeds(poll_interval: int = 30) -> None:
             async with SessionLocal() as session:
                 result = await session.execute(select(GeotabFeed))
                 feeds = result.scalars().all()
-            
+
             current_feed_ids = {feed.id for feed in feeds}
             
             # Start tasks for new feeds
@@ -230,9 +251,6 @@ async def main():
         await discover_and_poll_feeds()
     except KeyboardInterrupt:
         logger.info("Service stopped by user")
-    except Exception as e:
-        logger.error(f"Service failed: {e}", exc_info=True)
-        raise
 
 
 if __name__ == "__main__":

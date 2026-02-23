@@ -9,7 +9,6 @@ class GeotabStatusData(Base):
     device_id = Column(String, nullable=False, index=True)
     external_id = Column(String, nullable=False, index=True)
     data = Column(Float, nullable=True)
-    diagnostic_name = Column(String, nullable=True, index=True)
-    diagnostic_unit_of_measure = Column(String, nullable=True)
+    diagnostic_id = Column(String, nullable=False, index=True)
     version = Column(String, nullable=True)
     geotab_database_id = Column(Integer, ForeignKey('geotab_database.id'), nullable=False, index=True)

@@ -88,10 +88,7 @@ def log_record_to_geotab_location(
 
 
 async def get_log_records(
-    username: str,
-    password: str,
-    database: str,
-    server: str = "my.geotab.com",
+    api: mygeotab.API,
     device_ids: Optional[List[str]] = None,
     from_date: Optional[datetime] = None,
     to_date: Optional[datetime] = None,
@@ -101,10 +98,7 @@ async def get_log_records(
     Fetch LogRecords from Geotab API with automatic pagination.
     
     Args:
-        username: Geotab username/email
-        password: Geotab password or session_id
-        database: Geotab database name
-        server: Geotab server (default: my.geotab.com)
+        api: Instance of mygeotab.API
         device_ids: Optional list of device IDs to filter by
         from_date: Optional start date for log records
         to_date: Optional end date for log records
@@ -115,32 +109,23 @@ async def get_log_records(
         
     Example usage:
         log_records = await get_log_records(
-            username="user@example.com",
-            password="password",
-            database="database_name",
+            api=mygeotab.API(
+                username="user@example.com",
+                password="password",
+                database="database_name"
+            ),
             device_ids=["b1234567890"],
             from_date=datetime(2026, 2, 1),
             to_date=datetime(2026, 2, 22)
         )
     """
     logger.info(
-        f"Fetching LogRecords from Geotab: database={database}, "
+        f"Fetching LogRecords from Geotab: database={api.credentials.database}, "
         f"devices={len(device_ids) if device_ids else 'all'}, "
         f"from_date={from_date}, to_date={to_date}"
     )
     
-    try:
-        # Create Geotab API instance
-        api = mygeotab.API(
-            username=username,
-            password=password,
-            database=database,
-            server=server,
-        )
-        
-        # Authenticate
-        api.authenticate()
-        
+    try:                
         # Build search criteria
         search = {}
         
@@ -200,20 +185,14 @@ async def get_log_records(
 
 
 async def get_feed_log_records(
-    username: str,
-    password: str,
-    database: str,
-    server: str = "my.geotab.com",
+    api: mygeotab.API,
     feed_version: Optional[str] = None,
 ) -> tuple[List[dict], str]:
     """
     Fetch incremental LogRecords using GetFeed from Geotab API.
     
     Args:
-        username: Geotab username/email
-        password: Geotab password or session_id
-        database: Geotab database name
-        server: Geotab server (default: my.geotab.com)
+        api: Instance of mygeotab.API
         feed_version: Optional feed version token from previous call
     
     Returns:
@@ -221,29 +200,20 @@ async def get_feed_log_records(
         
     Example usage:
         log_records, new_version = await get_feed_log_records(
-            username="user@example.com",
-            password="password",
-            database="database_name",
+            api=mygeotab.API(
+                username="user@example.com",
+                password="password",
+                database="database_name"
+            ),
             feed_version="abc123"
         )
     """
     logger.info(
-        f"Fetching LogRecords feed from Geotab: database={database}, "
+        f"Fetching LogRecords feed from Geotab: database={api.credentials.database}, "
         f"feed_version={'initial' if not feed_version else feed_version[:20]}"
     )
     
-    try:
-        # Create Geotab API instance
-        api = mygeotab.API(
-            username=username,
-            password=password,
-            database=database,
-            server=server,
-        )
-        
-        # Authenticate
-        api.authenticate()
-        
+    try:        
         # Build GetFeed parameters
         params = {
             "typeName": "LogRecord",
