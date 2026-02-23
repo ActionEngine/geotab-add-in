@@ -23,20 +23,6 @@ class DatabaseEntryResponse(BaseModel):
     database_name: str
     ingestion_status: str
     last_sync: str | None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class DatabaseDetailsResponse(BaseModel):
-    """Detailed information about a Geotab database configuration."""
-
-    email: str
-    database_name: str
-    ingestion_status: str
-    last_sync: str | None
-    device_count: int
-    location_rows: int
-    status_data_rows: int
-    actual_last_sync: str | None
+    stats: dict
 
     model_config = ConfigDict(from_attributes=True)

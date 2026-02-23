@@ -9,7 +9,6 @@ from modules.geotab_database.schemas.geotab_database import (
     InitDatabaseRequest,
     InitDatabaseResponse,
     DatabaseEntryResponse,
-    DatabaseDetailsResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -64,46 +63,22 @@ async def get_database_impl(current_user: dict) -> DatabaseEntryResponse:
             detail=f"No database configuration found for user {email} and database {database_name}",
         )
 
+    # Get statistics
+    stats_data = await get_database_statistics(db_entry.id)
+
     return DatabaseEntryResponse(
         email=db_entry.email,
         database_name=db_entry.database_name,
         ingestion_status=db_entry.ingestion_status.value,
         last_sync=db_entry.last_sync.isoformat() if db_entry.last_sync else None,
-    )
-
-
-async def get_database_details_impl(current_user: dict) -> DatabaseDetailsResponse:
-    """
-    Get detailed information about the Geotab database configuration for the authenticated user.
-
-    This function retrieves additional details about the user's database configuration,
-    such as device count, location rows, status data rows, and the actual last synchronization time.
-    """
-
-    email, database_name = current_user["email"], current_user["database"]
-
-    logger.info(f"Fetching database details for user={email}, database={database_name}")
-
-    db_entry = await get_database_by_email_and_name(email, database_name)
-
-    if not db_entry:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No database configuration found for user {email} and database {database_name}",
-        )
-
-    # Get statistics
-    stats = await get_database_statistics(db_entry.id)
-
-    return DatabaseDetailsResponse(
-        email=db_entry.email,
-        database_name=db_entry.database_name,
-        ingestion_status=db_entry.ingestion_status.value,
-        last_sync=db_entry.last_sync.isoformat() if db_entry.last_sync else None,
-        device_count=stats["device_count"],
-        location_rows=stats["location_rows"],
-        status_data_rows=stats["status_data_rows"],
-        actual_last_sync=(
-            stats["actual_last_sync"].isoformat() if stats["actual_last_sync"] else None
-        ),
+        stats={
+            "device_count": stats_data["device_count"],
+            "location_rows": stats_data["location_rows"],
+            "status_data_rows": stats_data["status_data_rows"],
+            "actual_last_sync": (
+                stats_data["actual_last_sync"].isoformat()
+                if stats_data["actual_last_sync"]
+                else None
+            ),
+        },
     )
