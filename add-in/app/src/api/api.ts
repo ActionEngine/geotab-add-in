@@ -1,6 +1,6 @@
 import GeotabApi from "mg-api-js";
 
-const user = import.meta.env.VITE_GEOTAB_USER as string;
+const user = import.meta.env.VITE_GEOTAB_EMAIL as string;
 const database = import.meta.env.VITE_GEOTAB_DATABASE as string;
 const password = import.meta.env.VITE_GEOTAB_PASSWORD as string;
 

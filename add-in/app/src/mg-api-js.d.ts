@@ -20,7 +20,7 @@ declare module "mg-api-js" {
     fullResponse?: boolean;
   }
 
-  interface GeotabSession {
+  export interface GeotabSession {
     credentials: GeotabCredentials;
     path: string;
   }
