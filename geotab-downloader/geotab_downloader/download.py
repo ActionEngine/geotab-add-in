@@ -1,7 +1,7 @@
-import csv
-import pathlib
 import contextlib
+import csv
 import dataclasses
+import pathlib
 from typing import Iterable
 
 from geotab_downloader.client import create_geotab_client

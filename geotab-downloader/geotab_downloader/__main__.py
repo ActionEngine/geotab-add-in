@@ -4,7 +4,6 @@ import argparse
 from geotab_downloader.client import create_geotab_client
 from geotab_downloader.download import download_all
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="geotab_downloader", description="Geotab Data Downloader"

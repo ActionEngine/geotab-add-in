@@ -5,8 +5,8 @@ import pytest
 
 from geotab_downloader.download import (
     GeoTabEntity,
-    fetch_diagnostics_by_ids,
     download_all,
+    fetch_diagnostics_by_ids,
 )
 
 
