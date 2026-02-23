@@ -1,12 +1,26 @@
+import { useState } from "react";
+import { AuthInitialState } from "@/types/auth";
 import { Button, FormGroup, TextInput } from "@geotab/zenith";
 import "./auth-dialog.css";
 
 interface AuthDialogProps {
   open: boolean;
+  onSubmit?: (initState: AuthInitialState) => void;
 }
 
-const AuthDialog = ({ open }: AuthDialogProps) => {
+const AuthDialog = ({ open, onSubmit }: AuthDialogProps) => {
+  const [userName, setUserName] = useState("");
+  const [database, setDatabase] = useState("");
+  const [password, setPassword] = useState("");
   if (!open) return null;
+
+  const handleSubmit = () => {
+    onSubmit?.({
+      user_name: userName,
+      database_name: database,
+      password,
+    });
+  };
 
   return (
     <div className="dialog-container">
@@ -14,32 +28,35 @@ const AuthDialog = ({ open }: AuthDialogProps) => {
         <div className="dialog-content">
           <FormGroup>
             <TextInput
-              id="name"
-              value={"name"}
-              onChange={() => {}}
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
               label="User name"
             />
           </FormGroup>
           <FormGroup>
             <TextInput
-              id="db"
-              value={"db"}
-              onChange={() => {}}
+              value={database}
+              onChange={(e) => setDatabase(e.target.value)}
               label="Database"
             />
           </FormGroup>
           <FormGroup>
             <TextInput
-              id="password"
-              value={"password"}
-              onChange={() => {}}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               label="Password"
               type="password"
             />
           </FormGroup>
         </div>
         <div className="dialog-footer">
-          <Button type="primary">Initialize</Button>
+          <Button
+            disabled={!userName || !database || !password}
+            type="primary"
+            onClick={handleSubmit}
+          >
+            Initialize
+          </Button>
         </div>
       </div>
     </div>

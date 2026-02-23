@@ -39,7 +39,7 @@ if (isLocalDevelopment) {
         callback();
       },
 
-      // eslint-disable-next-line no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       focus: function (api: any, _state: any) {
         const container = document.getElementById("root");
         if (container) {
