@@ -1,0 +1,48 @@
+[project]
+name = "geotab-downloader"
+version = "0.1.0"
+requires-python = "==3.13.*"
+dependencies = [
+    "mygeotab==0.9.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "ruff>=0.15.2",
+]
+
+[project.scripts]
+geotab-downloader = "geotab_downloader.__main__:run"
+
+[tool.uv]
+package = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = [
+    "-v",                    # verbose output
+    "--strict-markers",      # error on undefined markers
+    "--tb=short",           # shorter traceback format
+    "-ra",                  # show summary of all test outcomes
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "SIM",    # flake8-simplify
+]
+ignore = [
+
+]
