@@ -15,13 +15,13 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Check lockfile is up to date
-        working-directory: ./geotab-add-in/geotab-downloader
+        working-directory: ./geotab-downloader
         run: uv lock --check
 
       - name: Install dependencies, including dev
-        working-directory: ./geotab-add-in/geotab-downloader
+        working-directory: ./geotab-downloader
         run: uv sync
 
       - name: Run unit tests
-        working-directory: ./geotab-add-in/geotab-downloader
+        working-directory: ./geotab-downloader
         run: uv run pytest
