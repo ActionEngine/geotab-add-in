@@ -2,11 +2,13 @@ import logging
 import asyncio
 import os
 from datetime import datetime, timedelta
-from sqlalchemy import select
+from sqlalchemy import select, func, distinct
 import mygeotab
 from modules.geotab_database.enums import IngestionStatus
 from modules.geotab_database.models.geotab_database import GeotabDatabase
 from modules.geotab_database.models.geotab_feed import GeotabFeed
+from modules.geotab_location.models.geotab_location import GeotabLocation
+from modules.geotab_status_data.models.geotab_status_data import GeotabStatusData
 from modules.auth.services.auth import create_access_token
 from modules.geotab_location.services.geotab_location import (
     get_feed_log_records,
@@ -37,6 +39,69 @@ async def get_database_by_email_and_name(
         )
 
         return result.scalars().first()
+
+
+async def get_database_statistics(geotab_database_id: int) -> dict:
+    """
+    Get statistics for a Geotab database: device count, location rows, status data rows,
+    and actual last sync time from the data.
+    """
+
+    async with SessionLocal() as session:
+        # Count unique devices from locations
+        device_count_result = await session.execute(
+            select(func.count(distinct(GeotabLocation.device_id))).where(
+                GeotabLocation.geotab_database_id == geotab_database_id
+            )
+        )
+        device_count = device_count_result.scalar() or 0
+
+        # Count location rows
+        location_count_result = await session.execute(
+            select(func.count(GeotabLocation.id)).where(
+                GeotabLocation.geotab_database_id == geotab_database_id
+            )
+        )
+        location_rows = location_count_result.scalar() or 0
+
+        # Count status data rows
+        status_data_count_result = await session.execute(
+            select(func.count(GeotabStatusData.id)).where(
+                GeotabStatusData.geotab_database_id == geotab_database_id
+            )
+        )
+        status_data_rows = status_data_count_result.scalar() or 0
+
+        # Get actual last sync time from both tables
+        max_location_time_result = await session.execute(
+            select(func.max(GeotabLocation.datetime)).where(
+                GeotabLocation.geotab_database_id == geotab_database_id
+            )
+        )
+        max_location_time = max_location_time_result.scalar()
+
+        max_status_time_result = await session.execute(
+            select(func.max(GeotabStatusData.datetime)).where(
+                GeotabStatusData.geotab_database_id == geotab_database_id
+            )
+        )
+        max_status_time = max_status_time_result.scalar()
+
+        # Determine the actual last sync time
+        actual_last_sync = None
+        if max_location_time and max_status_time:
+            actual_last_sync = max(max_location_time, max_status_time)
+        elif max_location_time:
+            actual_last_sync = max_location_time
+        elif max_status_time:
+            actual_last_sync = max_status_time
+
+        return {
+            "device_count": device_count,
+            "location_rows": location_rows,
+            "status_data_rows": status_data_rows,
+            "actual_last_sync": actual_last_sync,
+        }
 
 
 async def add_or_replace_database(
