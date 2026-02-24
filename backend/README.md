@@ -66,6 +66,9 @@ docker compose run --rm backend alembic downgrade base
 
 # View migration history
 docker compose run --rm backend alembic history
+
+# Autogenerate a new migration
+docker compose run -u $(id -u):$(id -g) --rm backend alembic revision --autogenerate -m "<Your migration message>"
 ```
 
 ### 6. Run the Backend Server for debug (Optional)

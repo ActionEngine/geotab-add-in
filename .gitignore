@@ -5,9 +5,21 @@
  
 # Mac
 .DS_Store
+ 
+# Maven
+log/
+target/
+
+# Metals
+.metals
+.scala-build
+scala-cli.json
 
 # Output folders
 **/output/*
+
+# Scala & sbt
+.bsp
 
 # Jupiter Notebooks
 *ipynb_checkpoints
@@ -29,3 +41,13 @@ venv.bak/
 
 # Pytest
 .coverage
+
+# Dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions

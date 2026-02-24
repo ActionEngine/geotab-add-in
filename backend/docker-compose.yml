@@ -31,6 +31,16 @@ services:
     ports:
       - "8004:8004"
     restart: unless-stopped
+  run-db-migrations:
+    build:
+      context: .
+    command: alembic upgrade head
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: no
   feeds:
     build:
       context: .
