@@ -1,0 +1,36 @@
+**Introduction**
+
+The set of[WorkTimeDetail](../WorkTimeDetail/index.md)(s) defining periods during the week that are considered as part of regular working hours. Work times that apply to all times are represented by "WorkTimeAllHoursId".
+
+**Properties**
+
+## Comment
+
+Free text field where any user information can be stored and referenced for this entity. Default [""].
+
+## Details
+
+The list of[WorkTimeDetail](../WorkTimeDetail/index.md)(s).
+
+## HolidayGroup
+
+The[WorkTimeHolidayGroupId](../WorkTimeHolidayGroupId/index.md).
+
+## Id
+
+The unique identifier for the specific[Entity](../Entity/index.md)object in the Geotab system. See[Id](../Id/index.md).
+
+## Name
+
+The name of this entity which identifies it and is used when displaying this entity. Maximum length [50].
+
+**Rate limits**
+
+| Method | Description | Limit | Period | Status |
+| --- | --- | --- | --- | --- |
+
+| Get | Limit of 100 Get requests per 1m. | 100 | 1m | Active |
+| Set | Limit of 100 Set requests per 1m. | 100 | 1m | Active |
+| Add | Limit of 100 Add requests per 1m. | 100 | 1m | Active |
+| Remove | Limit of 100 Remove requests per 1m. | 100 | 1m | Active |
+| GetCountOf | Limit of 100 GetCountOf requests per 1m. | 100 | 1m | Active |
