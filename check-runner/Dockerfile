@@ -2,9 +2,8 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# Install psycopg2 dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
+# psycopg2 dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies

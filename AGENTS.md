@@ -13,73 +13,7 @@ This is a monorepo containing multiple components for a Geotab add-in applicatio
 └── .github/             # GitHub Actions workflows
 ```
 
-## Subproject 1: Geotab Downloader (CLI Tool)
-
-**Location:** `geotab-downloader/`
-
-A Python CLI tool that downloads Geotab entities and saves them locally as CSV files.
-
-### Technology Stack
-- **Python:** 3.13 (strictly required)
-- **Package Manager:** uv (modern Python package manager)
-- **Key Dependencies:**
-  - `mygeotab==0.9.4` - Geotab API client
-  - `pytest>=9.0.2` - Testing framework
-  - `ruff>=0.15.2` - Linting and code formatting
-
-### Build Commands
-```bash
-cd geotab-downloader
-
-# Install dependencies
-uv sync
-
-# Run the CLI tool
-uv run geotab-downloader -u <username> -p <password> -d <database>
-
-# Run tests
-uv run pytest
-
-# Linting
-uv run ruff check .
-uv run ruff format .
-
-# Check lockfile is up to date
-uv lock --check
-```
-
-### Code Organization
-```
-geotab-downloader/
-├── src/geotab_downloader/
-│   ├── __init__.py      # Package init
-│   ├── __main__.py      # CLI entry point
-│   ├── client.py        # Geotab API client creation
-│   └── download.py      # Entity download logic
-├── tests/
-│   ├── test_client.py   # Client tests
-│   └── test_download.py # Download logic tests
-├── pyproject.toml       # Project config, dependencies, pytest, ruff
-└── uv.lock             # Locked dependency versions
-```
-
-### Supported Entities
-The CLI downloads these Geotab entities to CSV:
-- `Device` → `device.csv`
-- `LogRecord` → `logrecord.csv`
-- `StatusData` → `statusdata.csv`
-- `Trip` → `trip.csv`
-- `Diagnostic` → `diagnostic.csv`
-
-### Configuration
-- Configuration file: `pyproject.toml`
-- Environment variables: `.env` file (see `.env.example`)
-- Line length: 88 characters (ruff)
-- Test discovery: `tests/` directory
-
----
-
-## Subproject 2: Backend (FastAPI)
+## Subproject 1: Backend (FastAPI)
 
 **Location:** `backend/`
 
@@ -175,7 +109,7 @@ Copy `.env.example` to `.env` and configure:
 
 ---
 
-## Subproject 3: Add-in (React Frontend)
+## Subproject 2: Add-in (React Frontend)
 
 **Location:** `add-in/app/`
 
@@ -266,15 +200,116 @@ The `aspen-addin.json` file configures the add-in for Geotab MyGeotab:
 
 ---
 
+## Subproject 3: Geotab Downloader (CLI Tool)
+
+**Location:** `geotab-downloader/`
+
+A Python CLI tool that downloads Geotab entities and saves them locally as CSV files.
+
+### Technology Stack
+- **Python:** 3.13 (strictly required)
+- **Package Manager:** uv (modern Python package manager)
+- **Key Dependencies:**
+  - `mygeotab==0.9.4` - Geotab API client
+  - `pytest>=9.0.2` - Testing framework
+  - `ruff>=0.15.2` - Linting and code formatting
+
+### Build Commands
+```bash
+cd geotab-downloader
+
+# Install dependencies
+uv sync
+
+# Run the CLI tool
+uv run geotab-downloader -u <username> -p <password> -d <database>
+
+# Run tests
+uv run pytest
+
+# Linting
+uv run ruff check .
+uv run ruff format .
+
+# Check lockfile is up to date
+uv lock --check
+```
+
+### Code Organization
+```
+geotab-downloader/
+├── src/geotab_downloader/
+│   ├── __init__.py      # Package init
+│   ├── __main__.py      # CLI entry point
+│   ├── client.py        # Geotab API client creation
+│   └── download.py      # Entity download logic
+├── tests/
+│   ├── test_client.py   # Client tests
+│   └── test_download.py # Download logic tests
+├── pyproject.toml       # Project config, dependencies, pytest, ruff
+└── uv.lock             # Locked dependency versions
+```
+
+### Supported Entities
+The CLI downloads these Geotab entities to CSV:
+- `Device` → `device.csv`
+- `LogRecord` → `logrecord.csv`
+- `StatusData` → `statusdata.csv`
+- `Trip` → `trip.csv`
+- `Diagnostic` → `diagnostic.csv`
+
+### Configuration
+- Configuration file: `pyproject.toml`
+- Environment variables: `.env` file (see `.env.example`)
+- Line length: 88 characters (ruff)
+- Test discovery: `tests/` directory
+
+---
+
 ## Development Conventions
 
 ### Code Style Guidelines
 
 #### 1. Avoid Redundant Comments
 
-Code should be self-explanatory. Don't comment what the code does, comment why if necessary.
+Code should be self-explanatory.
+Comments are good when they explain things that are not immediately obvious.
+Otherwise, they are bad.
+Because they create noise.
 
-**Bad:**
+**Bad**
+
+We already know that this is a context manager from `@contextmanager` decorator.
+We don't need to duplicate this information in comments.
+We also already now that this is connection pool, it is written in function name.
+Also, more of a nitpick -- function name could be a little bit more self-explanatory
+```
+@contextmanager
+def connection_pool(dsn: str, minconn: int = 1, maxconn: int = 20) -> Any:
+    """Context manager for psycopg2 connection pool."""
+    pool = psycopg2_pool.ThreadedConnectionPool(minconn=minconn, maxconn=maxconn, dsn=dsn)
+    try:
+        yield pool
+    finally:
+        pool.closeall()
+```
+
+**Better**
+
+Function name is now self-explanatory enough. Doc string is not needed.
+```
+@contextmanager
+def db_connection_pool(dsn: str, minconn: int = 1, maxconn: int = 20) -> Any:
+    pool = psycopg2_pool.ThreadedConnectionPool(minconn=minconn, maxconn=maxconn, dsn=dsn)
+    try:
+        yield pool
+    finally:
+        pool.closeall()
+```
+
+**Bad**
+
+It is clear enough from function name what function is doing.
 ```python
 # Get device from geotab API
 def get_device_from_geotab_api(api_client, device_id):
@@ -282,6 +317,7 @@ def get_device_from_geotab_api(api_client, device_id):
 ```
 
 **Also bad:**
+
 ```python
 def get_device_from_geotab_api(api_client, device_id):
     """Get device from geotab API.
@@ -325,18 +361,99 @@ else:
 
 All Python code must follow PEP 8 style guidelines.
 
-#### 4. Let It Crash (geotab-downloader only)
+#### 4. Tests Are Not a Package
+
+**Never** add `__init__.py` to the `tests/` directory. Tests should remain a flat directory, not a Python package.
+
+**Why:**
+- Tests are not meant to be imported as a package
+- pytest discovers tests by file pattern, not by package structure
+- Keeping tests as a flat directory prevents accidental imports from test code
+- Follows pytest best practices
+
+**Bad:**
+```
+project/
+├── src/
+└── tests/
+    ├── __init__.py          # WRONG - tests are not a package
+    └── test_something.py
+```
+
+**Correct:**
+```
+project/
+├── src/
+└── tests/
+    └── test_something.py    # No __init__.py needed
+```
+
+#### 5. Prefer Flat Functions Over Classes for Tests
+
+Use plain functions for tests. Avoid wrapping tests in classes unless you specifically need:
+- Inheritance for shared fixtures/setup
+- Grouping related tests with shared state
+- Mixins for test utilities
+
+**Bad:**
+```python
+class TestGetDatabaseUrl:
+    def test_valid_postgresql_url(self):
+        ...
+    
+    def test_missing_database_url(self):
+        ...
+```
+
+**Correct:**
+```python
+def test_get_database_url_valid():
+    ...
+
+def test_get_database_url_missing():
+    ...
+```
+
+The flat approach is more readable and pytest-native.
+
+#### 6. Split Tests Into Multiple Files
+
+Prefer splitting tests into multiple files by function/component rather than grouping them in large classes within a single file.
+
+**Why:**
+- Easier to locate specific tests
+- Smaller, focused files are more maintainable
+- Better parallelization with pytest-xdist
+- Clearer test organization
+
+**Bad:**
+```
+tests/
+└── test_everything.py          # 500+ lines, tests for everything
+```
+
+**Correct:**
+```
+tests/
+├── test_database_url.py        # URL validation tests
+├── test_connection_pool.py     # Connection pool tests
+├── test_run_check.py           # Single script execution tests
+├── test_run_all_checks.py      # Concurrent execution tests
+└── test_main.py                # Integration tests
+```
+
+#### 7. Let It Crash (geotab-downloader and check-runner)
 
 **Exceptions:** Don't write code to catch exceptions that you can't handle. If you don't know how to handle an exception, let it crash and let the developer fix the underlying issue rather than hiding it.
 
 **Accessing dict fields:** If some field is expected to always be present, just access it directly instead of `dict.get()`. If the field is missing, it will raise a `KeyError`, which is good because it indicates a bug in the code that needs to be fixed, rather than silently returning None and potentially causing more subtle bugs down the line. If you are not sure if the field will always be present, then use `dict.get()`.
 
-#### 5. Software Principles
+#### 8. Software Principles
 
 - **YAGNI** (You Aren't Gonna Need It) - avoid over-engineering
 - **KISS** (Keep It Simple, Stupid) - clarity over cleverness
 
-#### 6. Fail Fast on Missing Environment Variables
+#### 9. Fail Fast on Missing Environment Variables
 
 - **Never** use `os.getenv()` with a default (e.g., `os.getenv("VAR", "default")`) for required configuration
 - Use explicit validation with clear error messages to fail early during startup
@@ -356,12 +473,6 @@ All Python code must follow PEP 8 style guidelines.
   conn = psycopg2.connect(DATABASE_URL)     # Fails with confusing error
   ```
 - Rationale: Missing env vars are deployment/config issues, not code bugs. Explicit failures produce cleaner logs (no stack traces) and flow through logging infrastructure properly.
-
-### Ruff Configuration (Python)
-- Line length: 88 characters
-- Enabled rules: E, W, F, I, N, UP, B, C4, SIM
-- Use `ruff format` for formatting
-- Use `ruff check` for linting
 
 ### TypeScript Configuration
 - Target: ES2020

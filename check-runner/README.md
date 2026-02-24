@@ -1,12 +1,11 @@
 # Check Runner Service
 
-A Python service that runs SQL scripts against the GeoTab data stored in PostGIS
-for data quality checks and anomaly detection.
+A Python service that runs SQL scripts against the GeoTab data in PostGIS.
 
 ## How It Works
 
 1. Loads all `.sql` files from `check-scripts/` directory
-2. Executes them concurrently using a thread pool (20 workers max)
+2. Executes them concurrently using a thread pool
 3. Supports named parameters `%(param_name)s` in SQL
 4. Reports results (row counts or errors)
 5. Exits with code 1 if any check fails
@@ -32,18 +31,6 @@ WHERE device_id = %(device_id)s
 Use `%(param_name)s` syntax for named parameters. The runner substitutes values from a context dictionary.
 
 **Important:** Parameter names must match exactly between the SQL and the context dict.
-
-## Testing in psql
-
-To test a script in psql, manually replace `%(name)s` with literal values:
-
-```sql
--- Original script
-WHERE device_id = %(device_id)s
-
--- For psql testing
-WHERE device_id = 12345
-```
 
 ## Adding New Checks
 
