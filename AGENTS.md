@@ -576,13 +576,17 @@ tests/
 
 ## CI/CD (GitHub Actions)
 
+### Runner Selection
+- Use `ubuntu-slim` for lightweight jobs (linting, unit tests without Docker)
+- Use `ubuntu-latest` for heavier jobs or anything requiring Docker
+
 ### Workflows
 
 1. **check-runner-quality** (`.github/workflows/check-runner.yml`)
    - Triggers on PRs modifying `check-runner/**` or `backend/**`
    - Two jobs:
-     - **unit-tests:** Fast tests without database
-     - **smoke-tests:** Tests SQL scripts against database with migrations
+     - **unit-tests:** Runs on `ubuntu-slim` - Fast tests without database
+     - **smoke-tests:** Runs on `ubuntu-latest` - Tests SQL scripts against database with migrations (requires Docker)
 
 2. **geotab-downloader-quality** (`.github/workflows/geotab-downloader.yml`)
    - Triggers on PRs modifying `geotab-downloader/**`
@@ -597,7 +601,7 @@ tests/
 
 3. **backend** (`.github/workflows/backend.yml`)
    - Triggers on PRs modifying `backend/**`
-   - Runs on: ubuntu-latest
+   - Runs on: `ubuntu-latest` (requires Docker)
    - Steps:
      - Checkout code
      - Build backend Docker image

@@ -28,15 +28,17 @@ jobs:
         run: uv run -m pytest -m "not smoke"
 
   smoke-tests:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
       - name: Start PostgreSQL with PostGIS
         working-directory: ./backend
-        run: |
-          cp .env.example .env
-          docker compose up -d db
+        env:
+          DB_NAME: geotab_db
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+        run: docker compose up -d db
 
       - name: Wait for database to be ready
         working-directory: ./backend
