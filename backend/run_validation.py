@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from modules.geotab_location.services.distance_validation import (
+from modules.validation.services.distance_validation import (
     run_distance_validation_service,
 )
 
