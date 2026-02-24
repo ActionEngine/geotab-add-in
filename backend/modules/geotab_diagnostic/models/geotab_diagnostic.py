@@ -1,9 +1,14 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
 from database.database import Base
 
 
 class GeotabDiagnostic(Base):
     __tablename__ = "geotab_diagnostic"
+    __table_args__ = (
+        UniqueConstraint(
+            "external_id", "geotab_database_id", name="uq_externalid_geotabdbid"
+        ),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     external_id = Column(String, nullable=False, index=True)

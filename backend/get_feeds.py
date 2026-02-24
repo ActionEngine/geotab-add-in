@@ -13,6 +13,7 @@ from datetime import datetime
 
 import mygeotab
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 
 # Add the backend directory to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -160,18 +161,33 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
 
                 diagnostic_ids = set(sd["diagnostic"]["id"] for sd in status_data_list)
                 diagnostic_objects: list[dict] = api.get("Diagnostic", ids=list(diagnostic_ids))
+                to_insert = [
+                    dict(
+                        geotab_database_id=feed_entry.geotab_database_id,
+                        external_id=obj["id"],
+                        name=obj["name"],
+                        unit_of_measure=obj.get("unitOfMeasure"),
+                        diagnostic_type=obj["diagnosticType"],
+                        source=obj["source"],
+                    )
+                    for obj in diagnostic_objects
+                ]
+                insert_stmt = insert(GeotabDiagnostic).values(to_insert)
+                on_conflict_stmt = insert_stmt.on_conflict_do_update(
+                    index_elements=[
+                        GeotabDiagnostic.geotab_database_id,
+                        GeotabDiagnostic.external_id,
+                    ],
+                    set_={
+                        "name": insert_stmt.excluded.name,
+                        "unit_of_measure": insert_stmt.excluded.unit_of_measure,
+                        "diagnostic_type": insert_stmt.excluded.diagnostic_type,
+                        "source": insert_stmt.excluded.source,
+                    },
+                )
+
                 async with SessionLocal() as session:
-                    for obj in diagnostic_objects:
-                        session.add(
-                            GeotabDiagnostic(
-                                geotab_database_id=feed_entry.geotab_database_id,
-                                external_id=obj["id"],
-                                name=obj["name"],
-                                unit_of_measure=obj.get("unitOfMeasure"),
-                                diagnostic_type=obj["diagnosticType"],
-                                source=obj["source"],
-                            )
-                        )
+                    await session.execute(on_conflict_stmt)
                     await session.commit()
 
             else:
