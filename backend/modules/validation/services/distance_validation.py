@@ -95,6 +95,53 @@ async def run_single_distance_validation() -> None:
               )
             """
         )
+        per_device_query = text(
+            """
+            WITH totals AS (
+                SELECT gl.device_id, COUNT(*) AS total_count
+                FROM geotab_location gl
+                WHERE gl.datetime >= :from_datetime
+                  AND gl.geometry IS NOT NULL
+                  AND gl.geotab_database_id = :geotab_database_id
+                  AND EXISTS (
+                      SELECT 1
+                      FROM overture_segments os
+                      WHERE os.geotab_database_id = gl.geotab_database_id
+                  )
+                GROUP BY gl.device_id
+            ),
+            flagged AS (
+                SELECT
+                    gl.device_id,
+                    COUNT(*) FILTER (
+                        WHERE dtr.distance > :warning_threshold
+                          AND dtr.distance <= :error_threshold
+                    ) AS warning_count,
+                    COUNT(*) FILTER (
+                        WHERE dtr.distance > :error_threshold
+                    ) AS error_count
+                FROM distance_to_road_results dtr
+                JOIN geotab_location gl ON gl.id = dtr.geotab_location_id
+                WHERE dtr.validation_id = :validation_id
+                GROUP BY gl.device_id
+            )
+            INSERT INTO validation_results_by_device (
+                validation_id,
+                device_id,
+                total,
+                warnings,
+                errors
+            )
+            SELECT
+                :validation_id,
+                totals.device_id,
+                totals.total_count,
+                COALESCE(flagged.warning_count, 0),
+                COALESCE(flagged.error_count, 0)
+            FROM totals
+            LEFT JOIN flagged ON flagged.device_id = totals.device_id
+            """
+        )
         for geotab_database_id in geotab_database_ids:
             await session.execute(
                 text(
@@ -128,6 +175,17 @@ async def run_single_distance_validation() -> None:
                     "geotab_database_id": geotab_database_id,
                     "validation_id": validation_id,
                     "warning_threshold": 5,
+                },
+            )
+
+            await session.execute(
+                per_device_query,
+                {
+                    "validation_id": validation_id,
+                    "from_datetime": from_datetime,
+                    "geotab_database_id": geotab_database_id,
+                    "warning_threshold": 5,
+                    "error_threshold": 10,
                 },
             )
 

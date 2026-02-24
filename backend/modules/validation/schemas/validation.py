@@ -13,3 +13,11 @@ class ValidationResponse(BaseModel):
     errors: int
     total: int
     status: str
+
+
+class ValidationByDeviceResponse(BaseModel):
+    validation_id: int
+    device_id: str
+    total: int
+    warnings: int
+    errors: int

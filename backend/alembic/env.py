@@ -40,6 +40,9 @@ from modules.validation.models.validation import Validation  # noqa: F401
 from modules.validation.models.distance_to_road_result import (  # noqa: F401
     DistanceToRoadResult,
 )
+from modules.validation.models.validation_results_by_device import (  # noqa: F401
+    DistanceToRoadByDevice,
+)
 from modules.geotab_status_data.models.geotab_status_data import (
     GeotabStatusData,
 )  # noqa: F401
