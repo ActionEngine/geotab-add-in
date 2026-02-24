@@ -3,7 +3,10 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from modules.auth.dependencies.auth import get_current_user
+
+# Import routers
 from modules.geotab_database.routers.geotab_database import router as database_router
+from modules.geotab_location.routers.mvt import router as mvt_router
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +15,8 @@ app = FastAPI(title="Aspen Geotab Add-in Backend", version="0.0.1")
 
 # Include routers
 app.include_router(database_router)
+app.include_router(mvt_router)
+
 
 app.add_middleware(
     CORSMiddleware,
