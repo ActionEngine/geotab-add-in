@@ -25,8 +25,8 @@ const AuthDialog = ({ open, session, onSubmit }: AuthDialogProps) => {
   };
 
   return (
-    <div className="dialog-container">
-      <div className="dialog-window">
+    <div className="overlay">
+      <div className="dialog">
         <div className="dialog-content">
           <FormGroup>
             <TextInput
