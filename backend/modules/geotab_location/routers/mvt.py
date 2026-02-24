@@ -11,11 +11,11 @@ from database.database import SessionLocal
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/tiles", tags=["MVT"])
+router = APIRouter(prefix="/tiles", tags=["location"])
 
 
 @router.get(
-    "/{z}/{x}/{y}",
+    "/",
     responses={
         200: {
             "content": {"application/vnd.mapbox-vector-tile": {}},
