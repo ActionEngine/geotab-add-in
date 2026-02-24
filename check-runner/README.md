@@ -28,9 +28,7 @@ WHERE device_id = %(device_id)s
 
 ## Parameters
 
-Use `%(param_name)s` syntax for named parameters. The runner substitutes values from a context dictionary.
-
-**Important:** Parameter names must match exactly between the SQL and the context dict.
+Use `%(param_name)s` syntax for named parameters.
 
 ## Adding New Checks
 

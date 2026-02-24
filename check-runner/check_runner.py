@@ -106,7 +106,7 @@ def load_scripts(scripts_dir: Path) -> list[tuple[str, str]]:
 
 
 def main(
-    scripts_dir: Path = Path("/app/check-scripts"),
+    scripts_dir: Path = Path("./check-scripts"),
     environ: Mapping[str, str] | None = None,
     max_workers: int = 20,
     executor_factory: Callable[..., Executor] | None = None,
