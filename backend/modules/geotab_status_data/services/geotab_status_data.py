@@ -46,8 +46,7 @@ def status_data_to_geotab_status_data(
         for committing the transaction, allowing for batch operations.
     """
     
-    # Extract required fields directly
-    status_datetime = datetime.fromisoformat(status_data["dateTime"])
+    status_datetime: datetime = status_data["dateTime"]
 
     device = status_data["device"]
     device_id = device["id"]
@@ -58,7 +57,7 @@ def status_data_to_geotab_status_data(
     data_value = float(status_data["data"])
 
     external_id = status_data["id"]
-    version = status_data.get("version", "")
+    version = status_data["version"]
 
     status_entry = GeotabStatusData(
         datetime=status_datetime,

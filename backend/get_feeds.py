@@ -12,7 +12,9 @@ import sys
 from datetime import datetime
 
 import mygeotab
-from sqlalchemy import select
+from sqlalchemy import select, insert
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 # Add the backend directory to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -20,6 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from database.database import SessionLocal
 from modules.geotab_database.models.geotab_feed import GeotabFeed
 from modules.geotab_database.models.geotab_database import GeotabDatabase
+from modules.geotab_diagnostic.models.geotab_diagnostic import GeotabDiagnostic
 from modules.geotab_location.services.geotab_location import (
     get_feed_log_records,
     log_record_to_geotab_location,
@@ -37,24 +40,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-
-# class GeoTabEntityIngestion:
-#     def fetch_from_api(self) -> list[dict]:
-#         """Fetch log records from Geotab API."""
-    
-#     def ensure_expected_fields_present(self, geotab_objects: list[dict]) -> None:
-#         """Validate log records against expected schema."""
-    
-#     def transform(self, geotab_objects: list[dict]) -> list[dict]:
-#         """Transform log records into GeotabLocation database entries."""
-    
-#     def save(self, geotab_objects: list[dict]) -> None:
-#         """Save GeotabLocation entries to the database."""
-    
-#     def update_feed_version(self, feed_id: int, new_version: str) -> None:
-#         """Update the feed version in the database after successful ingestion."""
-
-
 async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
     """
     Poll a single feed for new data.
@@ -63,6 +48,7 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
         feed_id: ID of the GeotabFeed entry
         poll_interval: Seconds between polls (default: 30)
     """
+    print("=" *100, flush=True)
     logger.info(f"Starting polling for feed_id={feed_id}")
 
     while True:
@@ -76,30 +62,31 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                 )
                 row = result.first()
                 
-                if not row:
-                    logger.error(f"Feed {feed_id} not found, stopping polling")
-                    return
+            if not row:
+                logger.error(f"Feed {feed_id} not found, stopping polling")
+                return
                 
-                feed_entry, db_entry = row
-                feed_version = feed_entry.feed_version
-                object_type = feed_entry.object_type
-                
-                # Decode credentials to get username and password
-                credentials = decode_access_token(db_entry.credentials)
-                email = credentials.get("email")
-                password = credentials.get("password")
-                database = credentials.get("database")
-                
-                if not all([email, password, database]):
-                    logger.error(f"Invalid credentials for feed {feed_id}")
-                    await asyncio.sleep(poll_interval)
-                    continue
+            feed_entry, db_entry = row
+            feed_version = feed_entry.feed_version
+            object_type = feed_entry.object_type
+            
+            # Decode credentials to get username and password
+            credentials = decode_access_token(db_entry.credentials)
+            email = credentials.get("email")
+            password = credentials.get("password")
+            database = credentials.get("database")
+            
+            if not all([email, password, database]):
+                logger.error(f"Invalid credentials for feed {feed_id}")
+                await asyncio.sleep(poll_interval)
+                continue
 
             api = mygeotab.API(
                 username=email,
                 password=password,
                 database=database,
             )
+            api.authenticate()
 
             # Handle different object types
             if object_type == "LogRecord":
@@ -126,7 +113,7 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                                 continue
                         
                         await session.commit()
-                
+
                 # Update feed version and last_sync
                 async with SessionLocal() as session:
                     result = await session.execute(
@@ -152,19 +139,13 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                     
                     async with SessionLocal() as session:
                         for status_data in status_data_list:
-                            try:
-                                status_data_to_geotab_status_data(
-                                    session=session,
-                                    status_data=status_data,
-                                    geotab_database_id=feed_entry.geotab_database_id,
-                                )
-                            except Exception as e:
-                                logger.warning(f"Failed to process status data {status_data.get('id')}: {e}")
-                                continue
+                            status_data_to_geotab_status_data(
+                                session=session,
+                                status_data=status_data,
+                                geotab_database_id=feed_entry.geotab_database_id,
+                            )
                         
                         await session.commit()
-                
-                # diagnostic_ids = set(sd["diagnostic"]["id"] for sd in status_data_list)
 
                 # Update feed version and last_sync
                 async with SessionLocal() as session:
@@ -177,7 +158,25 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                         feed_entry.feed_version = new_version
                         feed_entry.last_sync = datetime.utcnow()
                         await session.commit()
-            
+
+                print("=" * 100)
+                diagnostic_ids = set(sd["diagnostic"]["id"] for sd in status_data_list)
+                diagnostic_objects: list[dict] = api.get("Diagnostic", ids=list(diagnostic_ids))
+                print(f"Adding diagnostic objects to database: {diagnostic_objects}")
+                async with SessionLocal() as session:
+                    for obj in diagnostic_objects:
+                        session.add(
+                            GeotabDiagnostic(
+                                geotab_database_id=feed_entry.geotab_database_id,
+                                external_id=obj["id"],
+                                name=obj["name"],
+                                unit_of_measure=obj.get("unitOfMeasure"),
+                                diagnostic_type=obj["diagnosticType"],
+                                source=obj["source"],
+                            )
+                        )
+                    await session.commit()
+
             else:
                 logger.warning(f"Unsupported object type: {object_type}")
             
@@ -200,7 +199,7 @@ async def discover_and_poll_feeds(poll_interval: int = 30) -> None:
     logger.info("Starting feed discovery service")
     
     active_tasks = {}
-    
+
     while True:
         try:
             # Get all feeds from database
@@ -209,6 +208,8 @@ async def discover_and_poll_feeds(poll_interval: int = 30) -> None:
                 feeds = result.scalars().all()
 
             current_feed_ids = {feed.id for feed in feeds}
+            print("=" * 100)
+            print(f"FEEDS: {current_feed_ids}")
             
             # Start tasks for new feeds
             for feed in feeds:
