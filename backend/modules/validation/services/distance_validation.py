@@ -7,7 +7,7 @@ from sqlalchemy import text
 from database.database import SessionLocal
 from modules.geotab_database.models.geotab_database import GeotabDatabase  # noqa: F401
 from modules.geotab_location.enums import ValidationStatus
-from modules.geotab_location.models.validation import Validation
+from modules.validation.models.validation import Validation
 
 logger = logging.getLogger(__name__)
 
