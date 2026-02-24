@@ -1,3 +1,4 @@
+// This is similar to .vscode/settings.json, but for monorepos.
 {
   "folders": [
     {
@@ -15,13 +16,25 @@
     {
       "name": "geotab-downloader",
       "path": "geotab-downloader"
+    },
+    {
+      "name": "check-runner",
+      "path": "check-runner"
     }
   ],
+  // settings below apply to the whole monorepo
   "settings": {
+    // settings for AI chat extension
+    "chat.useAgentsMdFile": true,
+    "chat.useNestedAgentsMdFiles": true,
+    "chat.includeApplyingInstructions": true,
+    "chat.includeReferencedInstructions": true,
+    // hack to avoid showing the subfolders twice in the file explorer
     "files.exclude": {
       "add-in": true,
       "backend": true,
-      "geotab-downloader": true
+      "geotab-downloader": true,
+      "check-runner": true
     }
   }
 }
