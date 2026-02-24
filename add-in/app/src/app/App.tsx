@@ -7,24 +7,30 @@ import QueryProvider from "@/provider/query-provider";
 import { AuthInitialState } from "@/types/auth";
 import { DatabaseResponse } from "@/types/shemas/database";
 import { getSessionAsync } from "@/utils/geotabApi";
+import { geotabSessionParse } from "@/utils/sessionParse";
 import "@geotab/zenith/dist/index.css";
-import { GeotabSession } from "mg-api-js";
+import { GeotabCredentials, GeotabSession } from "mg-api-js";
 import "./style.css";
 
 interface AppProps {
   api: GeotabApi; // Type is defined globally in geotab.d.ts
+  isLocalDevelopment: boolean;
 }
 
-const App = ({ api }: AppProps) => {
+const App = ({ api, isLocalDevelopment }: AppProps) => {
   const [databaseInfo, setDatabaseInfo] = useState<DatabaseResponse | null>(
     null,
   );
   const [openModal, setOpenModal] = useState(false);
-  const [session, setSession] = useState<GeotabSession | null>(null);
+  const [session, setSession] = useState<GeotabCredentials | null>(null);
   const fetchSession = async () => {
     try {
       const sessionRes = await getSessionAsync(api);
-      setSession(sessionRes);
+      if (isLocalDevelopment) {
+        setSession(geotabSessionParse(sessionRes as GeotabSession));
+        return;
+      }
+      setSession(sessionRes as GeotabCredentials);
     } catch (error) {
       console.error("Error fetching session:", error);
     }
@@ -37,7 +43,6 @@ const App = ({ api }: AppProps) => {
         setOpenModal(true);
         return;
       }
-      setOpenModal(false);
       setDatabaseInfo(response);
     });
   };
@@ -59,6 +64,7 @@ const App = ({ api }: AppProps) => {
     if (session === null) return;
     databaseInit(session, data).then((response) => {
       if (response.status === 200) {
+        setOpenModal(false);
         fetchDatabase();
       }
     });

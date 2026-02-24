@@ -2,6 +2,7 @@
  * Utility functions to promisify Geotab API methods
  * The Geotab add-in API uses callbacks, but we prefer promises for modern async/await
  */
+import { GeotabCredentials } from "mg-api-js";
 
 interface GeotabSession {
   credentials: {
@@ -15,7 +16,9 @@ interface GeotabSession {
 /**
  * Promisify getSession method from Geotab API
  */
-export function getSessionAsync(api: GeotabApi): Promise<GeotabSession> {
+export function getSessionAsync(
+  api: GeotabApi,
+): Promise<GeotabSession | GeotabCredentials> {
   return new Promise((resolve, reject) => {
     try {
       // Try promise-based first (mg-api-js)

@@ -7,7 +7,11 @@ interface SideBarProps {
 
 const SideBar = ({ databaseInfo }: SideBarProps) => {
   if (!databaseInfo) return null;
-  return <div className="side-bar">Aspen is being initialized</div>;
+  return (
+    <div className="side-bar">
+      <div>Aspen is being initialized</div>;
+    </div>
+  );
 };
 
 export default SideBar;
