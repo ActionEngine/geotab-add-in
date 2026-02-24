@@ -42,12 +42,10 @@ Use `%(param_name)s` syntax for named parameters.
 ```bash
 cd backend
 
-# Set up environment (use same DB as backend but with postgresql:// driver)
-export DATABASE_URL="postgresql://user:password@localhost:5432/geotab_db"
-
 # Run directly
-python check-runner/check_runner.py
+export DATABASE_URL="postgresql://user:password@localhost:5432/geotab_db"
+cd check-runner && uv run -m check_runner
 
 # Run via Docker Compose
-docker compose run --rm check-runner
+cd backend && docker compose run --rm --build check-runner
 ```
