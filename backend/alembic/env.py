@@ -36,6 +36,10 @@ from database.database import Base
 from modules.geotab_database.models.geotab_database import GeotabDatabase  # noqa: F401
 from modules.geotab_database.models.geotab_feed import GeotabFeed  # noqa: F401
 from modules.geotab_location.models.geotab_location import GeotabLocation  # noqa: F401
+from modules.geotab_location.models.validation import Validation  # noqa: F401
+from modules.geotab_location.models.distance_to_road_result import (  # noqa: F401
+    DistanceToRoadResult,
+)
 from modules.geotab_status_data.models.geotab_status_data import (
     GeotabStatusData,
 )  # noqa: F401

@@ -31,20 +31,23 @@ services:
     ports:
       - "8004:8004"
     restart: unless-stopped
-  run-db-migrations:
+  feeds:
     build:
       context: .
-    command: alembic upgrade head
+      dockerfile: Dockerfile.feeds
+    volumes:
+      - .:/app
     env_file:
       - .env
     depends_on:
       db:
         condition: service_healthy
-    restart: no
-  feeds:
+    restart: unless-stopped
+  validation:
     build:
       context: .
       dockerfile: Dockerfile.feeds
+    command: python run_validation.py
     volumes:
       - .:/app
     env_file:
