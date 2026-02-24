@@ -12,9 +12,7 @@ import sys
 from datetime import datetime
 
 import mygeotab
-from sqlalchemy import select, insert
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from sqlalchemy import select
 
 # Add the backend directory to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -33,6 +31,7 @@ from modules.geotab_status_data.services.geotab_status_data import (
 )
 from modules.auth.services.auth import decode_access_token
 
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -48,7 +47,7 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
         feed_id: ID of the GeotabFeed entry
         poll_interval: Seconds between polls (default: 30)
     """
-    print("=" *100, flush=True)
+
     logger.info(f"Starting polling for feed_id={feed_id}")
 
     while True:
@@ -159,10 +158,8 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                         feed_entry.last_sync = datetime.utcnow()
                         await session.commit()
 
-                print("=" * 100)
                 diagnostic_ids = set(sd["diagnostic"]["id"] for sd in status_data_list)
                 diagnostic_objects: list[dict] = api.get("Diagnostic", ids=list(diagnostic_ids))
-                print(f"Adding diagnostic objects to database: {diagnostic_objects}")
                 async with SessionLocal() as session:
                     for obj in diagnostic_objects:
                         session.add(
@@ -208,8 +205,6 @@ async def discover_and_poll_feeds(poll_interval: int = 30) -> None:
                 feeds = result.scalars().all()
 
             current_feed_ids = {feed.id for feed in feeds}
-            print("=" * 100)
-            print(f"FEEDS: {current_feed_ids}")
             
             # Start tasks for new feeds
             for feed in feeds:
