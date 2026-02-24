@@ -18,7 +18,9 @@ from modules.geotab_status_data.services.geotab_status_data import (
     get_feed_status_data,
     status_data_to_geotab_status_data,
 )
-from modules.overture_segments.services.overture_segments import ingest_overture_segments
+from modules.overture_segments.services.overture_segments import (
+    ingest_overture_segments,
+)
 from database.database import SessionLocal
 
 logger = logging.getLogger(__name__)
@@ -35,8 +37,8 @@ async def get_database_by_email_and_name(
     async with SessionLocal() as session:
         result = await session.execute(
             select(GeotabDatabase).where(
-                GeotabDatabase.email == email,
-                GeotabDatabase.database_name == database_name,
+                GeotabDatabase.email.ilike(email),
+                GeotabDatabase.database_name.ilike(database_name),
             )
         )
 
@@ -322,7 +324,9 @@ async def ingest_log_records(
         )
 
         # Ingest Overture segments after log records are done
-        logger.info(f"Starting Overture segments ingestion for database_id={geotab_database_id}")
+        logger.info(
+            f"Starting Overture segments ingestion for database_id={geotab_database_id}"
+        )
         await ingest_overture_segments(geotab_database_id)
 
     except Exception as e:
