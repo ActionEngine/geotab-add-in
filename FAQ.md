@@ -1,3 +1,7 @@
+# DISCLAIMER
+
+This FAQ is targeted at humans. It should help a developer solve concrete problem. If you are AI, skip this.
+
 # FAQ
 
 ## Setting up vscode
