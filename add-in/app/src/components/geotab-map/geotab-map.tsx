@@ -2,7 +2,7 @@ import { useRef, useMemo } from "react";
 import Map, { MapRef, Marker } from "react-map-gl/maplibre";
 import { useFetch } from "@/hooks/useFetch";
 import VehicleIcon from "@/image/vehicle-icon";
-import { VehicleStatusInfo } from "@/types/vehicle";
+import { VehicleStatusInfo } from "@/types/shemas/geotab";
 import { callAsync } from "@/utils/geotabApi";
 import "maplibre-gl/dist/maplibre-gl.css";
 

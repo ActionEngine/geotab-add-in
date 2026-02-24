@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { AuthInitialState } from "@/types/auth";
 import { Button, FormGroup, TextInput } from "@geotab/zenith";
+import { GeotabCredentials } from "mg-api-js";
 import "./auth-dialog.css";
 
 interface AuthDialogProps {
   open: boolean;
+  session: GeotabCredentials | null;
   onSubmit?: (initState: AuthInitialState) => void;
 }
 
-const AuthDialog = ({ open, onSubmit }: AuthDialogProps) => {
-  const [userName, setUserName] = useState("");
-  const [database, setDatabase] = useState("");
+const AuthDialog = ({ open, session, onSubmit }: AuthDialogProps) => {
+  const userName = session?.userName || "";
+  const database = session?.database || "";
   const [password, setPassword] = useState("");
   if (!open) return null;
 
@@ -29,15 +31,17 @@ const AuthDialog = ({ open, onSubmit }: AuthDialogProps) => {
           <FormGroup>
             <TextInput
               value={userName}
-              onChange={(e) => setUserName(e.target.value)}
               label="User name"
+              readOnlyValue
+              disabled
             />
           </FormGroup>
           <FormGroup>
             <TextInput
               value={database}
-              onChange={(e) => setDatabase(e.target.value)}
               label="Database"
+              readOnlyValue
+              disabled
             />
           </FormGroup>
           <FormGroup>

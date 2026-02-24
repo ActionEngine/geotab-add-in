@@ -1,7 +1,17 @@
+import { DatabaseResponse } from "@/types/shemas/database";
 import "./side-bar.css";
 
-const SideBar = () => {
-  return <div className="side-bar">Aspen is being initialized</div>;
+interface SideBarProps {
+  databaseInfo: DatabaseResponse | null;
+}
+
+const SideBar = ({ databaseInfo }: SideBarProps) => {
+  if (!databaseInfo) return null;
+  return (
+    <div className="side-bar">
+      <div>Aspen is being initialized</div>;
+    </div>
+  );
 };
 
 export default SideBar;
