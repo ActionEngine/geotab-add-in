@@ -1,7 +1,7 @@
 // Type declarations for mg-api-js
 
 declare module "mg-api-js" {
-  interface GeotabCredentials {
+  export interface GeotabCredentials {
     database: string;
     userName: string;
     password?: string;

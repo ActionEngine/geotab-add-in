@@ -1,4 +1,5 @@
 import { AuthInitialState } from "@/types/auth";
+import { DatabaseResponse } from "@/types/shemas/database";
 import { GeotabSession } from "mg-api-js";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -13,15 +14,24 @@ const getHeaders = (session: GeotabSession) => {
   };
 };
 
-export const getDatabase = (session: GeotabSession) => {
+export const getDatabase = async (
+  session: GeotabSession,
+): Promise<DatabaseResponse | null> => {
   const headers = getHeaders(session);
-  return fetch(`${DATABASE_ENDPOINT}`, {
+  const response = await fetch(`${DATABASE_ENDPOINT}`, {
     method: "GET",
     headers,
   });
+  if (response.status !== 200) {
+    return null;
+  }
+
+  const result = await response.json();
+
+  return result;
 };
 
-export const databaseInit = (
+export const databaseInit = async (
   session: GeotabSession,
   data: AuthInitialState,
 ) => {
