@@ -15,7 +15,7 @@ class DistanceToRoadResult(Base):
     )
     validation_id = Column(
         Integer,
-        ForeignKey("validation.id"),
+        ForeignKey("validation.id", ondelete="CASCADE"),
         primary_key=True,
         index=True,
     )
