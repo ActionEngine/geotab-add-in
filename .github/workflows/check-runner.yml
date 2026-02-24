@@ -4,9 +4,10 @@ on:
   pull_request:
     paths:
       - "check-runner/**"
+      - "backend/**"
       - ".github/workflows/check-runner.yml"
 jobs:
-  test-check-runner:
+  unit-tests:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6
@@ -14,15 +15,50 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
-      # Check that new dependencies are added to the lockfile
       - name: Check lockfile is up to date
         working-directory: ./check-runner
         run: uv lock --check
 
-      - name: Install dependencies, including dev
+      - name: Install dependencies
         working-directory: ./check-runner
         run: uv sync
 
       - name: Run unit tests
         working-directory: ./check-runner
-        run: uv run -m pytest
+        run: uv run -m pytest -m "not smoke"
+
+  smoke-tests:
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Start PostgreSQL with PostGIS
+        working-directory: ./backend
+        run: |
+          cp .env.example .env
+          docker compose up -d db
+
+      - name: Wait for database to be ready
+        working-directory: ./backend
+        timeout-minutes: 2
+        run: |
+          until docker compose exec -T db pg_isready -U postgres; do
+            sleep 1
+          done
+
+      - name: Run Alembic migrations
+        working-directory: ./backend
+        run: docker compose run --rm run-db-migrations
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install dependencies
+        working-directory: ./check-runner
+        run: uv sync
+
+      - name: Run smoke tests
+        working-directory: ./check-runner
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/geotab_db
+        run: uv run -m pytest -m smoke -v

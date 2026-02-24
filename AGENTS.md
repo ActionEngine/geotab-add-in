@@ -8,6 +8,7 @@ This is a monorepo containing multiple components for a Geotab add-in applicatio
 /home/robert/geotab-add-in/
 ├── add-in/              # React/TypeScript Geotab Add-in frontend
 ├── backend/             # FastAPI backend with PostgreSQL/PostGIS
+├── check-runner/        # SQL validation service for data quality checks
 ├── geotab-downloader/   # Python CLI tool for downloading Geotab data
 ├── geotab-docs/         # Local copy of Geotab Developer documentation
 └── .github/             # GitHub Actions workflows
@@ -200,7 +201,67 @@ The `aspen-addin.json` file configures the add-in for Geotab MyGeotab:
 
 ---
 
-## Subproject 3: Geotab Downloader (CLI Tool)
+## Subproject 3: Check-Runner (SQL Validation Service)
+
+**Location:** `check-runner/`
+
+A Python service that periodically runs SQL validation scripts from the `check-scripts/` folder against the PostgreSQL database. Used for data quality checks and monitoring.
+
+### Technology Stack
+- **Python:** 3.13 (strictly required)
+- **Package Manager:** uv
+- **Key Dependencies:**
+  - `psycopg2-binary==2.9.10` - PostgreSQL driver
+  - `pytest>=9.0.2` - Testing framework
+
+### Build Commands
+```bash
+cd check-runner
+
+# Install dependencies
+uv sync
+
+# Run unit tests (no database required)
+uv run pytest -m "not smoke"
+
+# Run smoke tests (requires database)
+DATABASE_URL=postgresql://user:pass@localhost:5432/db uv run pytest -m smoke
+
+# Run all tests
+uv run pytest
+
+# Check lockfile is up to date
+uv lock --check
+```
+
+### Code Organization
+```
+check-runner/
+├── check_runner.py          # Main service script
+├── check-scripts/           # SQL validation scripts
+│   └── *.sql
+├── tests/
+│   ├── test_database_url.py
+│   ├── test_connection_pool.py
+│   ├── test_run_check.py
+│   ├── test_run_all_checks.py
+│   ├── test_load_scripts.py
+│   ├── test_main.py
+│   └── test_smoke.py        # Database smoke tests
+├── pyproject.toml           # Project config, dependencies, pytest
+└── uv.lock                  # Locked dependency versions
+```
+
+### Testing
+- **Unit Tests:** Fast tests using mocks, no database required
+- **Smoke Tests:** Tests SQL scripts against real database using rolled-back transactions
+  - Validates INSERT/UPDATE statements without modifying data
+  - Requires `DATABASE_URL` environment variable
+  - Run against database with all Alembic migrations applied
+
+---
+
+## Subproject 4: Geotab Downloader (CLI Tool)
 
 **Location:** `geotab-downloader/`
 
@@ -503,13 +564,27 @@ tests/
 - ESLint for code quality
 - TypeScript for compile-time type checking
 
+### Check-Runner
+- **Framework:** pytest
+- **Test Location:** `check-runner/tests/`
+- **Unit Tests:** `uv run pytest -m "not smoke"` - Fast tests with mocks
+- **Smoke Tests:** `uv run pytest -m smoke` - Tests SQL scripts against real database
+  - Requires `DATABASE_URL` environment variable
+  - Uses rolled-back transactions (no data modification)
+
 ---
 
 ## CI/CD (GitHub Actions)
 
 ### Workflows
 
-1. **geotab-downloader-quality** (`.github/workflows/geotab-downloader.yml`)
+1. **check-runner-quality** (`.github/workflows/check-runner.yml`)
+   - Triggers on PRs modifying `check-runner/**` or `backend/**`
+   - Two jobs:
+     - **unit-tests:** Fast tests without database
+     - **smoke-tests:** Tests SQL scripts against database with migrations
+
+2. **geotab-downloader-quality** (`.github/workflows/geotab-downloader.yml`)
    - Triggers on PRs modifying `geotab-downloader/**`
    - Runs on: ubuntu-slim
    - Steps:
@@ -520,7 +595,7 @@ tests/
      - Run tests (`uv run pytest`)
      - Check CLI (`uv run geotab-downloader --help`)
 
-2. **backend** (`.github/workflows/backend.yml`)
+3. **backend** (`.github/workflows/backend.yml`)
    - Triggers on PRs modifying `backend/**`
    - Runs on: ubuntu-latest
    - Steps:
@@ -540,6 +615,7 @@ The project uses a multi-root workspace (`projects.code-workspace`):
     {"name": "--- REPO ROOT ---", "path": "."},
     {"name": "add-in", "path": "add-in"},
     {"name": "backend", "path": "backend"},
+    {"name": "check-runner", "path": "check-runner"},
     {"name": "geotab-downloader", "path": "geotab-downloader"}
   ]
 }
