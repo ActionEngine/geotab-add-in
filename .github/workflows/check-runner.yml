@@ -55,7 +55,7 @@ jobs:
         working-directory: ./backend
         run: |
           docker compose run --rm \
-            -e DATABASE_URL=postgresql://postgres:postgres@db:5432/geotab_db \
+            -e DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/geotab_db \
             backend alembic upgrade head
 
       - name: Install uv
