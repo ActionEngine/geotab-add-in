@@ -22,6 +22,7 @@ from modules.overture_segments.services.overture_segments import ingest_overture
 from database.database import SessionLocal
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 async def get_database_by_email_and_name(
@@ -275,10 +276,7 @@ async def ingest_log_records(
         # Initialize GetFeed for future polling
         logger.info("Initializing GetFeed for polling...")
         _, feed_version = await get_feed_log_records(
-            username=email,
-            password=password,
-            database=database,
-            server=server,
+            api,
             feed_version=None,
         )
 
@@ -464,10 +462,7 @@ async def ingest_status_data(
         # Initialize GetFeed for future polling
         logger.info("Initializing GetFeed for status data polling...")
         _, feed_version = await get_feed_status_data(
-            username=email,
-            password=password,
-            database=database,
-            server=server,
+            api,
             feed_version=None,
         )
 
