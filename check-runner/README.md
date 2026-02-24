@@ -49,3 +49,7 @@ cd check-runner && uv run -m check_runner
 # Run via Docker Compose
 cd backend && docker compose run --rm --build check-runner
 ```
+
+## GeoTab API Reference
+
+See `geotab-docs/developers.geotab.com/` for local GeoTab API documentation.
