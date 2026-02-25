@@ -1,12 +1,179 @@
+import { useContext, useMemo, useState } from "react";
+import { getValidation, getValidationByDevice } from "@/api/validation";
+import GeotabMap from "@/components/geotab-map/geotab-map";
+import { useFetch } from "@/hooks/useFetch";
+import { AppContext } from "@/provider/app-provider";
+import {
+  ValidationDeviceResponse,
+  ValidationResponse,
+  ValidationType,
+} from "@/types/shemas/validaton";
+import { getThresholdClassName } from "@/utils/threshold";
+import {
+  getValidationsPercentage,
+  getVehicleWithWorstResult,
+} from "@/utils/validation";
+import { Card } from "@geotab/zenith/esm/card/card";
+import { Select } from "@geotab/zenith/esm/select/select";
+import { GeotabCredentials } from "mg-api-js";
+import moment from "moment";
 import "./style.css";
 
-const DataQualityMain = () => {
+export const validationTypeLabelMap: Record<ValidationType, string> = {
+  [ValidationType.TELEPORTATION]: "Teleportation",
+  [ValidationType.DISTANCE_TO_ROAD]: "Distance to road",
+};
+
+const ALL_CHECKS = {
+  id: "ALL_CHECKS",
+  children: "All Checks",
+};
+
+interface DataQualityMainProps {
+  api: GeotabApi;
+}
+
+const DataQualityMain = ({ api }: DataQualityMainProps) => {
+  const { session, databaseInfo } = useContext(AppContext);
+  const [selectCheck, setSelectCheck] = useState<string>(ALL_CHECKS.id);
+
+  const { data: validation } = useFetch<ValidationResponse[]>({
+    fn: () => getValidation(session as GeotabCredentials),
+    key: "all-validation",
+  });
+
+  const { data: validationByDevice } = useFetch<ValidationDeviceResponse[]>({
+    fn: () => getValidationByDevice(session as GeotabCredentials),
+    key: "all-validation-by-device",
+  });
+
+  const validationsPercentage = useMemo(
+    () => getValidationsPercentage(validation || []),
+    [validation],
+  );
+  const minPercentage = useMemo(() => {
+    if (!validationsPercentage.length) return 0;
+    return Math.min(...validationsPercentage.map((v) => v.percentage));
+  }, [validationsPercentage]);
+
+  const vehicleWithWorstResult = useMemo(
+    () => getVehicleWithWorstResult(validationByDevice || []),
+    [validationByDevice],
+  );
+
+  const validationTitle = useMemo(() => {
+    if (selectCheck === ALL_CHECKS.id) return "Overall Data Quality";
+    return validationTypeLabelMap[selectCheck as ValidationType];
+  }, [selectCheck]);
+
+  const validationAnomalyPercentage = useMemo(() => {
+    if (selectCheck === ALL_CHECKS.id) return minPercentage;
+    const validationSelected = validationsPercentage.find(
+      (v) => v.type === selectCheck,
+    );
+    if (!validationSelected) return 0;
+    return validationSelected.percentage;
+  }, [selectCheck, validationsPercentage, minPercentage]);
+
+  const options = useMemo(
+    () => [
+      ALL_CHECKS,
+      ...(validation?.map((v) => {
+        return {
+          id: v.validation_type,
+          children: validationTypeLabelMap[v.validation_type],
+        };
+      }) ?? []),
+    ],
+    [validation],
+  );
+
+  const handleSelectCheck = (id: string | undefined) => {
+    if (!id) return;
+
+    setSelectCheck(id);
+  };
+
   return (
     <div className="data-quality-main-container">
       <div className="data-quality-main-header">
-        <h2>Data Quality</h2>
-        <div></div>
+        <h1>Data Quality</h1>
+        <div className="data-quality-main-header-right">
+          <div>
+            Last Data Sync:
+            <div>
+              {moment(databaseInfo?.last_sync).format("MMM DD, YYYY HH:mm")}
+            </div>
+          </div>
+          <div>
+            Validated for:
+            <div>
+              {moment(validation?.[0]?.finished_at)
+                .subtract(15, "minutes")
+                .format("MMM DD, YYYY HH:mm")}{" "}
+              -{" "}
+              {moment(validation?.[0]?.started_at).format("MMM DD, YYYY HH:mm")}
+            </div>
+          </div>
+          <Select
+            placeholder="Select"
+            title="Select"
+            items={options || []}
+            value={selectCheck}
+            onChange={handleSelectCheck}
+            className="select-width"
+          />
+        </div>
       </div>
+      <div className="data-quality-main-info-container">
+        <Card size="L">
+          <Card.Content>
+            <div className="data-quality-main-info-card">
+              <h2>{validationTitle}</h2>
+              <div className="data-quality-main-info-validation">
+                <div
+                  className={`min-percentage ${getThresholdClassName(validationAnomalyPercentage)}`}
+                >
+                  {validationAnomalyPercentage}%
+                </div>
+                <div className="data-quality-main-info-row">
+                  <span>Vehicles with worst results</span>
+                  <span className={vehicleWithWorstResult.className}>
+                    {vehicleWithWorstResult.value}
+                  </span>
+                </div>
+                <div className="data-quality-main-info-checks">
+                  {validationsPercentage.map((v) => (
+                    <div className="data-quality-main-info-row" key={v.type}>
+                      <span>{validationTypeLabelMap[v.type]}</span>
+                      <span className={getThresholdClassName(v.percentage)}>
+                        {v.percentage}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Card.Content>
+        </Card>
+        <Card size="L">
+          <Card.Content>
+            <div className="data-quality-main-info-card">
+              <h2>Fleet Map Preview</h2>
+              <div className="map-container">
+                <GeotabMap api={api} />
+              </div>
+            </div>
+          </Card.Content>
+        </Card>
+      </div>
+      <Card size="L" fullWidth>
+        <Card.Content>
+          <div className="data-quality-main-info-card">
+            <h2>Vehicles</h2>
+          </div>
+        </Card.Content>
+      </Card>
     </div>
   );
 };

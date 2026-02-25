@@ -5,6 +5,7 @@ body {
   font-family: Arial, sans-serif;
   height: 100%;
   width: 100%;
+  font-family: var(--main-font);
 }
 
 #root {
@@ -22,4 +23,14 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.pass {
+  color: var(--color-success, #008a00);
+}
+.warning {
+  color: var(--color-warning, #ed8b00);
+}
+.fall {
+  color: var(--color-error, #d22d2d);
 }

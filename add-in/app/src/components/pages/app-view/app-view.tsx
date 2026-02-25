@@ -76,7 +76,7 @@ const AppView = ({ api, isLocalDevelopment }: AppViewProps) => {
 
     const intervalId = window.setInterval(() => {
       fetchDatabase();
-    }, 10000);
+    }, 15000);
 
     return () => {
       window.clearInterval(intervalId);
@@ -99,7 +99,7 @@ const AppView = ({ api, isLocalDevelopment }: AppViewProps) => {
   return (
     <>
       {databaseInfo?.ingestion_status === DATABASE_STATUS.DONE ? (
-        <DataQuality />
+        <DataQuality api={api} />
       ) : (
         <GeotabMap api={api} />
       )}
