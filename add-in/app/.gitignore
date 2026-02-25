@@ -1,31 +1,8 @@
-# Intellij
-.idea/
-*.iml
-*.iws
- 
 # Mac
 .DS_Store
- 
-# Maven
-log/
-target/
-
-# Metals
-.metals
-.scala-build
-scala-cli.json
 
 # VSCode
 .vscode
-
-# Output folders
-**/output/*
-
-# Scala & sbt
-.bsp
-
-# Jupiter Notebooks
-*ipynb_checkpoints
 
 # Dependencies
 /node_modules
