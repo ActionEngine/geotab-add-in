@@ -1,18 +1,11 @@
 import { AuthInitialState } from "@/types/auth";
 import { DatabaseResponse } from "@/types/shemas/database";
 import { GeotabCredentials } from "mg-api-js";
+import { getHeaders } from "./helper";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const DATABASE_ENDPOINT = `${BASE_URL}/database`;
-
-const getHeaders = (session: GeotabCredentials) => {
-  return {
-    "geotab-session-id": session.sessionId || "",
-    "geotab-database": session.database,
-    "geotab-username": session.userName,
-  };
-};
 
 export const getDatabase = async (
   session: GeotabCredentials,
