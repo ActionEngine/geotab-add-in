@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { AppContext } from "@/provider/app-provider";
 import { AuthInitialState } from "@/types/auth";
 import { Button, FormGroup, TextInput } from "@geotab/zenith";
-import { GeotabCredentials } from "mg-api-js";
 import "./auth-dialog.css";
 
 interface AuthDialogProps {
   open: boolean;
-  session: GeotabCredentials | null;
   onSubmit?: (initState: AuthInitialState) => void;
 }
 
-const AuthDialog = ({ open, session, onSubmit }: AuthDialogProps) => {
+const AuthDialog = ({ open, onSubmit }: AuthDialogProps) => {
+  const { session } = useContext(AppContext);
   const userName = session?.userName || "";
   const database = session?.database || "";
   const [password, setPassword] = useState("");
