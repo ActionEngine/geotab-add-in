@@ -1,13 +1,19 @@
 from sqlalchemy import func, select
 
 from database.database import SessionLocal
-from modules.geotab_database.services.geotab_database import get_database_by_email_and_name
+from modules.geotab_database.services.geotab_database import (
+    get_database_by_email_and_name,
+)
 from modules.geotab_location.models.geotab_location import GeotabLocation
 from modules.validation.models.distance_to_road_result import DistanceToRoadResult
-from modules.validation.models.validation_results_by_device import DistanceToRoadByDevice
+from modules.validation.models.validation_results_by_device import (
+    DistanceToRoadByDevice,
+)
+from modules.validation.models.teleportation_result import TeleportationResult
 from modules.validation.models.validation import Validation
 from modules.validation.schemas.validation import (
     DistanceToRoadWithLocationResponse,
+    TeleportationValidationResultResponse,
     ValidationByDeviceResponse,
     ValidationResponse,
 )
@@ -131,6 +137,65 @@ async def get_distance_to_road_with_location_impl(
             device_id=row.device_id,
             external_id=row.external_id,
             speed=row.speed,
+            longitude=row.longitude,
+            latitude=row.latitude,
+        )
+        for row in rows
+    ]
+
+
+async def get_teleportation_validation_results_impl(
+    current_user: dict,
+    device_id: str | None = None,
+) -> list[TeleportationValidationResultResponse]:
+    """Retrieve teleportation validation results for the authenticated user's database, optionally filtered by device ID."""
+
+    email = current_user["email"]
+    database_name = current_user["database"]
+    db_entry = await get_database_by_email_and_name(email, database_name)
+
+    if not db_entry:
+        return []
+
+    stmt = (
+        select(
+            TeleportationResult.validation_id,
+            TeleportationResult.geotab_location_id,
+            TeleportationResult.implied_speed_kmh,
+            GeotabLocation.datetime,
+            GeotabLocation.device_id,
+            GeotabLocation.external_id,
+            func.ST_X(GeotabLocation.geometry).label("longitude"),
+            func.ST_Y(GeotabLocation.geometry).label("latitude"),
+        )
+        .join(
+            GeotabLocation,
+            GeotabLocation.id == TeleportationResult.geotab_location_id,
+        )
+        .join(Validation, Validation.id == TeleportationResult.validation_id)
+        .where(Validation.geotab_database_id == db_entry.id)
+    )
+
+    if device_id:
+        stmt = stmt.where(GeotabLocation.device_id == device_id)
+
+    stmt = stmt.order_by(
+        TeleportationResult.validation_id.desc(),
+        GeotabLocation.datetime.desc(),
+    )
+
+    async with SessionLocal() as session:
+        result = await session.execute(stmt)
+        rows = result.all()
+
+    return [
+        TeleportationValidationResultResponse(
+            validation_id=row.validation_id,
+            geotab_location_id=row.geotab_location_id,
+            implied_speed_kmh=row.implied_speed_kmh,
+            datetime=row.datetime,
+            device_id=row.device_id,
+            external_id=row.external_id,
             longitude=row.longitude,
             latitude=row.latitude,
         )
