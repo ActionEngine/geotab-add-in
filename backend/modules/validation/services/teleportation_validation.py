@@ -12,6 +12,17 @@ from modules.validation.models.validation import Validation
 logger = logging.getLogger(__name__)
 
 VALIDATION_TYPE = "TELEPORTATION"
+# Speed thresholds for teleportation detection.
+# Tracked vehicles (trucks, vans) typically travel up to ~120 km/h.
+# GPS noise alone can produce apparent speeds of ~50–80 km/h at 1-second intervals,
+# so both thresholds are set well above that noise floor to avoid false positives.
+# WARNING: implied speed is suspiciously high but could still be a GPS glitch.
+# ERROR:   speed is physically impossible for any road vehicle — clear teleportation jump.
+
+# These thresholds can be tuned based on the specific use case and data characteristics.
+# ST_Distance(...::geography) → returns distance in meters;
+# EXTRACT(EPOCH FROM ...) → returns seconds;
+# dividing gives m/s, multiplying by 3.6 converts to km/h  (3600 s/h ÷ 1000 m/km).
 WARNING_THRESHOLD_KMH = 250  # well above GPS noise for vehicles up to ~120 km/h
 ERROR_THRESHOLD_KMH = 500  # clear GPS teleportation jump
 
@@ -65,6 +76,10 @@ async def run_single_teleportation_validation() -> None:
             speeds AS (
                 SELECT
                     id,
+                    -- Compute implied speed between consecutive points of the same device.
+                    -- ST_Distance(...::geography) returns meters; EXTRACT(EPOCH FROM ...) returns seconds.
+                    -- Dividing gives m/s, multiplying by 3.6 converts to km/h (3600 s/h ÷ 1000 m/km).
+                    -- NULLIF guards against division by zero when two points share the same timestamp.
                     ST_Distance(geometry::geography, prev_geometry::geography)
                         / NULLIF(EXTRACT(EPOCH FROM (datetime - prev_datetime)), 0) * 3.6
                         AS implied_speed_kmh
@@ -106,6 +121,49 @@ async def run_single_teleportation_validation() -> None:
             """
         )
 
+        per_device_query = text(
+            """
+            WITH totals AS (
+                SELECT gl.device_id, COUNT(*) AS total_count
+                FROM geotab_location gl
+                WHERE gl.datetime >= :from_datetime
+                  AND gl.geometry IS NOT NULL
+                  AND gl.geotab_database_id = :geotab_database_id
+                GROUP BY gl.device_id
+            ),
+            flagged AS (
+                SELECT
+                    gl.device_id,
+                    COUNT(*) FILTER (
+                        WHERE tr.implied_speed_kmh > :warning_threshold
+                          AND tr.implied_speed_kmh <= :error_threshold
+                    ) AS warning_count,
+                    COUNT(*) FILTER (
+                        WHERE tr.implied_speed_kmh > :error_threshold
+                    ) AS error_count
+                FROM teleportation_results tr
+                JOIN geotab_location gl ON gl.id = tr.geotab_location_id
+                WHERE tr.validation_id = :validation_id
+                GROUP BY gl.device_id
+            )
+            INSERT INTO validation_results_by_device (
+                validation_id,
+                device_id,
+                total,
+                warnings,
+                errors
+            )
+            SELECT
+                :validation_id,
+                totals.device_id,
+                totals.total_count,
+                COALESCE(flagged.warning_count, 0),
+                COALESCE(flagged.error_count, 0)
+            FROM totals
+            LEFT JOIN flagged ON flagged.device_id = totals.device_id
+            """
+        )
+
         for geotab_database_id in geotab_database_ids:
             await session.execute(
                 text(
@@ -139,6 +197,17 @@ async def run_single_teleportation_validation() -> None:
                     "geotab_database_id": geotab_database_id,
                     "validation_id": validation_id,
                     "warning_threshold": WARNING_THRESHOLD_KMH,
+                },
+            )
+
+            await session.execute(
+                per_device_query,
+                {
+                    "from_datetime": from_datetime,
+                    "geotab_database_id": geotab_database_id,
+                    "validation_id": validation_id,
+                    "warning_threshold": WARNING_THRESHOLD_KMH,
+                    "error_threshold": ERROR_THRESHOLD_KMH,
                 },
             )
 
