@@ -1,4 +1,5 @@
 import logging
+import os
 from fastapi import HTTPException, Header
 from dotenv import load_dotenv
 import mygeotab
@@ -6,6 +7,19 @@ import mygeotab
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+
+def _get_allowed_users() -> set[str] | None:
+    allowed_users_raw = os.getenv("ALLOWED_USERS")
+
+    if not allowed_users_raw:
+        return None
+
+    allowed_users = {
+        user.strip() for user in allowed_users_raw.split(",") if user.strip()
+    }
+
+    return allowed_users or None
 
 
 async def get_current_user(
@@ -23,6 +37,11 @@ async def get_current_user(
     ),
 ) -> dict:
     """Validate Geotab session_id and return user data from Geotab"""
+
+    allowed_users = _get_allowed_users()
+    if allowed_users is not None and geotab_username not in allowed_users:
+        logger.warning("User is not in ALLOWED_USERS whitelist: %s", geotab_username)
+        raise HTTPException(status_code=403, detail="User is not allowed")
 
     try:
         # Create API instance with session credentials

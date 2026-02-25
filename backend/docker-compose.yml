@@ -34,7 +34,7 @@ services:
   feeds:
     build:
       context: .
-      dockerfile: Dockerfile.feeds
+      dockerfile: Dockerfile.bg_service
     volumes:
       - .:/app
     env_file:
@@ -46,7 +46,7 @@ services:
   validation:
     build:
       context: .
-      dockerfile: Dockerfile.feeds
+      dockerfile: Dockerfile.bg_service
     command: python run_validation.py
     volumes:
       - .:/app
