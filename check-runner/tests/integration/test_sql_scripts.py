@@ -15,7 +15,6 @@ def _get_scripts():
     return load_scripts(scripts_dir)
 
 
-@pytest.mark.smoke
 @pytest.mark.parametrize("name,sql", _get_scripts())
 def test_sql_script_valid(name, sql):
     """Validate a SQL script by running it in a transaction that gets rolled back.

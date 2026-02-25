@@ -25,9 +25,9 @@ jobs:
 
       - name: Run unit tests
         working-directory: ./check-runner
-        run: uv run -m pytest -m "not smoke"
+        run: uv run -m pytest tests/unit -v
 
-  smoke-tests:
+  integration-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -65,8 +65,8 @@ jobs:
         working-directory: ./check-runner
         run: uv sync
 
-      - name: Run smoke tests
+      - name: Run integration tests
         working-directory: ./check-runner
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/geotab_db
-        run: uv run -m pytest -m smoke -v
+        run: uv run -m pytest tests/integration -v

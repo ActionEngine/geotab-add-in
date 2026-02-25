@@ -241,13 +241,15 @@ check-runner/
 ├── check-scripts/           # SQL validation scripts
 │   └── *.sql
 ├── tests/
-│   ├── test_database_url.py
-│   ├── test_connection_pool.py
-│   ├── test_run_check.py
-│   ├── test_run_all_checks.py
-│   ├── test_load_scripts.py
-│   ├── test_main.py
-│   └── test_smoke.py        # Database smoke tests
+│   ├── unit/                # Fast tests with mocks
+│   │   ├── test_database_url.py
+│   │   ├── test_connection_pool.py
+│   │   ├── test_run_check.py
+│   │   ├── test_run_all_checks.py
+│   │   ├── test_load_scripts.py
+│   │   └── test_main.py
+│   └── integration/         # Tests against real database
+│       └── test_sql_scripts.py
 ├── pyproject.toml           # Project config, dependencies, pytest
 └── uv.lock                  # Locked dependency versions
 ```
@@ -567,10 +569,8 @@ tests/
 ### Check-Runner
 - **Framework:** pytest
 - **Test Location:** `check-runner/tests/`
-- **Unit Tests:** `uv run pytest -m "not smoke"` - Fast tests with mocks
-- **Smoke Tests:** `uv run pytest -m smoke` - Tests SQL scripts against real database
-  - Requires `DATABASE_URL` environment variable
-  - Uses rolled-back transactions (no data modification)
+  - `tests/unit/` - Fast tests with mocks
+  - `tests/integration/` - Tests against real database with rolled-back transactions
 
 ---
 
@@ -586,7 +586,7 @@ tests/
    - Triggers on PRs modifying `check-runner/**` or `backend/**`
    - Two jobs:
      - **unit-tests:** Runs on `ubuntu-slim` - Fast tests without database
-     - **smoke-tests:** Runs on `ubuntu-latest` - Tests SQL scripts against database with migrations (requires Docker)
+     - **integration-tests:** Runs on `ubuntu-latest` - Tests SQL scripts against database with migrations (requires Docker)
 
 2. **geotab-downloader-quality** (`.github/workflows/geotab-downloader.yml`)
    - Triggers on PRs modifying `geotab-downloader/**`
