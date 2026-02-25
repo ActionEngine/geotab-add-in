@@ -1,95 +1,94 @@
 # Check Runner Service
 
-A Python service that runs SQL scripts against the GeoTab data in PostGIS.
+A Python service that runs SQL validation scripts against Geotab data in PostGIS.
 
 ## How It Works
 
-1. Loads all checks from `check-scripts/` directory (each check is a subdirectory)
-2. Each check can have multiple stages (SQL files within the subdirectory)
-3. Stages within a check execute sequentially in a single transaction
-4. Different checks run concurrently using a thread pool
-5. Supports named parameters `%(param_name)s` in SQL
-6. Reports results (row counts or errors)
-7. Exits with code 1 if any check fails
+1. **Configuration**: Checks defined in `CHECKS` dict in `check_runner.py`
+2. **Scripts**: SQL files in `scripts/<folder>/` executed in filename order
+3. **Execution**: Stages run sequentially in a transaction; different checks run concurrently
+4. **Parameters**: SQL uses `%(param_name)s` placeholders, values from `CHECKS`
 
-## Check Structure
-
-Checks are organized as directories under `check-scripts/`:
-
-```
-check-scripts/
-├── distance_to_road_validation/     # Multi-stage check
-│   ├── 01_cleanup.sql
-│   ├── 02_compute_distances.sql
-│   ├── 03_insert_validation.sql
-│   ├── 04_insert_results.sql
-│   └── 05_insert_by_device.sql
-└── select_device_statuses/          # Single-stage check
-    └── 01_select.sql
-```
-
-- **Check name**: Directory name
-- **Stages**: SQL files within the directory, executed in filename-sorted order
-- **State passing**: Use `CREATE TEMP TABLE` to share data between stages
-
-## Multi-Stage Checks
-
-For complex validations, split the logic into multiple stages:
-
-```sql
--- 01_cleanup.sql
-DELETE FROM validation WHERE validation_type = 'MY_CHECK';
-
--- 02_prepare.sql
-CREATE TEMP TABLE flagged_records AS
-SELECT * FROM some_table WHERE condition = true;
-
--- 03_insert.sql
-INSERT INTO validation (geotab_database_id, validation_type, status, ...)
-SELECT geotab_database_id, 'MY_CHECK', 'DONE', COUNT(*)
-FROM flagged_records
-GROUP BY geotab_database_id;
-```
-
-Benefits:
-- Each stage is focused and readable (20-30 lines vs 100+ lines)
-- Easy to debug by inspecting temp tables between stages
-- Clear execution order via filename prefixes (01_, 02_, etc.)
-
-## Parameters
-
-Use `%(param_name)s` syntax for named parameters. Parameters are defined in `check_runner.py`:
+## Configuration Structure
 
 ```python
-contexts = {
-    "distance_to_road_validation": {
-        "interval": timedelta(minutes=60),
-        "warning_threshold": 5,
-        "error_threshold": 10,
-    },
+CHECKS = {
+    "my-check-name": {           # Check identifier (for logging)
+        "script_folder": "road-counter",  # Folder under scripts/ containing SQL
+        "params": {              # Parameters passed to SQL
+            "target_interval_end": "$NOW",  # Special marker → current time
+            "target_interval_depth_minutes": timedelta(minutes=120),
+            "validation_type": "MY_CHECK",
+            "done": "DONE",
+        },
+    }
 }
 ```
 
-## Adding New Checks
+**Special parameter markers:**
+- `"$NOW"` - Replaced with `datetime.now(tz=timezone.utc)` at runtime
 
-1. Create a new directory under `check-scripts/`
-2. Add SQL files with numeric prefixes for ordering (e.g., `01_`, `02_`)
-3. Use `CREATE TEMP TABLE` to pass data between stages
-4. Update the `contexts` mapping in `check_runner.py` if parameters are needed
+**Interval pattern** (used for time-range queries):
+- `*_interval_end` - The end timestamp of the interval
+- `*_interval_depth_minutes` - Duration looking backward (timedelta)
+- SQL calculates start as: `end - depth`
 
-## Running Locally
+## Adding a New Check
 
-```bash
-cd backend
+### 1. Create SQL scripts in `scripts/<folder>/`
 
-# Run directly
-export DATABASE_URL="postgresql://user:password@localhost:5432/geotab_db"
-cd check-runner && uv run -m check_runner
+Files execute in filename-sorted order. Use temp tables to pass data between stages:
 
-# Run via Docker Compose
-cd backend && docker compose run --rm --build check-runner
+```sql
+-- 01-cleanup.sql
+DELETE FROM validation WHERE validation_type = %(validation_type)s;
+
+-- 02-collect.sql
+CREATE TEMP TABLE my_data AS
+SELECT * FROM somewhere WHERE datetime >= %(target_interval_end)s - %(target_interval_depth_minutes)s;
+
+-- 03-insert.sql
+INSERT INTO validation (geotab_database_id, validation_type, status, total)
+SELECT geotab_database_id, %(validation_type)s, %(done)s, COUNT(*)
+FROM my_data
+GROUP BY geotab_database_id;
 ```
 
-## GeoTab API Reference
+### 2. Add entry to `CHECKS` in `check_runner.py`
 
-See `geotab-docs/developers.geotab.com/` for local GeoTab API documentation.
+```python
+"my-new-check": {
+    "script_folder": "my-folder",  # matches scripts/my-folder/
+    "params": {
+        "target_interval_end": "$NOW",
+        "target_interval_depth_minutes": timedelta(minutes=60),
+        "validation_type": "MY_NEW_CHECK",
+        "done": "DONE",
+    },
+},
+```
+
+### 3. Reuse existing scripts with different parameters
+
+Multiple checks can use the same `script_folder` with different params:
+
+```python
+"road-counter-2h": {
+    "script_folder": "road-counter",
+    "params": {"target_interval_depth_minutes": timedelta(minutes=120), ...}
+},
+"road-counter-realtime": {
+    "script_folder": "road-counter", 
+    "params": {"target_interval_depth_minutes": timedelta(minutes=15), ...}
+},
+```
+
+## Running
+
+```bash
+# Once
+cd check-runner && DATABASE_URL=... uv run -m check_runner
+
+# As service (every 5 min via CHECK_INTERVAL_SECONDS)
+cd backend && docker compose up -d check-runner
+```

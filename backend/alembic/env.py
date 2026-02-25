@@ -50,6 +50,7 @@ from modules.overture_segments.models.overture_segments import (
     OvertureSegments,
 )  # noqa: F401
 from modules.geotab_diagnostic.models.geotab_diagnostic import GeotabDiagnostic  # noqa: F401
+from modules.validation.models.segment_anomaly import SegmentAnomaly  # noqa: F401
 
 target_metadata = Base.metadata
 

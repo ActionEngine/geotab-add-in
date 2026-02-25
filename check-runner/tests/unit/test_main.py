@@ -4,24 +4,40 @@ import logging
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from check_runner import main
 
 
+# Script folders referenced by CHECKS (check name -> folder name)
+# Both road-counter checks use the same "road-counter" script folder
+REQUIRED_SCRIPT_FOLDERS = ["road-counter"]
+
+
+def setup_check_dirs(tmp_path):
+    """Helper to create the required check directory structures."""
+    for folder_name in REQUIRED_SCRIPT_FOLDERS:
+        check_dir = tmp_path / folder_name
+        check_dir.mkdir()
+        (check_dir / "01_stage.sql").write_text("SELECT 1")
+    return tmp_path
+
+
 def test_main_no_scripts_found(tmp_path, caplog):
+    """Test that main exits with error when contexts references non-existent check."""
     caplog.set_level(logging.ERROR)
     environ = {"DATABASE_URL": "postgresql://user:pass@localhost/db"}
 
     result = main(scripts_dir=tmp_path, environ=environ)
 
     assert result == 1
-    assert "No SQL scripts found" in caplog.text
+    assert "Failed to load scripts" in caplog.text
+    assert "Check directory not found" in caplog.text
 
 
 def test_main_invalid_database_url(tmp_path, caplog):
     caplog.set_level(logging.ERROR)
-    check_dir = tmp_path / "test_check"
-    check_dir.mkdir()
-    (check_dir / "01_stage.sql").write_text("SELECT 1")
+    setup_check_dirs(tmp_path)
 
     environ = {"DATABASE_URL": "invalid-url"}
 
@@ -33,9 +49,7 @@ def test_main_invalid_database_url(tmp_path, caplog):
 
 def test_main_missing_database_url(tmp_path, caplog):
     caplog.set_level(logging.ERROR)
-    check_dir = tmp_path / "test_check"
-    check_dir.mkdir()
-    (check_dir / "01_stage.sql").write_text("SELECT 1")
+    setup_check_dirs(tmp_path)
 
     environ = {}
 
@@ -47,9 +61,7 @@ def test_main_missing_database_url(tmp_path, caplog):
 
 def test_main_successful_execution(tmp_path, caplog):
     caplog.set_level(logging.INFO)
-    check_dir = tmp_path / "test_check"
-    check_dir.mkdir()
-    (check_dir / "01_stage.sql").write_text("SELECT 1")
+    setup_check_dirs(tmp_path)
 
     environ = {"DATABASE_URL": "postgresql://user:pass@localhost/db"}
 
@@ -81,9 +93,7 @@ def test_main_successful_execution(tmp_path, caplog):
 @patch("check_runner.run_all_checks")
 def test_main_with_failing_check(mock_run_all_checks, tmp_path, caplog):
     caplog.set_level(logging.ERROR)
-    check_dir = tmp_path / "test_check"
-    check_dir.mkdir()
-    (check_dir / "01_stage.sql").write_text("SELECT 1")
+    setup_check_dirs(tmp_path)
 
     environ = {"DATABASE_URL": "postgresql://user:pass@localhost/db"}
 
