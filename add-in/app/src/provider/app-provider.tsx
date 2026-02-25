@@ -33,7 +33,7 @@ const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateIsLoading = (loading: boolean) => {
     setIsLoading((prev) => {
-      if (isLoading === loading) return prev;
+      if (prev === loading) return prev;
       return loading;
     });
   };
