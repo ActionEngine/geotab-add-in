@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends
 
 from modules.auth.dependencies.auth import get_current_user
 from modules.validation.dependencies.validation import (
+    get_distance_to_road_with_location_impl,
     get_validations_by_device_impl,
     get_validations_impl,
 )
 from modules.validation.schemas.validation import (
+    DistanceToRoadWithLocationResponse,
     ValidationByDeviceResponse,
     ValidationResponse,
 )
@@ -25,3 +27,14 @@ async def get_validations_by_device(
     current_user: dict = Depends(get_current_user),
 ) -> list[ValidationByDeviceResponse]:
     return await get_validations_by_device_impl(current_user)
+
+
+@router.get(
+    "/distance-to-road",
+    response_model=list[DistanceToRoadWithLocationResponse],
+)
+async def get_distance_to_road_with_location(
+    device_id: str | None = None,
+    current_user: dict = Depends(get_current_user),
+) -> list[DistanceToRoadWithLocationResponse]:
+    return await get_distance_to_road_with_location_impl(current_user, device_id)

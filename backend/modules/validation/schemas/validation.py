@@ -21,3 +21,15 @@ class ValidationByDeviceResponse(BaseModel):
     total: int
     warnings: int
     errors: int
+
+
+class DistanceToRoadWithLocationResponse(BaseModel):
+    validation_id: int
+    geotab_location_id: int
+    distance: float
+    datetime: datetime
+    device_id: str
+    external_id: str
+    speed: int
+    longitude: float | None
+    latitude: float | None
