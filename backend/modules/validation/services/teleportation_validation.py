@@ -23,8 +23,8 @@ VALIDATION_TYPE = "TELEPORTATION"
 # ST_Distance(...::geography) → returns distance in meters;
 # EXTRACT(EPOCH FROM ...) → returns seconds;
 # dividing gives m/s, multiplying by 3.6 converts to km/h  (3600 s/h ÷ 1000 m/km).
-WARNING_THRESHOLD_KMH = 250  # well above GPS noise for vehicles up to ~120 km/h
-ERROR_THRESHOLD_KMH = 500  # clear GPS teleportation jump
+WARNING_THRESHOLD_KMH = 100  # well above GPS noise for vehicles up to ~120 km/h
+ERROR_THRESHOLD_KMH = 200  # clear GPS teleportation jump
 
 
 async def run_single_teleportation_validation() -> None:
