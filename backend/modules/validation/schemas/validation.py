@@ -33,3 +33,16 @@ class DistanceToRoadWithLocationResponse(BaseModel):
     speed: int
     longitude: float | None
     latitude: float | None
+
+
+class TeleportationValidationResultResponse(BaseModel):
+    """Response model for teleportation validation results, including location details."""
+
+    validation_id: int
+    geotab_location_id: int
+    implied_speed_kmh: float
+    datetime: datetime
+    device_id: str
+    external_id: str
+    longitude: float | None
+    latitude: float | None

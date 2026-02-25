@@ -3,11 +3,13 @@ from fastapi import APIRouter, Depends
 from modules.auth.dependencies.auth import get_current_user
 from modules.validation.dependencies.validation import (
     get_distance_to_road_with_location_impl,
+    get_teleportation_validation_results_impl,
     get_validations_by_device_impl,
     get_validations_impl,
 )
 from modules.validation.schemas.validation import (
     DistanceToRoadWithLocationResponse,
+    TeleportationValidationResultResponse,
     ValidationByDeviceResponse,
     ValidationResponse,
 )
@@ -38,3 +40,14 @@ async def get_distance_to_road_with_location(
     current_user: dict = Depends(get_current_user),
 ) -> list[DistanceToRoadWithLocationResponse]:
     return await get_distance_to_road_with_location_impl(current_user, device_id)
+
+
+@router.get(
+    "/teleportation", response_model=list[TeleportationValidationResultResponse]
+)
+async def get_teleportation_validation_results(
+    device_id: str | None = None,
+    current_user: dict = Depends(get_current_user),
+) -> list[TeleportationValidationResultResponse]:
+
+    return await get_teleportation_validation_results_impl(current_user, device_id)
