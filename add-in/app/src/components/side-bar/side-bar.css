@@ -1,9 +1,0 @@
-.side-bar {
-  height: 100%;
-  width: 350px;
-  min-width: 350px;
-  border-right: 1px solid #ccc;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
