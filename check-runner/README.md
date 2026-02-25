@@ -34,8 +34,7 @@ Use `%(param_name)s` syntax for named parameters.
 
 1. Create a `.sql` file in `check-scripts/` directory
 2. Use `%(param_name)s` for any parameters
-3. Ensure scripts are read-only (SELECT only)
-4. Update the `contexts` mapping in `check_runner.py` if the script requires parameters
+3. Update the `contexts` mapping in `check_runner.py` if the script requires parameters
 
 ## Running Locally
 
