@@ -3,17 +3,21 @@
 import logging
 import os
 import sys
+from collections.abc import Callable, Mapping
 from concurrent.futures import Executor, ThreadPoolExecutor, as_completed
 from contextlib import contextmanager
+from datetime import timedelta
 from pathlib import Path
-from typing import Any, Callable, Mapping
+from typing import Any
 from urllib.parse import urlparse
 
-import psycopg2
 from psycopg2 import pool as psycopg2_pool
 from psycopg2.extensions import connection as PgConnection
 
 logger = logging.getLogger("check-runner")
+
+# Type alias: check name -> list of (stage_name, sql)
+CheckScript = tuple[str, list[tuple[str, str]]]
 
 
 def get_database_url(environ: Mapping[str, str]) -> str:
@@ -37,20 +41,28 @@ def get_database_url(environ: Mapping[str, str]) -> str:
 
 def run_check(
     conn: PgConnection,
-    script_name: str,
-    sql: str,
+    check_name: str,
+    stages: list[tuple[str, str]],
     context: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Run a single SQL check script with named parameters."""
-    with conn.cursor() as cur:
-        try:
-            cur.execute(sql, context)
-        except KeyError as e:
-            param = str(e).strip("'")
-            raise ValueError(f"Missing parameter: '{param}'") from None
+    """Run a multi-stage SQL check. All stages execute in one transaction."""
+    total_rows = 0
 
-        rows = cur.fetchall() if cur.description else []
-        return {"script": script_name, "status": "ok", "rows": len(rows)}
+    with conn.cursor() as cur:
+        for stage_name, sql in stages:
+            try:
+                cur.execute(sql, context)
+            except KeyError as e:
+                param = str(e).strip("'")
+                raise ValueError(f"Missing parameter: '{param}'") from None
+
+            if cur.description:
+                total_rows += len(cur.fetchall())
+            else:
+                total_rows += cur.rowcount
+
+    conn.commit()
+    return {"check": check_name, "status": "ok", "rows": total_rows, "stages": len(stages)}
 
 
 @contextmanager
@@ -65,27 +77,29 @@ def db_connection_pool(dsn: str, minconn: int = 1, maxconn: int = 20) -> Any:
 def run_all_checks(
     executor: Executor,
     pool: Any,
-    scripts: list[tuple[str, str]],
+    scripts: list[CheckScript],
     contexts: Mapping[str, Mapping[str, Any]],
 ) -> int:
-    """Run all SQL scripts. Returns number of failed checks."""
-    logger.info(f"Running {len(scripts)} check scripts")
+    """Run all check scripts. Returns number of failed checks."""
+    logger.info(f"Running {len(scripts)} check(s)")
 
-    def _run_single(name: str, sql: str, context: Mapping[str, Any]) -> dict[str, Any]:
+    def _run_single(
+        name: str, stages: list[tuple[str, str]], context: Mapping[str, Any]
+    ) -> dict[str, Any]:
         conn = None
         try:
             conn = pool.getconn()
-            return run_check(conn, name, sql, context)
+            return run_check(conn, name, stages, context)
         except Exception as e:
             logger.error(f"{name} failed: {e}")
-            return {"script": name, "status": "failed", "error": str(e)}
+            return {"check": name, "status": "failed", "error": str(e)}
         finally:
             if conn is not None:
                 pool.putconn(conn)
 
     futures = [
-        executor.submit(_run_single, name, sql, contexts.get(name, {}))
-        for name, sql in scripts
+        executor.submit(_run_single, name, stages, contexts.get(name, {}))
+        for name, stages in scripts
     ]
 
     failed = 0
@@ -93,16 +107,33 @@ def run_all_checks(
         result = future.result()
         if result["status"] == "failed":
             failed += 1
-            logger.error(f"FAILED: {result['script']} - {result.get('error')}")
+            logger.error(f"FAILED: {result['check']} - {result.get('error')}")
         else:
-            logger.info(f"OK: {result['script']} ({result['rows']} rows)")
+            logger.info(
+                f"OK: {result['check']} ({result['rows']} rows, {result['stages']} stage(s))"
+            )
 
     return failed
 
 
-def load_scripts(scripts_dir: Path) -> list[tuple[str, str]]:
-    scripts = sorted(scripts_dir.glob("*.sql"))
-    return [(s.name, s.read_text()) for s in scripts]
+def load_scripts(scripts_dir: Path) -> list[CheckScript]:
+    """Load SQL scripts from directories.
+
+    Each directory represents one check. SQL files within a directory are
+    executed as stages, sorted by filename.
+    """
+    scripts: list[CheckScript] = []
+
+    for path in sorted(scripts_dir.iterdir()):
+        if not path.is_dir():
+            continue
+        sql_files = sorted(path.glob("*.sql"))
+        if not sql_files:
+            continue
+        stages = [(f.name, f.read_text()) for f in sql_files]
+        scripts.append((path.name, stages))
+
+    return scripts
 
 
 def main(
@@ -120,10 +151,17 @@ def main(
 
     if environ is None:
         environ = os.environ
+    if executor_factory is None:
+        executor_factory = ThreadPoolExecutor
+    if pool_factory is None:
+        pool_factory = db_connection_pool
 
     contexts: Mapping[str, Mapping[str, Any]] = {
-        # "check1.sql": {"param1": "value1"},
-        # "check2.sql": {"paramA": "valueA", "paramB": "valueB"},
+        "distance_to_road_validation": {
+            "interval": timedelta(minutes=60),
+            "warning_threshold": 5,
+            "error_threshold": 10,
+        },
     }
 
     scripts = load_scripts(scripts_dir)
@@ -136,9 +174,6 @@ def main(
     except ValueError as e:
         logger.error(f"Invalid DATABASE_URL: {e}")
         return 1
-
-    executor_factory = executor_factory or ThreadPoolExecutor
-    pool_factory = pool_factory or db_connection_pool
 
     with executor_factory(max_workers=max_workers) as executor:
         with pool_factory(dsn=db_url, minconn=1, maxconn=max_workers) as pool:

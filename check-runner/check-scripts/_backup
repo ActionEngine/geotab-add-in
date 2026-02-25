@@ -1,0 +1,118 @@
+-- Distance to road validation
+-- Inserts validation results for GPS points far from nearest road
+-- Thresholds: warning >5m, error >10m
+-- Parameters: interval_minutes (default: 15), warning_threshold (default: 5), error_threshold (default: 10)
+
+WITH params AS (
+    SELECT
+        NOW() - CAST(%(interval_minutes)s || ' minutes' AS INTERVAL) AS from_datetime,
+        %(warning_threshold)s AS warning_threshold,
+        %(error_threshold)s AS error_threshold
+),
+active_databases AS (
+    SELECT DISTINCT gl.geotab_database_id
+    FROM geotab_location gl
+    JOIN params p ON gl.datetime >= p.from_datetime
+    WHERE gl.geometry IS NOT NULL
+        AND EXISTS (
+            SELECT 1 FROM overture_segments os
+            WHERE os.geotab_database_id = gl.geotab_database_id
+        )
+),
+deleted AS (
+    DELETE FROM validation
+    WHERE validation_type = 'DISTANCE_TO_ROAD'
+        AND geotab_database_id IN (SELECT geotab_database_id FROM active_databases)
+),
+recent_locations AS (
+    SELECT
+        gl.id,
+        gl.device_id,
+        gl.geotab_database_id,
+        gl.geometry AS geom
+    FROM geotab_location gl
+    JOIN params p ON gl.datetime >= p.from_datetime
+    WHERE gl.geometry IS NOT NULL
+        AND gl.geotab_database_id IN (SELECT geotab_database_id FROM active_databases)
+),
+locations_with_distance AS (
+    SELECT
+        rl.id,
+        rl.device_id,
+        rl.geotab_database_id,
+        nearest.distance_meters
+    FROM recent_locations rl
+    CROSS JOIN LATERAL (
+        SELECT ST_Distance(rl.geom::geography, os.geometry::geography) AS distance_meters
+        FROM overture_segments os
+        WHERE os.geotab_database_id = rl.geotab_database_id
+        ORDER BY rl.geom <-> os.geometry
+        LIMIT 1
+    ) AS nearest
+    JOIN params p ON nearest.distance_meters > p.warning_threshold
+),
+computed_stats AS (
+    SELECT
+        rl.geotab_database_id,
+        COUNT(*) AS total_count,
+        COUNT(lwd.id) AS flagged_count
+    FROM recent_locations rl
+    LEFT JOIN locations_with_distance lwd ON lwd.id = rl.id
+    GROUP BY rl.geotab_database_id
+),
+warning_error_stats AS (
+    SELECT
+        geotab_database_id,
+        COUNT(*) FILTER (WHERE distance_meters > p.warning_threshold AND distance_meters <= p.error_threshold) AS warning_count,
+        COUNT(*) FILTER (WHERE distance_meters > p.error_threshold) AS error_count
+    FROM locations_with_distance
+    JOIN params p ON TRUE
+    GROUP BY geotab_database_id
+),
+new_validations AS (
+    INSERT INTO validation (
+        geotab_database_id, started_at, finished_at, validation_type, status, warnings, errors, total
+    )
+    SELECT
+        cs.geotab_database_id,
+        NOW(),
+        NOW(),
+        'DISTANCE_TO_ROAD',
+        'DONE',
+        COALESCE(wes.warning_count, 0),
+        COALESCE(wes.error_count, 0),
+        cs.total_count
+    FROM computed_stats cs
+    LEFT JOIN warning_error_stats wes ON wes.geotab_database_id = cs.geotab_database_id
+    RETURNING id AS validation_id, geotab_database_id
+),
+inserted_results AS (
+    INSERT INTO distance_to_road_results (distance, geotab_location_id, validation_id)
+    SELECT lwd.distance_meters, lwd.id, nv.validation_id
+    FROM locations_with_distance lwd
+    JOIN new_validations nv ON nv.geotab_database_id = lwd.geotab_database_id
+),
+device_totals AS (
+    SELECT nv.validation_id, rl.device_id, COUNT(*) AS total_count
+    FROM recent_locations rl
+    JOIN new_validations nv ON nv.geotab_database_id = rl.geotab_database_id
+    GROUP BY nv.validation_id, rl.device_id
+),
+device_flagged AS (
+    SELECT nv.validation_id, lwd.device_id,
+        COUNT(*) FILTER (WHERE lwd.distance_meters > p.warning_threshold AND lwd.distance_meters <= p.error_threshold) AS warning_count,
+        COUNT(*) FILTER (WHERE lwd.distance_meters > p.error_threshold) AS error_count
+    FROM locations_with_distance lwd
+    JOIN new_validations nv ON nv.geotab_database_id = lwd.geotab_database_id
+    JOIN params p ON TRUE
+    GROUP BY nv.validation_id, lwd.device_id
+),
+inserted_by_device AS (
+    INSERT INTO validation_results_by_device (validation_id, device_id, total, warnings, errors)
+    SELECT dt.validation_id, dt.device_id, dt.total_count,
+        COALESCE(df.warning_count, 0),
+        COALESCE(df.error_count, 0)
+    FROM device_totals dt
+    LEFT JOIN device_flagged df ON df.device_id = dt.device_id AND df.validation_id = dt.validation_id
+)
+SELECT validation_id, geotab_database_id FROM new_validations;

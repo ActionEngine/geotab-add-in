@@ -19,8 +19,9 @@ def test_main_no_scripts_found(tmp_path, caplog):
 
 def test_main_invalid_database_url(tmp_path, caplog):
     caplog.set_level(logging.ERROR)
-    script = tmp_path / "test.sql"
-    script.write_text("SELECT 1")
+    check_dir = tmp_path / "test_check"
+    check_dir.mkdir()
+    (check_dir / "01_stage.sql").write_text("SELECT 1")
 
     environ = {"DATABASE_URL": "invalid-url"}
 
@@ -32,8 +33,9 @@ def test_main_invalid_database_url(tmp_path, caplog):
 
 def test_main_missing_database_url(tmp_path, caplog):
     caplog.set_level(logging.ERROR)
-    script = tmp_path / "test.sql"
-    script.write_text("SELECT 1")
+    check_dir = tmp_path / "test_check"
+    check_dir.mkdir()
+    (check_dir / "01_stage.sql").write_text("SELECT 1")
 
     environ = {}
 
@@ -45,8 +47,9 @@ def test_main_missing_database_url(tmp_path, caplog):
 
 def test_main_successful_execution(tmp_path, caplog):
     caplog.set_level(logging.INFO)
-    script = tmp_path / "test.sql"
-    script.write_text("SELECT 1")
+    check_dir = tmp_path / "test_check"
+    check_dir.mkdir()
+    (check_dir / "01_stage.sql").write_text("SELECT 1")
 
     environ = {"DATABASE_URL": "postgresql://user:pass@localhost/db"}
 
@@ -78,8 +81,9 @@ def test_main_successful_execution(tmp_path, caplog):
 @patch("check_runner.run_all_checks")
 def test_main_with_failing_check(mock_run_all_checks, tmp_path, caplog):
     caplog.set_level(logging.ERROR)
-    script = tmp_path / "test.sql"
-    script.write_text("SELECT 1")
+    check_dir = tmp_path / "test_check"
+    check_dir.mkdir()
+    (check_dir / "01_stage.sql").write_text("SELECT 1")
 
     environ = {"DATABASE_URL": "postgresql://user:pass@localhost/db"}
 

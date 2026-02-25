@@ -11,8 +11,8 @@ def test_run_all_checks_all_scripts_succeed():
     executor = ThreadPoolExecutor(max_workers=2)
 
     scripts = [
-        ("check1.sql", "SELECT 1"),
-        ("check2.sql", "SELECT 2"),
+        ("check1", [("01_stage.sql", "SELECT 1")]),
+        ("check2", [("01_stage.sql", "SELECT 2")]),
     ]
     contexts = {}
 
@@ -36,8 +36,8 @@ def test_run_all_checks_some_scripts_fail():
     executor = ThreadPoolExecutor(max_workers=2)
 
     scripts = [
-        ("check1.sql", "SELECT 1"),
-        ("check2.sql", "SELECT 2"),
+        ("check1", [("01_stage.sql", "SELECT 1")]),
+        ("check2", [("01_stage.sql", "SELECT 2")]),
     ]
     contexts = {}
 
@@ -68,9 +68,9 @@ def test_run_all_checks_with_contexts():
     executor = ThreadPoolExecutor(max_workers=1)
 
     scripts = [
-        ("check1.sql", "SELECT * FROM test WHERE id = %(id)s"),
+        ("check1", [("01_stage.sql", "SELECT * FROM test WHERE id = %(id)s")]),
     ]
-    contexts = {"check1.sql": {"id": 123}}
+    contexts = {"check1": {"id": 123}}
 
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
