@@ -1,10 +1,13 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from database.database import SessionLocal
 from modules.geotab_database.services.geotab_database import get_database_by_email_and_name
+from modules.geotab_location.models.geotab_location import GeotabLocation
+from modules.validation.models.distance_to_road_result import DistanceToRoadResult
 from modules.validation.models.validation_results_by_device import DistanceToRoadByDevice
 from modules.validation.models.validation import Validation
 from modules.validation.schemas.validation import (
+    DistanceToRoadWithLocationResponse,
     ValidationByDeviceResponse,
     ValidationResponse,
 )
@@ -71,6 +74,65 @@ async def get_validations_by_device_impl(
             total=row.total,
             warnings=row.warnings,
             errors=row.errors,
+        )
+        for row in rows
+    ]
+
+
+async def get_distance_to_road_with_location_impl(
+    current_user: dict,
+    device_id: str | None = None,
+) -> list[DistanceToRoadWithLocationResponse]:
+    email = current_user["email"]
+    database_name = current_user["database"]
+    db_entry = await get_database_by_email_and_name(email, database_name)
+
+    if not db_entry:
+        return []
+
+    stmt = (
+        select(
+            DistanceToRoadResult.validation_id,
+            DistanceToRoadResult.geotab_location_id,
+            DistanceToRoadResult.distance,
+            GeotabLocation.datetime,
+            GeotabLocation.device_id,
+            GeotabLocation.external_id,
+            GeotabLocation.speed,
+            func.ST_X(GeotabLocation.geometry).label("longitude"),
+            func.ST_Y(GeotabLocation.geometry).label("latitude"),
+        )
+        .join(
+            GeotabLocation,
+            GeotabLocation.id == DistanceToRoadResult.geotab_location_id,
+        )
+        .join(Validation, Validation.id == DistanceToRoadResult.validation_id)
+        .where(Validation.geotab_database_id == db_entry.id)
+    )
+
+    if device_id:
+        stmt = stmt.where(GeotabLocation.device_id == device_id)
+
+    stmt = stmt.order_by(
+        DistanceToRoadResult.validation_id.desc(),
+        GeotabLocation.datetime.desc(),
+    )
+
+    async with SessionLocal() as session:
+        result = await session.execute(stmt)
+        rows = result.all()
+
+    return [
+        DistanceToRoadWithLocationResponse(
+            validation_id=row.validation_id,
+            geotab_location_id=row.geotab_location_id,
+            distance=row.distance,
+            datetime=row.datetime,
+            device_id=row.device_id,
+            external_id=row.external_id,
+            speed=row.speed,
+            longitude=row.longitude,
+            latitude=row.latitude,
         )
         for row in rows
     ]
