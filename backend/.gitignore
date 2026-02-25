@@ -1,0 +1,23 @@
+# Mac
+.DS_Store
+
+# Jupiter Notebooks
+*ipynb_checkpoints
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.env.secrets
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Pytest
+.coverage
