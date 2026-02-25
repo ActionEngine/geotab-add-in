@@ -1,8 +1,8 @@
-import logging
 from datetime import datetime
+import logging
+import math
 from sqlalchemy import text
 from database.database import SessionLocal
-import math
 
 logger = logging.getLogger(__name__)
 
@@ -163,3 +163,128 @@ async def generate_mvt_tile(
         )
 
         return tile_bytes
+
+
+async def generate_teleportation_mvt_tile(
+    geotab_database_id: int,
+    z: int,
+    x: int,
+    y: int,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+) -> bytes:
+    """
+    Generate MVT tile with two layers for teleportation validation:
+      - 'trajectory'          : LINESTRING segments between consecutive points per device
+      - 'teleportation_flags' : points flagged as teleportation with implied_speed_kmh
+    """
+
+    bbox = tile_to_bbox(z, x, y)
+    params: dict = {
+        "db_id": geotab_database_id,
+        "minx": bbox[0],
+        "miny": bbox[1],
+        "maxx": bbox[2],
+        "maxy": bbox[3],
+    }
+
+    date_conditions = []
+    if date_from is not None:
+        date_conditions.append("AND gl.datetime >= :date_from")
+        params["date_from"] = date_from
+    if date_to is not None:
+        date_conditions.append("AND gl.datetime <= :date_to")
+        params["date_to"] = date_to
+
+    date_filter = " ".join(date_conditions)
+
+    # Two layers concatenated as bytea — PostGIS supports || for MVT
+    query = text(
+        f"""
+        WITH ordered AS (
+            SELECT
+                id,
+                device_id,
+                datetime,
+                geometry,
+                LAG(geometry) OVER (PARTITION BY device_id ORDER BY datetime) AS prev_geometry,
+                LAG(id)       OVER (PARTITION BY device_id ORDER BY datetime) AS prev_id
+            FROM geotab_location gl
+            WHERE geotab_database_id = :db_id
+              AND geometry IS NOT NULL
+              {date_filter}
+        ),
+        segments AS (
+            SELECT
+                device_id,
+                id AS to_location_id,
+                prev_id AS from_location_id,
+                ST_MakeLine(prev_geometry, geometry) AS geom
+            FROM ordered
+            WHERE prev_geometry IS NOT NULL
+        ),
+        latest_validation AS (
+            SELECT id AS validation_id
+            FROM validation
+            WHERE validation_type = 'TELEPORTATION'
+              AND geotab_database_id = :db_id
+            ORDER BY started_at DESC
+            LIMIT 1
+        ),
+        flagged AS (
+            SELECT
+                gl.id,
+                gl.device_id,
+                gl.datetime,
+                gl.geometry,
+                tr.implied_speed_kmh
+            FROM teleportation_results tr
+            JOIN latest_validation lv ON tr.validation_id = lv.validation_id
+            JOIN geotab_location gl ON gl.id = tr.geotab_location_id
+        ),
+        -- Layer 1: trajectory segments that intersect the tile
+        traj_mvt AS (
+            SELECT ST_AsMVTGeom(
+                ST_Transform(geom, 3857),
+                ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857),
+                4096, 256, true
+            ) AS geom,
+            device_id,
+            from_location_id,
+            to_location_id
+            FROM segments
+            WHERE ST_Transform(geom, 3857) && ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857)
+        ),
+        -- Layer 2: flagged teleportation points that intersect the tile
+        flags_mvt AS (
+            SELECT ST_AsMVTGeom(
+                ST_Transform(geometry, 3857),
+                ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857),
+                4096, 256, true
+            ) AS geom,
+            id,
+            device_id,
+            datetime,
+            implied_speed_kmh
+            FROM flagged
+            WHERE ST_Transform(geometry, 3857) && ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857)
+        )
+        SELECT
+            (
+                SELECT COALESCE(ST_AsMVT(traj_mvt.*, 'trajectory',       4096, 'geom'), ''::bytea) FROM traj_mvt  WHERE geom IS NOT NULL
+            )
+            ||
+            (
+                SELECT COALESCE(ST_AsMVT(flags_mvt.*, 'teleportation_flags', 4096, 'geom'), ''::bytea) FROM flags_mvt WHERE geom IS NOT NULL
+            );
+        """
+    )
+
+    async with SessionLocal() as session:
+        result = await session.execute(query, params)
+        tile = result.scalar()
+
+    if tile is None:
+        return b""
+
+    return bytes(tile)
