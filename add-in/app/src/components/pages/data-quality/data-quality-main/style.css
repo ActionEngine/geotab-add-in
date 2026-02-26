@@ -97,3 +97,7 @@
     height: 18px;
   }
 }
+
+.map-container, .map-container__provider {
+  position: relative !important;
+}
