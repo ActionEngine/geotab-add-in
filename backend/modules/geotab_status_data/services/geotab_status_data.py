@@ -1,11 +1,11 @@
-import logging
 from datetime import datetime
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 import mygeotab
+from logging_config import configure_logger
 from modules.geotab_status_data.models.geotab_status_data import GeotabStatusData
 
-logger = logging.getLogger(__name__)
+logger = configure_logger(__name__)
 
 
 def status_data_to_geotab_status_data(

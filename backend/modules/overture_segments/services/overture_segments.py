@@ -1,4 +1,3 @@
-import logging
 import json
 from typing import Optional
 from datetime import datetime
@@ -9,12 +8,13 @@ from shapely.geometry import box, shape
 from shapely import wkb
 from shapely.wkt import loads as wkt_loads
 import duckdb
+from logging_config import configure_logger
 
 from modules.overture_segments.models.overture_segments import OvertureSegments
 from modules.geotab_location.models.geotab_location import GeotabLocation
 from database.database import SessionLocal
 
-logger = logging.getLogger(__name__)
+logger = configure_logger(__name__)
 
 
 async def calculate_points_envelope(geotab_database_id: int) -> Optional[tuple]:

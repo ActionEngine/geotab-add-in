@@ -1,9 +1,9 @@
-import logging
 import asyncio
 import os
 from datetime import datetime, timedelta
 from sqlalchemy import select, func, distinct
 import mygeotab
+from logging_config import configure_logger
 from modules.geotab_database.enums import IngestionStatus
 from modules.geotab_database.models.geotab_database import GeotabDatabase
 from modules.geotab_database.models.geotab_feed import GeotabFeed
@@ -23,8 +23,7 @@ from modules.overture_segments.services.overture_segments import (
 )
 from database.database import SessionLocal
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger = configure_logger(__name__)
 
 
 async def get_database_by_email_and_name(
