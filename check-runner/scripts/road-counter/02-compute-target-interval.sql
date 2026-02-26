@@ -38,7 +38,7 @@ diagnostic_avg AS (
     FROM geotab_status_data
     WHERE datetime >= %(target_interval_end)s - %(target_interval_depth_minutes)s
       AND datetime < %(target_interval_end)s
-      AND diagnostic_id = ANY(ARRAY(SELECT jsonb_object_keys(%(diagnostics)s)))
+      AND diagnostic_id = ANY(%(diagnostic_ids)s)
     GROUP BY 1, 2, 3
 )
 SELECT
