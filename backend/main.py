@@ -1,9 +1,9 @@
-import logging
 import os
 
 from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from logging_config import configure_logger, configure_root_logging
 
 from modules.auth.dependencies.auth import get_current_user
 
@@ -12,7 +12,8 @@ from modules.geotab_database.routers.geotab_database import router as database_r
 from modules.geotab_location.routers.mvt import router as mvt_router
 from modules.validation.routers.validation import router as validation_router
 
-logger = logging.getLogger(__name__)
+configure_root_logging()
+logger = configure_logger(__name__)
 
 load_dotenv()
 
