@@ -8,6 +8,9 @@ from modules.validation.services.distance_validation import (
 from modules.validation.services.teleportation_validation import (
     run_teleportation_validation_service,
 )
+from modules.validation.services.idle_outlier_validation import (
+    run_idle_outlier_validation_service,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,6 +29,7 @@ async def main() -> None:
     await asyncio.gather(
         run_distance_validation_service(interval_seconds=INTERVAL_SECONDS),
         run_teleportation_validation_service(interval_seconds=INTERVAL_SECONDS),
+        run_idle_outlier_validation_service(interval_seconds=INTERVAL_SECONDS),
     )
 
 

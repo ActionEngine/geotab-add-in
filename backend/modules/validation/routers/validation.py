@@ -3,12 +3,14 @@ from fastapi import APIRouter, Depends
 from modules.auth.dependencies.auth import get_current_user
 from modules.validation.dependencies.validation import (
     get_distance_to_road_with_location_impl,
+    get_idle_outliers_impl,
     get_teleportation_validation_results_impl,
     get_validations_by_device_impl,
     get_validations_impl,
 )
 from modules.validation.schemas.validation import (
     DistanceToRoadWithLocationResponse,
+    IdleOutlierResponse,
     TeleportationValidationResultResponse,
     ValidationByDeviceResponse,
     ValidationResponse,
@@ -51,3 +53,12 @@ async def get_teleportation_validation_results(
 ) -> list[TeleportationValidationResultResponse]:
 
     return await get_teleportation_validation_results_impl(current_user, device_id)
+
+
+@router.get("/idle-outliers", response_model=list[IdleOutlierResponse])
+async def get_idle_outliers(
+    device_id: str | None = None,
+    current_user: dict = Depends(get_current_user),
+) -> list[IdleOutlierResponse]:
+
+    return await get_idle_outliers_impl(current_user, device_id)

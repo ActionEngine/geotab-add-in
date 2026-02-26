@@ -46,3 +46,15 @@ class TeleportationValidationResultResponse(BaseModel):
     external_id: str
     longitude: float | None
     latitude: float | None
+
+
+class IdleOutlierResponse(BaseModel):
+    """Response model for idle outlier validation results, including location details."""
+
+    validation_id: int
+    geotab_location_id: int
+    datetime: datetime
+    device_id: str
+    external_id: str
+    longitude: float | None
+    latitude: float | None

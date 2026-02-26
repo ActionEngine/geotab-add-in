@@ -288,3 +288,102 @@ async def generate_teleportation_mvt_tile(
         return b""
 
     return bytes(tile)
+
+
+async def generate_idle_outlier_mvt_tile(
+    geotab_database_id: int,
+    z: int,
+    x: int,
+    y: int,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+) -> bytes:
+    """
+    Generate MVT tile with two layers for idle-outlier validation:
+      - 'idle_clusters'       : convex-hull polygons of DBSCAN clusters (pre-computed,
+                                stored in idle_clusters table — no per-request DBSCAN)
+      - 'idle_outlier_flags'  : recent idle points flagged as outliers (outside all clusters)
+    """
+    bbox = tile_to_bbox(z, x, y)
+    params: dict = {
+        "db_id": geotab_database_id,
+        "minx": bbox[0],
+        "miny": bbox[1],
+        "maxx": bbox[2],
+        "maxy": bbox[3],
+    }
+
+    date_conditions = []
+    if date_from is not None:
+        date_conditions.append("AND gl.datetime >= :date_from")
+        params["date_from"] = date_from
+    if date_to is not None:
+        date_conditions.append("AND gl.datetime <= :date_to")
+        params["date_to"] = date_to
+    date_filter = " ".join(date_conditions)
+
+    query = text(
+        f"""
+        WITH latest_validation AS (
+            SELECT id AS validation_id
+            FROM validation
+            WHERE validation_type = 'IDLE_OUTLIER'
+              AND geotab_database_id = :db_id
+            ORDER BY started_at DESC
+            LIMIT 1
+        ),
+        -- Layer 1: precomputed cluster polygons (cheap table scan)
+        clusters_mvt AS (
+            SELECT
+                ST_AsMVTGeom(
+                    ST_Transform(geometry, 3857),
+                    ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857),
+                    4096, 256, true
+                ) AS geom,
+                cluster_id,
+                point_count
+            FROM idle_clusters
+            WHERE geotab_database_id = :db_id
+              AND ST_Transform(geometry, 3857)
+                  && ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857)
+        ),
+        -- Layer 2: flagged idle outlier points
+        flags_mvt AS (
+            SELECT
+                ST_AsMVTGeom(
+                    ST_Transform(gl.geometry, 3857),
+                    ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857),
+                    4096, 256, true
+                ) AS geom,
+                gl.id,
+                gl.device_id,
+                gl.datetime,
+                gl.speed
+            FROM idle_outlier_results ior
+            JOIN latest_validation lv ON ior.validation_id = lv.validation_id
+            JOIN geotab_location gl ON gl.id = ior.geotab_location_id
+            WHERE ST_Transform(gl.geometry, 3857)
+                  && ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857)
+              {date_filter}
+        )
+        SELECT
+            (
+                SELECT COALESCE(ST_AsMVT(clusters_mvt.*, 'idle_clusters',      4096, 'geom'), ''::bytea)
+                FROM clusters_mvt WHERE geom IS NOT NULL
+            )
+            ||
+            (
+                SELECT COALESCE(ST_AsMVT(flags_mvt.*, 'idle_outlier_flags', 4096, 'geom'), ''::bytea)
+                FROM flags_mvt WHERE geom IS NOT NULL
+            );
+        """
+    )
+
+    async with SessionLocal() as session:
+        result = await session.execute(query, params)
+        tile = result.scalar()
+
+    if tile is None:
+        return b""
+
+    return bytes(tile)

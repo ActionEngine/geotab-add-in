@@ -1,5 +1,6 @@
 from sqlalchemy import func, select
 
+from modules.validation.models.idle_outlier_result import IdleOutlierResult
 from database.database import SessionLocal
 from modules.geotab_database.services.geotab_database import (
     get_database_by_email_and_name,
@@ -13,6 +14,7 @@ from modules.validation.models.teleportation_result import TeleportationResult
 from modules.validation.models.validation import Validation
 from modules.validation.schemas.validation import (
     DistanceToRoadWithLocationResponse,
+    IdleOutlierResponse,
     TeleportationValidationResultResponse,
     ValidationByDeviceResponse,
     ValidationResponse,
@@ -193,6 +195,62 @@ async def get_teleportation_validation_results_impl(
             validation_id=row.validation_id,
             geotab_location_id=row.geotab_location_id,
             implied_speed_kmh=row.implied_speed_kmh,
+            datetime=row.datetime,
+            device_id=row.device_id,
+            external_id=row.external_id,
+            longitude=row.longitude,
+            latitude=row.latitude,
+        )
+        for row in rows
+    ]
+
+
+async def get_idle_outliers_impl(
+    current_user: dict,
+    device_id: str | None = None,
+) -> list[IdleOutlierResponse]:
+    """Retrieve idle outlier validation results for the authenticated user's database, optionally filtered by device ID."""
+
+    email, database_name = current_user["email"], current_user["database"]
+    db_entry = await get_database_by_email_and_name(email, database_name)
+
+    if not db_entry:
+        return []
+
+    stmt = (
+        select(
+            GeotabLocation.id.label("geotab_location_id"),
+            Validation.id.label("validation_id"),
+            GeotabLocation.datetime,
+            GeotabLocation.device_id,
+            GeotabLocation.external_id,
+            func.ST_X(GeotabLocation.geometry).label("longitude"),
+            func.ST_Y(GeotabLocation.geometry).label("latitude"),
+        )
+        .join(
+            IdleOutlierResult,
+            IdleOutlierResult.geotab_location_id == GeotabLocation.id,
+        )
+        .join(Validation, Validation.id == IdleOutlierResult.validation_id)
+        .where(Validation.geotab_database_id == db_entry.id)
+    )
+
+    if device_id:
+        stmt = stmt.where(GeotabLocation.device_id == device_id)
+
+    stmt = stmt.order_by(
+        IdleOutlierResult.validation_id.desc(),
+        GeotabLocation.datetime.desc(),
+    )
+
+    async with SessionLocal() as session:
+        result = await session.execute(stmt)
+        rows = result.all()
+
+    return [
+        IdleOutlierResponse(
+            validation_id=row.validation_id,
+            geotab_location_id=row.geotab_location_id,
             datetime=row.datetime,
             device_id=row.device_id,
             external_id=row.external_id,
