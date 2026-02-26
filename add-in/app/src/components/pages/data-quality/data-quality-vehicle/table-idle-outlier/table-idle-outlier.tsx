@@ -12,20 +12,27 @@ const TableIdleOutlier = ({ points }: TableIdleOutlierProps) => {
     () => [
       {
         id: "col1",
-        title: "Device ID",
+        title: "Lon",
         meta: {
           defaultWidth: 120,
         },
       },
       {
         id: "col2",
+        title: "Lat",
+        meta: {
+          defaultWidth: 120,
+        },
+      },
+      {
+        id: "col3",
         title: "Time",
         meta: {
           defaultWidth: 200,
         },
       },
       {
-        id: "col3",
+        id: "col4",
         title: "Type",
         meta: {
           defaultWidth: 140,
@@ -38,11 +45,16 @@ const TableIdleOutlier = ({ points }: TableIdleOutlierProps) => {
   const entities = useMemo(
     () =>
       points.map((point, index) => {
+        const type = point.is_outlier
+          ? { label: "Outlier", className: "fall" }
+          : { label: "Normal", className: "pass" };
+
         return {
-          id: `${point.device_id}_${index}`,
-          col1: point.device_id,
-          col2: moment(point.datetime).format("MMM DD, YYYY HH:mm"),
-          col3: point.is_outlier ? "Outlier" : "Normal",
+          id: `${point.geotab_location_id}_${index}`,
+          col1: point.longitude.toFixed(6),
+          col2: point.latitude.toFixed(6),
+          col3: moment(point.datetime).format("MMM DD, YYYY HH:mm"),
+          col4: <span className={type.className}>{type.label}</span>,
         };
       }),
     [points],
