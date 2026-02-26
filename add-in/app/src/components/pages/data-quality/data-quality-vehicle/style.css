@@ -1,0 +1,30 @@
+.data-quality-vehicle {
+  display: flex;
+  width: 100%;
+}
+.data-quality-vehicle-info {
+  width: 50%;
+  max-width: 800px;
+  border-right: 1px solid var(--borders-general);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 2rem;
+  gap: 1.5rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  > :first-child {
+    cursor: pointer;
+    color: var(--text-hyperlink);
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  > :last-child {
+    color: var(--text-secondary);
+  }
+}
