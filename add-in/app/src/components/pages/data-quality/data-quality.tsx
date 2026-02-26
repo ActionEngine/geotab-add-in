@@ -13,7 +13,12 @@ const DataQuality = ({ api }: DataQualityProps) => {
   if (selectedVehicle) {
     return <DataQualityVihicle />;
   }
-  return <DataQualityMain api={api} />;
+  return (
+    <DataQualityMain
+      api={api}
+      onSelectVehicle={(id) => setSelectedVehicle(id)}
+    />
+  );
 };
 
 export default DataQuality;
