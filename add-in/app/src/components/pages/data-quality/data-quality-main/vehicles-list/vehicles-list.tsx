@@ -1,6 +1,7 @@
 import { useMemo } from "react";
+import MetricBar from "@/components/ui/metric-bar/metric-bar";
 import { VehicleValidation } from "@/types/shemas/validaton";
-import { getThresholdClassName, THRESHOLD_LABEL } from "@/utils/threshold";
+import { getThresholdLabel, THRESHOLD_LABEL } from "@/utils/threshold";
 import "./style.css";
 
 interface VehiclesListProps {
@@ -34,21 +35,20 @@ const VehiclesList = ({
   }, [vehicles, sortBy]);
 
   return (
-    <>
-      <div className="vehicles-list-text">
+    <div className="vehicles-list-container">
+      <div className="vehicles-list-label">
         Top 5 Vehicles with Worst Battery Health
       </div>
       <div className="vehicles-list">
         {sortedVehicles.map((vehicle) => (
-          <div className="vehicle-item" key={vehicle.device_id}>
-            <span>{vehicle.device_id}</span>
-            <span className={getThresholdClassName(vehicle.percentage)}>
-              {vehicle.status}
-            </span>
-          </div>
+          <MetricBar
+            label={vehicle.device_id}
+            percentage={vehicle.percentage}
+            status={getThresholdLabel(vehicle.percentage)}
+          />
         ))}
       </div>
-    </>
+    </div>
   );
 };
 
