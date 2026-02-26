@@ -40,5 +40,5 @@ JOIN geotab_status_data gsd
     AND swd.device_id = gsd.device_id
 WHERE gsd.datetime >= %(historical_interval_end)s - %(historical_interval_depth_minutes)s
   AND gsd.datetime < %(historical_interval_end)s
-  AND gsd.diagnostic_id = ANY(ARRAY(SELECT jsonb_object_keys(%(diagnostics)s)))
+  AND gsd.diagnostic_id = ANY(%(diagnostic_ids)s)
 GROUP BY 1, 2, 3;

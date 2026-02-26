@@ -33,11 +33,9 @@ CHECKS: Mapping[str, Mapping[str, Any]] = {
             "target_interval_depth_minutes": timedelta(minutes=120),
             "historical_interval_end": "$NOW",
             "historical_interval_depth_minutes": timedelta(hours=6),
-            "diagnostics": Json({
-                "DiagnosticEngineSpeedId": {"warning_threshold": 0.30, "error_threshold": 0.50},
-                "DiagnosticEngineRoadSpeedId": {"warning_threshold": 0.30, "error_threshold": 0.50},
-                "DiagnosticDeviceTotalFuelId": {"warning_threshold": 0.30, "error_threshold": 0.50},
-            }),
+            "diagnostic_ids": ["DiagnosticEngineSpeedId", "DiagnosticEngineRoadSpeedId", "DiagnosticDeviceTotalFuelId"],
+            "warning_threshold": 0.15,
+            "error_threshold": 0.30,
             "segment_proximity_filter": 0.005,
             "validation_type": "ROAD_COUNTER_2h",
             # Done and done. Like Ron Dunn
@@ -52,9 +50,9 @@ CHECKS: Mapping[str, Mapping[str, Any]] = {
             "target_interval_depth_minutes": timedelta(minutes=15),
             "historical_interval_end": datetime(year=2026, month=2, day=22, hour=16, tzinfo=timezone.utc),
             "historical_interval_depth_minutes": timedelta(hours=6),
-            "diagnostics": Json({
-                "DiagnosticEngineRoadSpeedId": {"warning_threshold": 0.15, "error_threshold": 0.30},
-            }),
+            "diagnostic_ids": ["DiagnosticEngineRoadSpeedId"],
+            "warning_threshold": 0.15,
+            "error_threshold": 0.30,
             "segment_proximity_filter": 0.005,
             "validation_type": "ROAD_COUNTER_REALTIME",
             "done": "DONE",
