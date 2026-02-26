@@ -2,6 +2,8 @@ import { useContext, useMemo, useState } from "react";
 import { getValidationByDevice } from "@/api/validation";
 import GeotabMap from "@/components/geotab-map/geotab-map";
 import { useFetch } from "@/hooks/useFetch";
+import MapIcon from "@/image/map-icon";
+import TrackIcon from "@/image/track-icon";
 import { AppContext } from "@/provider/app-provider";
 import {
   ValidationDeviceResponse,
@@ -144,7 +146,7 @@ const DataQualityMain = ({
         <Card size="L">
           <Card.Content>
             <div className="data-quality-main-info-card">
-              <h2>{validationTitle}</h2>
+              <div className="block-header">{validationTitle}</div>
               <div className="data-quality-main-info-validation">
                 <div
                   className={`min-percentage ${getThresholdClassName(validationAnomalyPercentage)}`}
@@ -170,7 +172,15 @@ const DataQualityMain = ({
         <Card size="L">
           <Card.Content>
             <div className="data-quality-main-info-card">
-              <h2>Fleet Map Preview</h2>
+              <div className="block-header">
+                <div className="icon-title-container">
+                  <div className="card-icon">
+                    <MapIcon />
+                  </div>
+                  Fleet Map Preview
+                </div>
+                <div>Live Demo View</div>
+              </div>
               <div className="map-container">
                 <GeotabMap api={api} vehicles={vehicles} />
               </div>
@@ -181,7 +191,14 @@ const DataQualityMain = ({
       <Card size="L" fullWidth>
         <Card.Content>
           <div className="data-quality-main-info-card">
-            <h2>Vehicles</h2>
+            <div className="block-header">
+              <div className="icon-title-container">
+                <div className="card-icon">
+                  <TrackIcon />
+                </div>
+                Vehicles
+              </div>
+            </div>
             <div>
               {validationByDevice?.map((item) => (
                 <div
