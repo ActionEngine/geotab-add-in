@@ -12,9 +12,9 @@ from database.database import Base
 
 
 class SegmentAnomaly(Base):
-    """Road counter anomaly detection"""
+    """Road counter anomaly detection results per segment (vector of diagnostics)."""
 
-    __tablename__ = "segment_anomaly"
+    __tablename__ = "road_counter_results"
 
     id = Column(Integer, primary_key=True, index=True)
     validation_id = Column(
@@ -35,6 +35,9 @@ class SegmentAnomaly(Base):
         nullable=False,
         index=True,
     )
+    # Device IDs that contributed to this segment's data
+    device_ids = Column(ARRAY(String), nullable=False)
+    # Vector columns - diagnostic data aggregated into arrays
     diagnostic_ids = Column(ARRAY(String), nullable=False)
     current_values = Column(ARRAY(Float), nullable=False)
     reference_values = Column(ARRAY(Float), nullable=False)
