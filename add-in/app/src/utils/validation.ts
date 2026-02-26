@@ -11,7 +11,7 @@ import {
 } from "./threshold";
 
 export const getAnomalyPercentage = (errors: number, total: number) => {
-  if (total === 0 || errors === 0) return 0;
+  if (errors === 0) return 100;
   return Number((100 - (errors / total) * 100).toFixed(0));
 };
 
