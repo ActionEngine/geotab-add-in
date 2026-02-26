@@ -13,9 +13,9 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 const VALIDATION_ENDPOINT = `${BASE_URL}/validation`;
 const VALIDATION_BY_DEVICE_ENDPOINT = `${VALIDATION_ENDPOINT}/by-device`;
 const GET_VALIDATION_TELEPORTATION_ENDPOINT = (device_id: string) =>
-  `${VALIDATION_ENDPOINT}/teleportation/?deviceId=${device_id}`;
+  `${VALIDATION_ENDPOINT}/teleportation/?device_id=${device_id}`;
 const GET_VALIDATION_DISTANCE_TO_ROAD_ENDPOINT = (device_id: string) =>
-  `${VALIDATION_ENDPOINT}/distance-to-road/?deviceId=${device_id}`;
+  `${VALIDATION_ENDPOINT}/distance-to-road/?device_id=${device_id}`;
 const GET_VALIDATION_IDLE_OUTLIERS_ENDPOINT = (device_id: string) =>
   `${VALIDATION_ENDPOINT}/idle-outliers/?device_id=${device_id}`;
 
