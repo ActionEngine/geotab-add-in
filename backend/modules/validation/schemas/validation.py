@@ -58,6 +58,7 @@ class IdleOutlierResponse(BaseModel):
     external_id: str
     longitude: float | None
     latitude: float | None
+    is_outlier: bool
 
 
 class SegmentAnomalyResponse(BaseModel):

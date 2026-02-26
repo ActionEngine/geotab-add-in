@@ -1,16 +1,16 @@
 import os
-import logging
 from jose import jwt
 from dotenv import load_dotenv
 from fastapi import HTTPException
 import mygeotab
+from logging_config import configure_logger
 
 load_dotenv()
 
 JWT_SECRET = os.getenv("JWT_SECRET", "supersecret")
 JWT_ALGORITHM = "HS256"
 
-logger = logging.getLogger(__name__)
+logger = configure_logger(__name__)
 
 
 def create_access_token(data: dict) -> str:

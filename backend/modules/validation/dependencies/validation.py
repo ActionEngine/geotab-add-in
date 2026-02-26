@@ -228,6 +228,7 @@ async def get_idle_outliers_impl(
             GeotabLocation.external_id,
             func.ST_X(GeotabLocation.geometry).label("longitude"),
             func.ST_Y(GeotabLocation.geometry).label("latitude"),
+            IdleOutlierResult.is_outlier,
         )
         .join(
             IdleOutlierResult,
@@ -258,6 +259,7 @@ async def get_idle_outliers_impl(
             external_id=row.external_id,
             longitude=row.longitude,
             latitude=row.latitude,
+            is_outlier=row.is_outlier,
         )
         for row in rows
     ]

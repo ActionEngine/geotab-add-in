@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import Boolean, Column, ForeignKey, Integer
 
 from database.database import Base
 
@@ -24,3 +24,4 @@ class IdleOutlierResult(Base):
         primary_key=True,
         index=True,
     )
+    is_outlier = Column(Boolean, nullable=False, index=True)

@@ -1,15 +1,15 @@
 import asyncio
-import logging
 from datetime import datetime, timedelta
 
 from sqlalchemy import text
+from logging_config import configure_logger
 
 from database.database import SessionLocal
 from modules.geotab_database.models.geotab_database import GeotabDatabase  # noqa: F401
 from modules.geotab_location.enums import ValidationStatus
 from modules.validation.models.validation import Validation
 
-logger = logging.getLogger(__name__)
+logger = configure_logger(__name__)
 
 
 async def run_single_distance_validation() -> None:

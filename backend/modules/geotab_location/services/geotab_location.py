@@ -1,13 +1,13 @@
-import logging
 from datetime import datetime
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 import mygeotab
+from logging_config import configure_logger
 from modules.geotab_location.models.geotab_location import GeotabLocation
 
-logger = logging.getLogger(__name__)
+logger = configure_logger(__name__)
 
 
 def log_record_to_geotab_location(
