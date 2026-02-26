@@ -1,55 +1,94 @@
 # Check Runner Service
 
-A Python service that runs SQL scripts against the GeoTab data in PostGIS.
+A Python service that runs SQL validation scripts against Geotab data in PostGIS.
 
 ## How It Works
 
-1. Loads all `.sql` files from `check-scripts/` directory
-2. Executes them concurrently using a thread pool
-3. Supports named parameters `%(param_name)s` in SQL
-4. Reports results (row counts or errors)
-5. Exits with code 1 if any check fails
+1. **Configuration**: Checks defined in `CHECKS` dict in `check_runner.py`
+2. **Scripts**: SQL files in `scripts/<folder>/` executed in filename order
+3. **Execution**: Stages run sequentially in a transaction; different checks run concurrently
+4. **Parameters**: SQL uses `%(param_name)s` placeholders, values from `CHECKS`
 
-## SQL Script Format
+## Configuration Structure
 
-Scripts are plain SQL files with optional named parameters:
-
-```sql
--- Simple script with no parameters
-SELECT * FROM geotab_status_data WHERE status = 'critical';
+```python
+CHECKS = {
+    "my-check-name": {           # Check identifier (for logging)
+        "script_folder": "road-counter",  # Folder under scripts/ containing SQL
+        "params": {              # Parameters passed to SQL
+            "target_interval_end": "$NOW",  # Special marker → current time
+            "target_interval_depth_minutes": timedelta(minutes=120),
+            "validation_type": "MY_CHECK",
+            "done": "DONE",
+        },
+    }
+}
 ```
 
+**Special parameter markers:**
+- `"$NOW"` - Replaced with `datetime.now(tz=timezone.utc)` at runtime
+
+**Interval pattern** (used for time-range queries):
+- `*_interval_end` - The end timestamp of the interval
+- `*_interval_depth_minutes` - Duration looking backward (timedelta)
+- SQL calculates start as: `end - depth`
+
+## Adding a New Check
+
+### 1. Create SQL scripts in `scripts/<folder>/`
+
+Files execute in filename-sorted order. Use temp tables to pass data between stages:
+
 ```sql
--- Script with named parameters
-SELECT * FROM device_statuses
-WHERE device_id = %(device_id)s
-  AND recorded_at > NOW() - INTERVAL '%(hours)s hours';
+-- 01-cleanup.sql
+DELETE FROM validation WHERE validation_type = %(validation_type)s;
+
+-- 02-collect.sql
+CREATE TEMP TABLE my_data AS
+SELECT * FROM somewhere WHERE datetime >= %(target_interval_end)s - %(target_interval_depth_minutes)s;
+
+-- 03-insert.sql
+INSERT INTO validation (geotab_database_id, validation_type, status, total)
+SELECT geotab_database_id, %(validation_type)s, %(done)s, COUNT(*)
+FROM my_data
+GROUP BY geotab_database_id;
 ```
 
-## Parameters
+### 2. Add entry to `CHECKS` in `check_runner.py`
 
-Use `%(param_name)s` syntax for named parameters.
+```python
+"my-new-check": {
+    "script_folder": "my-folder",  # matches scripts/my-folder/
+    "params": {
+        "target_interval_end": "$NOW",
+        "target_interval_depth_minutes": timedelta(minutes=60),
+        "validation_type": "MY_NEW_CHECK",
+        "done": "DONE",
+    },
+},
+```
 
-## Adding New Checks
+### 3. Reuse existing scripts with different parameters
 
-1. Create a `.sql` file in `check-scripts/` directory
-2. Use `%(param_name)s` for any parameters
-3. Ensure scripts are read-only (SELECT only)
-4. Update the `contexts` mapping in `check_runner.py` if the script requires parameters
+Multiple checks can use the same `script_folder` with different params:
 
-## Running Locally
+```python
+"road-counter-2h": {
+    "script_folder": "road-counter",
+    "params": {"target_interval_depth_minutes": timedelta(minutes=120), ...}
+},
+"road-counter-realtime": {
+    "script_folder": "road-counter", 
+    "params": {"target_interval_depth_minutes": timedelta(minutes=15), ...}
+},
+```
+
+## Running
 
 ```bash
-cd backend
+# Once
+cd check-runner && DATABASE_URL=... uv run -m check_runner
 
-# Run directly
-export DATABASE_URL="postgresql://user:password@localhost:5432/geotab_db"
-cd check-runner && uv run -m check_runner
-
-# Run via Docker Compose
-cd backend && docker compose run --rm --build check-runner
+# As service (every 5 min via CHECK_INTERVAL_SECONDS)
+cd backend && docker compose up -d check-runner
 ```
-
-## GeoTab API Reference
-
-See `geotab-docs/developers.geotab.com/` for local GeoTab API documentation.

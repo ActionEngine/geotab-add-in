@@ -69,6 +69,9 @@ docker compose run --rm backend alembic history
 
 # Autogenerate a new migration
 docker compose run -u $(id -u):$(id -g) --rm backend alembic revision --autogenerate -m "<Your migration message>"
+
+# Autogenerate a new empty migration
+docker compose run -u $(id -u):$(id -g) --rm backend alembic revision -m "<Your migration message>"
 ```
 
 ### 6. Run the Backend Server for debug (Optional)
