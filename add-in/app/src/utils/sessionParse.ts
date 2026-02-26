@@ -1,11 +1,14 @@
 import { GeotabCredentials, GeotabSession } from "mg-api-js";
 
 export const geotabSessionParse = (
-  session: GeotabSession,
+  session: GeotabCredentials | GeotabSession,
 ): GeotabCredentials => {
-  return {
-    sessionId: session.credentials.sessionId,
-    database: session.credentials.database,
-    userName: session.credentials.userName,
-  };
+  if ("credentials" in session) {
+    return {
+      sessionId: session.credentials.sessionId,
+      database: session.credentials.database,
+      userName: session.credentials.userName,
+    };
+  }
+  return session;
 };
