@@ -7,6 +7,7 @@ from modules.geotab_database.services.geotab_database import (
 )
 from modules.geotab_location.services.mvt_service import (
     generate_mvt_tile,
+    generate_segments_mvt_tile,
     generate_teleportation_mvt_tile,
     generate_idle_outlier_mvt_tile,
 )
@@ -223,6 +224,93 @@ async def get_idle_outlier_mvt_tile(
         media_type="application/vnd.mapbox-vector-tile",
         headers={
             "Cache-Control": "no-cache",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
+
+
+@router.get(
+    "/segments",
+    responses={
+        200: {
+            "content": {"application/vnd.mapbox-vector-tile": {}},
+            "description": "Returns a Mapbox Vector Tile (binary data) with Overture road segments",
+        }
+    },
+)
+async def get_segments_mvt_tile(
+    z: int,
+    x: int,
+    y: int,
+    current_user: dict = Depends(get_current_user),
+) -> Response:
+    """
+    Generate Mapbox Vector Tile (MVT) for Overture road segments.
+
+    Returns all segments from the overture_segments table that fall within
+    the requested tile bounds. Each feature includes: external_id, names,
+    class_code, subtype, road_surface, speed_limits.
+
+    Args:
+        z: Zoom level (0-22)
+        x: Tile X coordinate
+        y: Tile Y coordinate
+
+    Returns:
+        MVT tile as application/vnd.mapbox-vector-tile
+    """
+
+    if z < 0 or z > 22:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid zoom level: {z}. Must be between 0 and 22",
+        )
+
+    max_tile = 2**z
+    if not (0 <= x < max_tile):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid tile X coordinate: {x}. Must be between 0 and {max_tile - 1} for zoom {z}",
+        )
+
+    if not (0 <= y < max_tile):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid tile Y coordinate: {y}. Must be between 0 and {max_tile - 1} for zoom {z}",
+        )
+
+    email, database_name = current_user["email"], current_user["database"]
+
+    logger.info(
+        f"Generating segments MVT tile z={z}, x={x}, y={y} for user={email}, "
+        f"database={database_name}"
+    )
+
+    db_entry = await get_database_by_email_and_name(email, database_name)
+
+    if not db_entry:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No database configuration found for user {email} and database {database_name}",
+        )
+
+    tile_data = await generate_segments_mvt_tile(
+        geotab_database_id=db_entry.id,
+        z=z,
+        x=x,
+        y=y,
+    )
+
+    logger.info(
+        f"Returning segments MVT tile: {len(tile_data)} bytes for "
+        f"z={z}, x={x}, y={y}, user={email}"
+    )
+
+    return Response(
+        content=tile_data,
+        media_type="application/vnd.mapbox-vector-tile",
+        headers={
+            "Cache-Control": "public, max-age=3600",
             "Access-Control-Allow-Origin": "*",
         },
     )
