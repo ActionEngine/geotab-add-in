@@ -168,7 +168,7 @@ const DataQualityMain = ({ api }: DataQualityMainProps) => {
             <div className="data-quality-main-info-card">
               <h2>Fleet Map Preview</h2>
               <div className="map-container">
-                <GeotabMap api={api} />
+                <GeotabMap api={api} vehicles={vehicles} />
               </div>
             </div>
           </Card.Content>

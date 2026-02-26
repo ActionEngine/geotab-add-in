@@ -27,10 +27,13 @@ body {
 
 .pass {
   color: var(--color-success, #008a00);
+  fill: var(--color-success, #008a00);
 }
 .warning {
   color: var(--color-warning, #ed8b00);
+  fill: var(--color-warning, #ed8b00);
 }
 .fall {
   color: var(--color-error, #d22d2d);
+  fill: var(--color-error, #d22d2d);
 }

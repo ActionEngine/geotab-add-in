@@ -19,7 +19,7 @@ export interface ValidationResponse {
 
 export interface ValidationDeviceResponse {
   validation_id: number;
-  device_id: number;
+  device_id: string;
   total: number;
   warnings: number;
   errors: number;
