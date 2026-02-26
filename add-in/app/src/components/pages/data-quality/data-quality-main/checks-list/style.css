@@ -1,6 +1,7 @@
 .container-row {
   display: flex;
   justify-content: space-between;
+  font-size: 14px;
 
   > span:first-of-type {
     color: var(--color-text-secondary);

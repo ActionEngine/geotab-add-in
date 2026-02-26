@@ -7,10 +7,8 @@ import { VehicleValidation } from "@/types/shemas/validaton";
 import { callAsync } from "@/utils/geotabApi";
 import { getThresholdClassName } from "@/utils/threshold";
 import "maplibre-gl/dist/maplibre-gl.css";
-
-const PADDING_PX = 80;
-const BBOX_PADDING_FACTOR = 0.1;
-const MIN_BBOX_PADDING_DEGREES = 0.002;
+import { PADDING_PX } from "./constants";
+import { getBbox } from "./helper";
 
 const getVehicleId = (vehicle: VehicleStatusInfo) => vehicle.device.id;
 
@@ -19,40 +17,6 @@ const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
 const lerpAngle = (from: number, to: number, t: number) => {
   const diff = ((to - from + 540) % 360) - 180;
   return from + diff * t;
-};
-
-const getVehiclesBbox = (vehicles: VehicleStatusInfo[]) => {
-  if (!vehicles.length) return null;
-
-  let xmin = vehicles[0].longitude;
-  let xmax = vehicles[0].longitude;
-  let ymin = vehicles[0].latitude;
-  let ymax = vehicles[0].latitude;
-
-  for (const vehicle of vehicles) {
-    if (vehicle.longitude < xmin) xmin = vehicle.longitude;
-    if (vehicle.longitude > xmax) xmax = vehicle.longitude;
-    if (vehicle.latitude < ymin) ymin = vehicle.latitude;
-    if (vehicle.latitude > ymax) ymax = vehicle.latitude;
-  }
-
-  const width = xmax - xmin;
-  const height = ymax - ymin;
-  const xPadding = Math.max(
-    width * BBOX_PADDING_FACTOR,
-    MIN_BBOX_PADDING_DEGREES,
-  );
-  const yPadding = Math.max(
-    height * BBOX_PADDING_FACTOR,
-    MIN_BBOX_PADDING_DEGREES,
-  );
-
-  return [
-    xmin - xPadding,
-    ymin - yPadding,
-    xmax + xPadding,
-    ymax + yPadding,
-  ] as const;
 };
 
 interface GeotabMapProps {
@@ -85,7 +49,12 @@ const GeotabMap = ({ api, vehicles = [] }: GeotabMapProps) => {
     const incoming = data.data ?? [];
     if (!incoming.length || hasZoomedRef.current || !mapRef.current) return;
 
-    const bbox = getVehiclesBbox(incoming);
+    const bbox = getBbox(
+      incoming.map((vehicle) => ({
+        latitude: vehicle.latitude,
+        longitude: vehicle.longitude,
+      })),
+    );
     if (!bbox) return;
 
     const [xmin, ymin, xmax, ymax] = bbox;
