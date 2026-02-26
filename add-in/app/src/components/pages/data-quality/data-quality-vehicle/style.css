@@ -12,7 +12,7 @@
   gap: 1.5rem;
 }
 
-.breadcrumbs {
+.header {
   display: flex;
   align-items: center;
   gap: 0.5rem;

@@ -37,3 +37,10 @@ body {
   color: var(--color-error, #d22d2d);
   fill: var(--color-error, #d22d2d);
 }
+
+.circle {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-success, #008a00);
+}
