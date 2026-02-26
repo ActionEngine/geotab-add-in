@@ -1,0 +1,15 @@
+.vehicles-list-text {
+  color: var(--color-text-secondary);
+}
+.vehicles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.vehicle-item {
+  display: flex;
+  justify-content: space-between;
+  > span {
+    font-weight: bold;
+  }
+}

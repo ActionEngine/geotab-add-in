@@ -1,0 +1,17 @@
+.container-row {
+  display: flex;
+  justify-content: space-between;
+
+  > span:first-of-type {
+    color: var(--color-text-secondary);
+  }
+  > span:last-of-type {
+    font-weight: bold;
+  }
+}
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}

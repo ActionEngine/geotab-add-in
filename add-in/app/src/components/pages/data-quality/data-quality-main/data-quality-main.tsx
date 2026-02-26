@@ -12,17 +12,16 @@ import { getThresholdClassName } from "@/utils/threshold";
 import {
   getValidationsPercentage,
   getVehicleWithWorstResult,
+  makeVehiclesByStatus,
 } from "@/utils/validation";
 import { Card } from "@geotab/zenith/esm/card/card";
 import { Select } from "@geotab/zenith/esm/select/select";
 import { GeotabCredentials } from "mg-api-js";
 import moment from "moment";
+import { validationTypeLabelMap } from "../constants";
+import ChecksList from "./checks-list/checks-list";
 import "./style.css";
-
-export const validationTypeLabelMap: Record<ValidationType, string> = {
-  [ValidationType.TELEPORTATION]: "Teleportation",
-  [ValidationType.DISTANCE_TO_ROAD]: "Distance to road",
-};
+import VehiclesList from "./vehicles-list/vehicles-list";
 
 const ALL_CHECKS = {
   id: "ALL_CHECKS",
@@ -46,6 +45,18 @@ const DataQualityMain = ({ api }: DataQualityMainProps) => {
     fn: () => getValidationByDevice(session as GeotabCredentials),
     key: "all-validation-by-device",
   });
+
+  const vehicles = useMemo(
+    () => makeVehiclesByStatus(validationByDevice || []),
+    [validationByDevice],
+  );
+
+  const currentValidationId = useMemo(() => {
+    if (selectCheck === ALL_CHECKS.id) return null;
+    return (
+      validation?.find((v) => v.validation_type === selectCheck)?.id ?? null
+    );
+  }, [selectCheck, validation]);
 
   const validationsPercentage = useMemo(
     () => getValidationsPercentage(validation || []),
@@ -136,22 +147,18 @@ const DataQualityMain = ({ api }: DataQualityMainProps) => {
                 >
                   {validationAnomalyPercentage}%
                 </div>
-                <div className="data-quality-main-info-row">
-                  <span>Vehicles with worst results</span>
-                  <span className={vehicleWithWorstResult.className}>
-                    {vehicleWithWorstResult.value}
-                  </span>
-                </div>
-                <div className="data-quality-main-info-checks">
-                  {validationsPercentage.map((v) => (
-                    <div className="data-quality-main-info-row" key={v.type}>
-                      <span>{validationTypeLabelMap[v.type]}</span>
-                      <span className={getThresholdClassName(v.percentage)}>
-                        {v.percentage}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                {selectCheck === "ALL_CHECKS" ? (
+                  <ChecksList
+                    vehicleWithWorstResult={vehicleWithWorstResult}
+                    validationsPercentage={validationsPercentage}
+                  />
+                ) : (
+                  <VehiclesList
+                    vehicles={vehicles.filter(
+                      (v) => v.validation_id === currentValidationId,
+                    )}
+                  />
+                )}
               </div>
             </div>
           </Card.Content>

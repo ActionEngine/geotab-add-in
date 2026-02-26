@@ -66,24 +66,6 @@
   gap: 2.5rem;
 }
 
-.data-quality-main-info-checks {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.data-quality-main-info-row {
-  display: flex;
-  justify-content: space-between;
-
-  > sapn:first-of-type {
-    color: var(--color-text-secondary);
-  }
-  > span:last-of-type {
-    font-weight: bold;
-  }
-}
-
 .min-percentage {
   font-size: 2.5rem;
   font-weight: bold;
