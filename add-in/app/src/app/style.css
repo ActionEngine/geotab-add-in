@@ -46,3 +46,15 @@ body {
   border-radius: 50%;
   background-color: var(--color-success, #008a00);
 }
+
+.circle.pass {
+  background-color: var(--color-success, #008a00);
+}
+
+.circle.warning {
+  background-color: var(--color-warning, #ed8b00);
+}
+
+.circle.fall {
+  background-color: var(--color-error, #d22d2d);
+}

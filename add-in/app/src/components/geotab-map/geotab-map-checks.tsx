@@ -5,7 +5,7 @@ import { PADDING_PX } from "./constants";
 import { getBbox } from "./helper";
 
 interface GeotabMapChecksProps {
-  points?: { latitude: number; longitude: number }[];
+  points?: { latitude: number; longitude: number; className?: string }[];
 }
 
 const GeotabMapChecks = ({ points = [] }: GeotabMapChecksProps) => {
@@ -44,14 +44,14 @@ const GeotabMapChecks = ({ points = [] }: GeotabMapChecksProps) => {
         }} /* Not documented feature for better interaction experience */
         mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
       >
-        {points.map(({ latitude, longitude }, idx) => {
+        {points.map(({ latitude, longitude, className }, idx) => {
           return (
             <Marker
               key={`${latitude}-${longitude}-${idx}`}
               longitude={longitude}
               latitude={latitude}
             >
-              <div className="circle" />
+              <div className={`circle ${className || ""}`} />
             </Marker>
           );
         })}
