@@ -35,3 +35,35 @@ async def get_database(
     """Retrieve the Geotab database configuration for the authenticated user."""
 
     return await get_database_impl(current_user)
+
+
+@router.get("/get_session_id")
+async def get_session_id(username: str, password: str, database: str) -> str:
+    """
+    Retrieve session information for the authenticated user.
+
+    This endpoint can be used to verify that the user's session is active
+    and to retrieve basic information about the user's authentication status.
+    """
+
+    import mygeotab
+
+    # initialize the API client with the provided credentials
+    client = mygeotab.API(
+        username=username,
+        password=password,
+        database=database,
+    )
+
+    # authenticate the client to obtain the session id
+    client.authenticate()
+
+    # retrieve the session_id
+    try:
+        session_id = client.credentials.session_id
+    except AttributeError:
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve session ID from Geotab client"
+        )
+
+    return session_id
