@@ -19,7 +19,7 @@ const MetricBar = ({ label, percentage, status, icon }: MetricBarProps) => {
     <div className="metric-bar">
       <div
         className={`metric-bar-row ${statusClassNameMap[status]}`}
-        style={{ transform: `scale(${percentage / 100})` }}
+        style={{ transform: `scaleX(${percentage / 100})` }}
       />
       <div className="metric-bar-label">
         {icon && icon}
