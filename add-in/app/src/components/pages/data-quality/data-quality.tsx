@@ -22,7 +22,12 @@ const DataQuality = ({ api }: DataQualityProps) => {
       />
     );
   }
-  return <DataQualityMain api={api} />;
+  return (
+    <DataQualityMain
+      api={api}
+      onSelectVehicle={(id) => setSelectedVehicle(id)}
+    />
+  );
 };
 
 export default DataQuality;

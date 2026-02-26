@@ -14,6 +14,7 @@ import {
   getVehicleWithWorstResult,
   makeVehiclesByStatus,
 } from "@/utils/validation";
+import { Button } from "@geotab/zenith/esm/button/button";
 import { Card } from "@geotab/zenith/esm/card/card";
 import { Select } from "@geotab/zenith/esm/select/select";
 import { GeotabCredentials } from "mg-api-js";
@@ -30,9 +31,10 @@ const ALL_CHECKS = {
 
 interface DataQualityMainProps {
   api: GeotabApi;
+  onSelectVehicle: (id: string) => void;
 }
 
-const DataQualityMain = ({ api }: DataQualityMainProps) => {
+const DataQualityMain = ({ api, onSelectVehicle }: DataQualityMainProps) => {
   const { session, databaseInfo } = useContext(AppContext);
   const [selectCheck, setSelectCheck] = useState<string>(ALL_CHECKS.id);
 
@@ -178,6 +180,27 @@ const DataQualityMain = ({ api }: DataQualityMainProps) => {
         <Card.Content>
           <div className="data-quality-main-info-card">
             <h2>Vehicles</h2>
+            <div>
+              {validationByDevice?.map((item) => (
+                <div
+                  key={item.device_id}
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                    alignItems: "center",
+                    padding: "8px",
+                  }}
+                >
+                  <span>ID: {item.device_id}</span>
+                  <Button
+                    type="primary"
+                    onClick={() => onSelectVehicle(item.device_id)}
+                  >
+                    View Details
+                  </Button>
+                </div>
+              ))}
+            </div>
           </div>
         </Card.Content>
       </Card>
