@@ -16,7 +16,6 @@ import {
   getVehicleWithWorstResult,
   makeVehiclesByStatus,
 } from "@/utils/validation";
-import { Button } from "@geotab/zenith/esm/button/button";
 import { Card } from "@geotab/zenith/esm/card/card";
 import { Select } from "@geotab/zenith/esm/select/select";
 import { GeotabCredentials } from "mg-api-js";
@@ -25,6 +24,7 @@ import { validationTypeLabelMap } from "../constants";
 import ChecksList from "./checks-list/checks-list";
 import "./style.css";
 import VehiclesList from "./vehicles-list/vehicles-list";
+import VehiclesTable from "./vihicles-table/vihicles-table";
 
 const ALL_CHECKS = {
   id: "ALL_CHECKS",
@@ -199,27 +199,11 @@ const DataQualityMain = ({
                 Vehicles
               </div>
             </div>
-            <div>
-              {validationByDevice?.map((item) => (
-                <div
-                  key={`${item.device_id}-${item.validation_id}`}
-                  style={{
-                    display: "flex",
-                    gap: "12px",
-                    alignItems: "center",
-                    padding: "8px",
-                  }}
-                >
-                  <span>ID: {item.device_id}</span>
-                  <Button
-                    type="primary"
-                    onClick={() => onSelectVehicle(item.device_id)}
-                  >
-                    View Details
-                  </Button>
-                </div>
-              ))}
-            </div>
+            <VehiclesTable
+              vehicles={vehicles}
+              validations={validations}
+              onSelectVehicle={onSelectVehicle}
+            />
           </div>
         </Card.Content>
       </Card>
