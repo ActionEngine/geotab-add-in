@@ -6,6 +6,7 @@ body {
   height: 100%;
   width: 100%;
   font-family: var(--main-font);
+  background-color: var(--backgrounds-content-0);
 }
 
 #root {
@@ -36,4 +37,11 @@ body {
 .fall {
   color: var(--color-error, #d22d2d);
   fill: var(--color-error, #d22d2d);
+}
+
+.circle {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-success, #008a00);
 }

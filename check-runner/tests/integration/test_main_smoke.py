@@ -41,9 +41,9 @@ def test_main_road_counter_tmp_runs_without_error():
                     "target_interval_depth_minutes": timedelta(minutes=120),
                     "historical_interval_end": historical_last_moment,
                     "historical_interval_depth_minutes": timedelta(hours=6),
-                    "diagnostics": Json({
-                        "DiagnosticEngineSpeedId": {"warning_threshold": 0.30, "error_threshold": 0.50},
-                    }),
+                    "diagnostic_ids": ["DiagnosticEngineSpeedId"],
+                    "warning_threshold": 0.30,
+                    "error_threshold": 0.50,
                     "segment_proximity_filter": 0.005,
                     "validation_type": "ROAD_COUNTER_ANOMALY",
                     "done": "DONE",

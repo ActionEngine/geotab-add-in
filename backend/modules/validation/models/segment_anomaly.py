@@ -6,12 +6,13 @@ from sqlalchemy import (
     Integer,
     String,
 )
+from sqlalchemy.dialects.postgresql import ARRAY
 
 from database.database import Base
 
 
 class SegmentAnomaly(Base):
-    """Road counter anomaly detection results per segment and diagnostic."""
+    """Road counter anomaly detection"""
 
     __tablename__ = "segment_anomaly"
 
@@ -34,9 +35,10 @@ class SegmentAnomaly(Base):
         nullable=False,
         index=True,
     )
-    diagnostic_id = Column(String, nullable=False, index=True)
-    target_avg = Column(Float, nullable=False)
-    historical_avg = Column(Float, nullable=False)
-    relative_deviation = Column(Float, nullable=False)
+    diagnostic_ids = Column(ARRAY(String), nullable=False)
+    current_values = Column(ARRAY(Float), nullable=False)
+    reference_values = Column(ARRAY(Float), nullable=False)
+    value_deviations = Column(ARRAY(Float), nullable=False)
+    aggregate_deviation = Column(Float, nullable=False)
     is_warning = Column(Boolean, nullable=False, default=False)
     is_error = Column(Boolean, nullable=False, default=False)

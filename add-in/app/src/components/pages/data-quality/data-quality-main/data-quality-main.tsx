@@ -1,5 +1,5 @@
 import { useContext, useMemo, useState } from "react";
-import { getValidation, getValidationByDevice } from "@/api/validation";
+import { getValidationByDevice } from "@/api/validation";
 import GeotabMap from "@/components/geotab-map/geotab-map";
 import { useFetch } from "@/hooks/useFetch";
 import { AppContext } from "@/provider/app-provider";
@@ -31,17 +31,17 @@ const ALL_CHECKS = {
 
 interface DataQualityMainProps {
   api: GeotabApi;
+  validations: ValidationResponse[] | [];
   onSelectVehicle: (id: string) => void;
 }
 
-const DataQualityMain = ({ api, onSelectVehicle }: DataQualityMainProps) => {
+const DataQualityMain = ({
+  api,
+  validations,
+  onSelectVehicle,
+}: DataQualityMainProps) => {
   const { session, databaseInfo } = useContext(AppContext);
   const [selectCheck, setSelectCheck] = useState<string>(ALL_CHECKS.id);
-
-  const { data: validation } = useFetch<ValidationResponse[]>({
-    fn: () => getValidation(session as GeotabCredentials),
-    key: "all-validation",
-  });
 
   const { data: validationByDevice } = useFetch<ValidationDeviceResponse[]>({
     fn: () => getValidationByDevice(session as GeotabCredentials),
@@ -56,13 +56,13 @@ const DataQualityMain = ({ api, onSelectVehicle }: DataQualityMainProps) => {
   const currentValidationId = useMemo(() => {
     if (selectCheck === ALL_CHECKS.id) return null;
     return (
-      validation?.find((v) => v.validation_type === selectCheck)?.id ?? null
+      validations?.find((v) => v.validation_type === selectCheck)?.id ?? null
     );
-  }, [selectCheck, validation]);
+  }, [selectCheck, validations]);
 
   const validationsPercentage = useMemo(
-    () => getValidationsPercentage(validation || []),
-    [validation],
+    () => getValidationsPercentage(validations || []),
+    [validations],
   );
   const minPercentage = useMemo(() => {
     if (!validationsPercentage.length) return 0;
@@ -91,14 +91,14 @@ const DataQualityMain = ({ api, onSelectVehicle }: DataQualityMainProps) => {
   const options = useMemo(
     () => [
       ALL_CHECKS,
-      ...(validation?.map((v) => {
+      ...(validations?.map((v) => {
         return {
           id: v.validation_type,
           children: validationTypeLabelMap[v.validation_type],
         };
       }) ?? []),
     ],
-    [validation],
+    [validations],
   );
 
   const handleSelectCheck = (id: string | undefined) => {
@@ -121,11 +121,13 @@ const DataQualityMain = ({ api, onSelectVehicle }: DataQualityMainProps) => {
           <div>
             Validated for:
             <div>
-              {moment(validation?.[0]?.finished_at)
+              {moment(validations?.[0]?.finished_at)
                 .subtract(15, "minutes")
                 .format("MMM DD, YYYY HH:mm")}{" "}
               -{" "}
-              {moment(validation?.[0]?.started_at).format("MMM DD, YYYY HH:mm")}
+              {moment(validations?.[0]?.started_at).format(
+                "MMM DD, YYYY HH:mm",
+              )}
             </div>
           </div>
           <Select
@@ -182,7 +184,7 @@ const DataQualityMain = ({ api, onSelectVehicle }: DataQualityMainProps) => {
             <h2>Vehicles</h2>
             <VehiclesTable
               vehicles={vehicles}
-              validations={validation || []}
+              validations={validations}
               onSelectVehicle={onSelectVehicle}
             />
           </div>
