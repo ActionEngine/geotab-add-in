@@ -3,6 +3,7 @@ import { THRESHOLD_LABEL } from "@/utils/threshold";
 export enum ValidationType {
   TELEPORTATION = "TELEPORTATION",
   DISTANCE_TO_ROAD = "DISTANCE_TO_ROAD",
+  IDLE_OUTLIER = "IDLE_OUTLIER",
   ROAD_COUNTER_2H = "ROAD_COUNTER_2h",
 }
 
@@ -51,4 +52,8 @@ export interface ValidationTeleportationResponse extends ValidationCheckResponse
 export interface ValidationDistanceToRoadResponse extends ValidationCheckResponse {
   distance: number;
   speed: number;
+}
+
+export interface ValidationIdleOutlierResponse extends ValidationCheckResponse {
+  is_outlier: boolean;
 }

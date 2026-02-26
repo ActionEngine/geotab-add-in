@@ -1,12 +1,14 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import {
   getValidationDistanceToRoad,
+  getValidationIdleOutliers,
   getValidationTeleportation,
 } from "@/api/validation";
 import GeotabMapChecks from "@/components/geotab-map/geotab-map-checks";
 import { AppContext } from "@/provider/app-provider";
 import {
   ValidationDistanceToRoadResponse,
+  ValidationIdleOutlierResponse,
   ValidationResponse,
   ValidationTeleportationResponse,
   ValidationType,
@@ -20,6 +22,7 @@ import moment from "moment";
 import { validationTypeLabelMap } from "../constants";
 import "./style.css";
 import TableDistance from "./table-distance/table-distance";
+import TableIdleOutlier from "./table-idle-outlier/table-idle-outlier";
 import TableTeleportation from "./table-teleportation/table-teleportation";
 
 interface DataQualityVehicleProps {
@@ -36,7 +39,9 @@ const DataQualityVehicle = ({
   const { session, databaseInfo } = useContext(AppContext);
   const [selectCheck, setSelectCheck] = useState<string>("");
   const [points, setPoints] = useState<
-    ValidationTeleportationResponse[] | ValidationDistanceToRoadResponse[]
+    | ValidationTeleportationResponse[]
+    | ValidationDistanceToRoadResponse[]
+    | ValidationIdleOutlierResponse[]
   >([]);
 
   const options = useMemo(
@@ -67,6 +72,14 @@ const DataQualityVehicle = ({
     }
     if (selectCheck === ValidationType.DISTANCE_TO_ROAD) {
       getValidationDistanceToRoad(session as GeotabCredentials, deviceId).then(
+        (res) => {
+          setPoints(res);
+        },
+      );
+    }
+
+    if (selectCheck === ValidationType.IDLE_OUTLIER) {
+      getValidationIdleOutliers(session as GeotabCredentials, deviceId).then(
         (res) => {
           setPoints(res);
         },
@@ -158,6 +171,9 @@ const DataQualityVehicle = ({
           <TableDistance
             points={points as ValidationDistanceToRoadResponse[]}
           />
+        )}
+        {selectCheck === ValidationType.IDLE_OUTLIER && (
+          <TableIdleOutlier points={points as ValidationIdleOutlierResponse[]} />
         )}
       </div>
       <GeotabMapChecks points={mapPoints} />
