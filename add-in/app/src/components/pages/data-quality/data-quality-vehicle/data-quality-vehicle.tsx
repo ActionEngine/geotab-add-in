@@ -34,6 +34,36 @@ interface DataQualityVehicleProps {
   onBack: () => void;
 }
 
+const getTeleportationMapClassName = (
+  point: ValidationTeleportationResponse,
+) => {
+  if (point.implied_speed_kmh > 200) {
+    return "fall";
+  }
+
+  if (point.implied_speed_kmh >= 100) {
+    return "warning";
+  }
+
+  return "pass";
+};
+
+const getDistanceMapClassName = (point: ValidationDistanceToRoadResponse) => {
+  if (point.distance > 10) {
+    return "fall";
+  }
+
+  if (point.distance >= 5) {
+    return "warning";
+  }
+
+  return "pass";
+};
+
+const getIdleOutlierMapClassName = (point: ValidationIdleOutlierResponse) => {
+  return point.is_outlier ? "fall" : "pass";
+};
+
 const DataQualityVehicle = ({
   deviceId,
   validations,
@@ -96,13 +126,36 @@ const DataQualityVehicle = ({
     }
   }, [selectCheck]);
 
-  const mapPoints = useMemo(
-    () =>
-      points.map((point) => {
-        return { latitude: point.latitude, longitude: point.longitude };
-      }),
-    [points],
-  );
+  const mapPoints = useMemo(() => {
+    if (selectCheck === ValidationType.TELEPORTATION) {
+      return (points as ValidationTeleportationResponse[]).map((point) => ({
+        latitude: point.latitude,
+        longitude: point.longitude,
+        className: getTeleportationMapClassName(point),
+      }));
+    }
+
+    if (selectCheck === ValidationType.DISTANCE_TO_ROAD) {
+      return (points as ValidationDistanceToRoadResponse[]).map((point) => ({
+        latitude: point.latitude,
+        longitude: point.longitude,
+        className: getDistanceMapClassName(point),
+      }));
+    }
+
+    if (selectCheck === ValidationType.IDLE_OUTLIER) {
+      return (points as ValidationIdleOutlierResponse[]).map((point) => ({
+        latitude: point.latitude,
+        longitude: point.longitude,
+        className: getIdleOutlierMapClassName(point),
+      }));
+    }
+
+    return points.map((point) => ({
+      latitude: point.latitude,
+      longitude: point.longitude,
+    }));
+  }, [points, selectCheck]);
 
   const validationsPercentage = useMemo(() => {
     const validationTypeById = new Map<number, ValidationType>(
