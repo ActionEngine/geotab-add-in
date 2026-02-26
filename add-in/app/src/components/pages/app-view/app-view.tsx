@@ -10,14 +10,13 @@ import { DATABASE_STATUS } from "@/types/shemas/database";
 import { getSessionAsync } from "@/utils/geotabApi";
 import { geotabSessionParse } from "@/utils/sessionParse";
 import "@geotab/zenith/dist/index.css";
-import { GeotabCredentials, GeotabSession } from "mg-api-js";
+import { GeotabSession } from "mg-api-js";
 
 interface AppViewProps {
   api: GeotabApi; // Type is defined globally in geotab.d.ts
-  isLocalDevelopment: boolean;
 }
 
-const AppView = ({ api, isLocalDevelopment }: AppViewProps) => {
+const AppView = ({ api }: AppViewProps) => {
   const {
     session,
     databaseInfo,
@@ -31,11 +30,7 @@ const AppView = ({ api, isLocalDevelopment }: AppViewProps) => {
   const fetchSession = async () => {
     try {
       const sessionRes = await getSessionAsync(api);
-      if (isLocalDevelopment) {
-        updateSession(geotabSessionParse(sessionRes as GeotabSession));
-        return;
-      }
-      updateSession(sessionRes as GeotabCredentials);
+      updateSession(geotabSessionParse(sessionRes as GeotabSession));
     } catch (error) {
       console.error("Error fetching session:", error);
     }
