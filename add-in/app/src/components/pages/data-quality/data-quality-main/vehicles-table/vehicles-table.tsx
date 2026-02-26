@@ -20,6 +20,7 @@ interface GroupedVehicle {
   device_id: string;
   distance_to_road: number;
   teleportation: number;
+  idle_outlier: number;
 }
 
 const VehiclesTable = ({
@@ -42,6 +43,7 @@ const VehiclesTable = ({
           device_id: vehicle.device_id,
           distance_to_road: 0,
           teleportation: 0,
+          idle_outlier: 0,
         };
         grouped.set(vehicle.device_id, row);
       }
@@ -52,6 +54,8 @@ const VehiclesTable = ({
         row.distance_to_road = vehicle.percentage;
       } else if (type === ValidationType.TELEPORTATION) {
         row.teleportation = vehicle.percentage;
+      } else if (type === ValidationType.IDLE_OUTLIER) {
+        row.idle_outlier = vehicle.percentage;
       }
     });
 
@@ -64,9 +68,7 @@ const VehiclesTable = ({
         id: "device_id",
         title: "Vehicle ID",
         columnComponent: {
-          render: (vehicle) => (
-            <span>{vehicle.device_id}</span>
-          ),
+          render: (vehicle) => <span>{vehicle.device_id}</span>,
         },
       },
       {
@@ -87,10 +89,19 @@ const VehiclesTable = ({
         title: "Teleportation",
         columnComponent: {
           render: (vehicle) => (
-            <span
-              className={`${getThresholdClassName(vehicle.teleportation)}`}
-            >
+            <span className={`${getThresholdClassName(vehicle.teleportation)}`}>
               {vehicle.teleportation === 0 ? 100 : vehicle.teleportation}%
+            </span>
+          ),
+        },
+      },
+      {
+        id: "idle_outlier",
+        title: "Idle outlier",
+        columnComponent: {
+          render: (vehicle) => (
+            <span className={`${getThresholdClassName(vehicle.idle_outlier)}`}>
+              {vehicle.idle_outlier === 0 ? 100 : vehicle.idle_outlier}%
             </span>
           ),
         },

@@ -1,6 +1,7 @@
 import {
   ValidationDeviceResponse,
   ValidationDistanceToRoadResponse,
+  ValidationIdleOutlierResponse,
   ValidationResponse,
   ValidationTeleportationResponse,
 } from "@/types/shemas/validaton";
@@ -15,6 +16,8 @@ const GET_VALIDATION_TELEPORTATION_ENDPOINT = (device_id: string) =>
   `${VALIDATION_ENDPOINT}/teleportation/?deviceId=${device_id}`;
 const GET_VALIDATION_DISTANCE_TO_ROAD_ENDPOINT = (device_id: string) =>
   `${VALIDATION_ENDPOINT}/distance-to-road/?deviceId=${device_id}`;
+const GET_VALIDATION_IDLE_OUTLIERS_ENDPOINT = (device_id: string) =>
+  `${VALIDATION_ENDPOINT}/idle-outliers/?device_id=${device_id}`;
 
 export const getValidation = async (
   session: GeotabCredentials,
@@ -77,6 +80,27 @@ export const getValidationDistanceToRoad = async (
   const headers = getHeaders(session);
   const response = await fetch(
     GET_VALIDATION_DISTANCE_TO_ROAD_ENDPOINT(devaceId),
+    {
+      method: "GET",
+      headers,
+    },
+  );
+  if (response.status !== 200) {
+    return [];
+  }
+
+  const result = await response.json();
+
+  return result;
+};
+
+export const getValidationIdleOutliers = async (
+  session: GeotabCredentials,
+  devaceId: string,
+): Promise<ValidationIdleOutlierResponse[] | []> => {
+  const headers = getHeaders(session);
+  const response = await fetch(
+    GET_VALIDATION_IDLE_OUTLIERS_ENDPOINT(devaceId),
     {
       method: "GET",
       headers,

@@ -22,7 +22,7 @@ import { validationTypeLabelMap } from "../constants";
 import ChecksList from "./checks-list/checks-list";
 import "./style.css";
 import VehiclesList from "./vehicles-list/vehicles-list";
-import VehiclesTable from "./vihicles-table/vihicles-table";
+import VehiclesTable from "./vehicles-table/vehicles-table";
 
 const ALL_CHECKS = {
   id: "ALL_CHECKS",
