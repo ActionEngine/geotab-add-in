@@ -3,6 +3,7 @@ import { databaseInit, getDatabase } from "@/api/database";
 import AuthDialog from "@/components/auth-dialog/auth-dialog";
 import GeotabMap from "@/components/geotab-map/geotab-map";
 import DataQuality from "@/components/pages/data-quality/data-quality";
+import AspenGis from "@/components/ui/aspen-gis/aspen-gis";
 import { AppContext } from "@/provider/app-provider";
 import { AuthInitialState } from "@/types/auth";
 import { DATABASE_STATUS } from "@/types/shemas/database";
@@ -104,6 +105,7 @@ const AppView = ({ api, isLocalDevelopment }: AppViewProps) => {
         <GeotabMap api={api} />
       )}
       <AuthDialog open={openModal} onSubmit={handleAuthSubmit} />
+      <AspenGis />
     </>
   );
 };

@@ -10,10 +10,8 @@ import {
   ValidationResponse,
   ValidationType,
 } from "@/types/shemas/validaton";
-import { getThresholdClassName } from "@/utils/threshold";
 import {
   getValidationsPercentage,
-  getVehicleWithWorstResult,
   makeVehiclesByStatus,
 } from "@/utils/validation";
 import { Card } from "@geotab/zenith/esm/card/card";
@@ -66,29 +64,11 @@ const DataQualityMain = ({
     () => getValidationsPercentage(validations || []),
     [validations],
   );
-  const minPercentage = useMemo(() => {
-    if (!validationsPercentage.length) return 0;
-    return Math.min(...validationsPercentage.map((v) => v.percentage));
-  }, [validationsPercentage]);
-
-  const vehicleWithWorstResult = useMemo(
-    () => getVehicleWithWorstResult(validationByDevice || []),
-    [validationByDevice],
-  );
 
   const validationTitle = useMemo(() => {
     if (selectCheck === ALL_CHECKS.id) return "Overall Data Quality";
     return validationTypeLabelMap[selectCheck as ValidationType];
   }, [selectCheck]);
-
-  const validationAnomalyPercentage = useMemo(() => {
-    if (selectCheck === ALL_CHECKS.id) return minPercentage;
-    const validationSelected = validationsPercentage.find(
-      (v) => v.type === selectCheck,
-    );
-    if (!validationSelected) return 0;
-    return validationSelected.percentage;
-  }, [selectCheck, validationsPercentage, minPercentage]);
 
   const options = useMemo(
     () => [
@@ -148,16 +128,8 @@ const DataQualityMain = ({
             <div className="data-quality-main-info-card">
               <div className="block-header">{validationTitle}</div>
               <div className="data-quality-main-info-validation">
-                <div
-                  className={`min-percentage ${getThresholdClassName(validationAnomalyPercentage)}`}
-                >
-                  {validationAnomalyPercentage}%
-                </div>
                 {selectCheck === "ALL_CHECKS" ? (
-                  <ChecksList
-                    vehicleWithWorstResult={vehicleWithWorstResult}
-                    validationsPercentage={validationsPercentage}
-                  />
+                  <ChecksList validationsPercentage={validationsPercentage} />
                 ) : (
                   <VehiclesList
                     vehicles={vehicles.filter(

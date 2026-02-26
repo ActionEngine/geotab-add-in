@@ -1,0 +1,15 @@
+.aspen-gis {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 4px;
+  background-color: var(--backgrounds-reverse-1);
+  font-size: 0.8rem;
+  color: var(--text-reverse-primary);
+  font-weight: 500;
+}
