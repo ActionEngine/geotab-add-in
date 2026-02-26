@@ -10,15 +10,11 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  > * h1,
-  h2 {
+  > * h1 {
     margin: 0;
-  }
-  > * h2 {
-    font-size: 1.25rem;
+    color: var(--text-primary);
   }
 }
-
 .data-quality-main-header {
   display: flex;
   justify-content: space-between;
@@ -69,4 +65,35 @@
 .min-percentage {
   font-size: 2.5rem;
   font-weight: bold;
+}
+
+.block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--backgrounds-content-2);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.icon-title-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: var(--accents-general--main);
+  color: var(--accents-general--detail);
+  > svg {
+    width: 18px;
+    height: 18px;
+  }
 }
