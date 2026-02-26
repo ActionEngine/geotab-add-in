@@ -58,3 +58,19 @@ class IdleOutlierResponse(BaseModel):
     external_id: str
     longitude: float | None
     latitude: float | None
+
+
+class SegmentAnomalyResponse(BaseModel):
+    """Response model for segment anomaly detection results, including location details."""
+
+    validation_id: int
+    geotab_database_id: int
+    segment_id: int
+    diagnostic_ids: list[str]
+    current_values: list[float]
+    reference_values: list[float]
+    value_deviations: list[float]
+    aggregate_deviation: float
+    is_warning: bool
+    is_error: bool
+    device_ids: list[str]

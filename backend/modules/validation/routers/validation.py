@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 from modules.auth.dependencies.auth import get_current_user
 from modules.validation.dependencies.validation import (
+    get_segment_anomalies_impl,
     get_distance_to_road_with_location_impl,
     get_idle_outliers_impl,
     get_teleportation_validation_results_impl,
@@ -11,6 +12,7 @@ from modules.validation.dependencies.validation import (
 from modules.validation.schemas.validation import (
     DistanceToRoadWithLocationResponse,
     IdleOutlierResponse,
+    SegmentAnomalyResponse,
     TeleportationValidationResultResponse,
     ValidationByDeviceResponse,
     ValidationResponse,
@@ -62,3 +64,12 @@ async def get_idle_outliers(
 ) -> list[IdleOutlierResponse]:
 
     return await get_idle_outliers_impl(current_user, device_id)
+
+
+@router.get("/segment_anomaly", response_model=list[SegmentAnomalyResponse])
+async def get_segment_anomalies(
+    device_id: str | None = None,
+    current_user: dict = Depends(get_current_user),
+) -> list[SegmentAnomalyResponse]:
+
+    return await get_segment_anomalies_impl(current_user, device_id)
