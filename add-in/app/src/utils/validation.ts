@@ -10,9 +10,14 @@ import {
   THRESHOLD_LABEL,
 } from "./threshold";
 
-export const getAnomalyPercentage = (errors: number, total: number) => {
-  if (errors === 0) return 100;
-  return Number((100 - (errors / total) * 100).toFixed(0));
+export const getAnomalyPercentage = (
+  warnings: number,
+  errors: number,
+  total: number,
+) => {
+  const anomalies = warnings + errors;
+  if (anomalies === 0) return 100;
+  return Number((100 - (anomalies / total) * 100).toFixed(0));
 };
 
 export const getValidationsPercentage = (
@@ -21,7 +26,7 @@ export const getValidationsPercentage = (
   return validations.map((v) => {
     return {
       type: v.validation_type,
-      percentage: getAnomalyPercentage(v.errors, v.total),
+      percentage: getAnomalyPercentage(v.warnings, v.errors, v.total),
     };
   });
 };
@@ -30,7 +35,7 @@ export const makeVehiclesByStatus = (
   vehicles: ValidationDeviceResponse[],
 ): VehicleValidation[] => {
   return vehicles.map((vd) => {
-    const percentage = getAnomalyPercentage(vd.errors, vd.total);
+    const percentage = getAnomalyPercentage(vd.warnings, vd.errors, vd.total);
     return {
       ...vd,
       status: getThresholdLabel(percentage),

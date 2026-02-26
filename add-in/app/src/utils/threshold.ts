@@ -11,15 +11,13 @@ export enum THRESHOLD_LABEL {
 }
 
 export const getThresholdClassName = (value: number) => {
-  if (value === 0) return THRESHOLD_CLASSNAME.PASS;
-  if (value < 80) return THRESHOLD_CLASSNAME.FALL;
-  if (value < 90) return THRESHOLD_CLASSNAME.WARNING;
+  if (value < 60) return THRESHOLD_CLASSNAME.FALL;
+  if (value <= 90) return THRESHOLD_CLASSNAME.WARNING;
   return THRESHOLD_CLASSNAME.PASS;
 };
 
 export const getThresholdLabel = (value: number) => {
-  if (value === 0) return THRESHOLD_LABEL.PASS;
-  if (value < 80) return THRESHOLD_LABEL.FALL;
-  if (value < 90) return THRESHOLD_LABEL.WARNING;
+  if (value < 60) return THRESHOLD_LABEL.FALL;
+  if (value <= 90) return THRESHOLD_LABEL.WARNING;
   return THRESHOLD_LABEL.PASS;
 };
