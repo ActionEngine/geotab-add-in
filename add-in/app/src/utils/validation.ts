@@ -2,6 +2,7 @@ import {
   ValidationDeviceResponse,
   ValidationPercentage,
   ValidationResponse,
+  VehicleValidation,
 } from "@/types/shemas/validaton";
 import {
   getThresholdLabel,
@@ -25,26 +26,35 @@ export const getValidationsPercentage = (
   });
 };
 
-const uniqById = <T extends { id: string | number }>(items: T[]) => {
-  return Array.from(new Map(items.map((item) => [item.id, item])).values());
+export const makeVehiclesByStatus = (
+  vehicles: ValidationDeviceResponse[],
+): VehicleValidation[] => {
+  return vehicles.map((vd) => {
+    const percentage = getAnomalyPercentage(vd.errors, vd.total);
+    return {
+      ...vd,
+      status: getThresholdLabel(percentage),
+      percentage,
+    };
+  });
+};
+
+const uniqById = <T extends { device_id: string | number }>(items: T[]) => {
+  return Array.from(
+    new Map(items.map((item) => [item.device_id, item])).values(),
+  );
 };
 
 export const getVehicleWithWorstResult = (
   vehicles: ValidationDeviceResponse[],
 ) => {
-  const vehiclesRaw = vehicles?.map((vd) => {
-    return {
-      id: vd.device_id,
-      validation_id: vd.validation_id,
-      label: getThresholdLabel(getAnomalyPercentage(vd.errors, vd.total)),
-    };
-  });
+  const vehiclesRaw = makeVehiclesByStatus(vehicles);
 
   const errorVehicles = vehiclesRaw?.filter(
-    (v) => v.label === THRESHOLD_LABEL.FALL,
+    (v) => v.status === THRESHOLD_LABEL.FALL,
   );
   const warningVehicles = vehiclesRaw?.filter(
-    (v) => v.label === THRESHOLD_LABEL.WARNING,
+    (v) => v.status === THRESHOLD_LABEL.WARNING,
   );
 
   const uniqueErrorVehicles = uniqById(errorVehicles);

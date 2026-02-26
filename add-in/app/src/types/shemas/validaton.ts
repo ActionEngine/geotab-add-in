@@ -1,3 +1,5 @@
+import { THRESHOLD_LABEL } from "@/utils/threshold";
+
 export enum ValidationType {
   TELEPORTATION = "TELEPORTATION",
   DISTANCE_TO_ROAD = "DISTANCE_TO_ROAD",
@@ -17,7 +19,7 @@ export interface ValidationResponse {
 
 export interface ValidationDeviceResponse {
   validation_id: number;
-  device_id: string;
+  device_id: number;
   total: number;
   warnings: number;
   errors: number;
@@ -25,5 +27,10 @@ export interface ValidationDeviceResponse {
 
 export interface ValidationPercentage {
   type: ValidationType;
+  percentage: number;
+}
+
+export interface VehicleValidation extends ValidationDeviceResponse {
+  status: THRESHOLD_LABEL;
   percentage: number;
 }
