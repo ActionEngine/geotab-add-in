@@ -5,7 +5,6 @@ This service continuously polls GetFeed for all registered feeds in the database
 and saves new records to the geotab_location table.
 """
 
-import logging
 import asyncio
 import os
 import sys
@@ -14,6 +13,7 @@ from datetime import datetime
 import mygeotab
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
+from logging_config import configure_logger, configure_root_logging
 
 # Add the backend directory to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -32,12 +32,8 @@ from modules.geotab_status_data.services.geotab_status_data import (
 )
 from modules.auth.services.auth import decode_access_token
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+configure_root_logging()
+logger = configure_logger(__name__)
 
 
 async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
