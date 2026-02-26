@@ -1,0 +1,68 @@
+-- Insert per-device statistics into validation_results_by_device
+-- Shows how many segments each device contributed to, and how many were flagged
+
+WITH comparison AS (
+    -- Per-device, per-diagnostic comparison (same as 04)
+    SELECT 
+        t.geotab_database_id,
+        t.actionengine_segment_id,
+        t.device_id,
+        t.diagnostic_id,
+        t.diagnostic_value_avg AS current_value,
+        h.diagnostic_value_avg AS reference_value,
+        ABS(t.diagnostic_value_avg - h.diagnostic_value_avg) / 
+            NULLIF(ABS(h.diagnostic_value_avg), 0) AS value_deviation
+    FROM target_diagnostic_avg t
+    JOIN historical_diagnostic_avg h 
+        USING (geotab_database_id, actionengine_segment_id, diagnostic_id)
+),
+-- Calculate aggregate deviation per segment (needed for classification)
+segment_deviation AS (
+    SELECT 
+        geotab_database_id,
+        actionengine_segment_id,
+        AVG(value_deviation) AS aggregate_deviation
+    FROM comparison
+    GROUP BY geotab_database_id, actionengine_segment_id
+),
+-- Join back to get per-device segment classification
+device_segments AS (
+    SELECT 
+        c.geotab_database_id,
+        c.device_id,
+        c.actionengine_segment_id,
+        sd.aggregate_deviation,
+        sd.aggregate_deviation > %(warning_threshold)s 
+            AND sd.aggregate_deviation <= %(error_threshold)s AS is_warning,
+        sd.aggregate_deviation > %(error_threshold)s AS is_error
+    FROM comparison c
+    JOIN segment_deviation sd 
+        USING (geotab_database_id, actionengine_segment_id)
+),
+-- Aggregate per device
+device_stats AS (
+    SELECT 
+        geotab_database_id,
+        device_id,
+        COUNT(DISTINCT actionengine_segment_id) AS total_segments,
+        COUNT(DISTINCT actionengine_segment_id) FILTER (WHERE is_warning) AS warning_segments,
+        COUNT(DISTINCT actionengine_segment_id) FILTER (WHERE is_error) AS error_segments
+    FROM device_segments
+    GROUP BY geotab_database_id, device_id
+),
+-- Get validation_id from the validation row we just inserted
+validation_lookup AS (
+    SELECT id, geotab_database_id
+    FROM validation
+    WHERE validation_type = %(validation_type)s
+      AND finished_at > NOW() - INTERVAL '1 minute'
+)
+INSERT INTO validation_results_by_device (validation_id, device_id, total, warnings, errors)
+SELECT 
+    v.id,
+    ds.device_id,
+    ds.total_segments,
+    ds.warning_segments,
+    ds.error_segments
+FROM device_stats ds
+JOIN validation_lookup v ON v.geotab_database_id = ds.geotab_database_id;

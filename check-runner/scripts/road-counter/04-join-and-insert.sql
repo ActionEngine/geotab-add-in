@@ -1,11 +1,12 @@
--- Compute anomalies and insert into both validation and segment_anomaly tables
--- Aggregates per-diagnostic results into vectors per segment
+-- Compute segment-level anomalies with device list
+-- Inserts into validation and road_counter_results tables
 
 WITH comparison AS (
-    -- Per-diagnostic relative deviation
+    -- Per-device, per-diagnostic comparison
     SELECT 
         t.geotab_database_id,
         t.actionengine_segment_id,
+        t.device_id,
         t.diagnostic_id,
         t.diagnostic_value_avg AS current_value,
         h.diagnostic_value_avg AS reference_value,
@@ -15,11 +16,12 @@ WITH comparison AS (
     JOIN historical_diagnostic_avg h 
         USING (geotab_database_id, actionengine_segment_id, diagnostic_id)
 ),
--- Aggregate into vectors per segment with aggregate deviation
+-- Aggregate per segment: collect devices into array, diagnostics into vectors
 segment_vectors AS (
     SELECT 
         geotab_database_id,
         actionengine_segment_id,
+        ARRAY_AGG(DISTINCT device_id ORDER BY device_id) AS device_ids,
         ARRAY_AGG(diagnostic_id ORDER BY diagnostic_id) AS diagnostic_ids,
         ARRAY_AGG(current_value ORDER BY diagnostic_id) AS current_values,
         ARRAY_AGG(reference_value ORDER BY diagnostic_id) AS reference_values,
@@ -28,7 +30,6 @@ segment_vectors AS (
     FROM comparison
     GROUP BY geotab_database_id, actionengine_segment_id
 ),
--- Classify based on aggregate deviation vs single thresholds
 classification AS (
     SELECT 
         *,
@@ -37,7 +38,6 @@ classification AS (
         aggregate_deviation > %(error_threshold)s AS is_error
     FROM segment_vectors
 ),
--- Insert validation summary per database
 validation_insert AS (
     INSERT INTO validation (
         geotab_database_id,
@@ -62,11 +62,11 @@ validation_insert AS (
     GROUP BY geotab_database_id
     RETURNING id, geotab_database_id
 )
--- Insert segment-level anomaly data with vectors
-INSERT INTO segment_anomaly (
+INSERT INTO road_counter_results (
     validation_id,
     geotab_database_id,
     segment_id,
+    device_ids,
     diagnostic_ids,
     current_values,
     reference_values,
@@ -79,6 +79,7 @@ SELECT
     v.id,
     c.geotab_database_id,
     c.actionengine_segment_id AS segment_id,
+    c.device_ids,
     c.diagnostic_ids,
     c.current_values,
     c.reference_values,

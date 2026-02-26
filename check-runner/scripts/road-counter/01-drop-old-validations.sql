@@ -1,6 +1,6 @@
 -- Delete old validations with the same type for affected databases
 -- This ensures new validation replaces old validation
--- Cascade delete handles segment_anomaly records
+-- Cascade delete handles road_counter_results records
 
 DELETE FROM validation
 WHERE validation_type = %(validation_type)s
