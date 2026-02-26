@@ -523,3 +523,116 @@ async def generate_segments_mvt_tile(
         )
 
         return tile_bytes
+
+
+async def generate_segment_anomaly_mvt_tile(
+    geotab_database_id: int,
+    z: int,
+    x: int,
+    y: int,
+    device_id: str,
+) -> bytes:
+    """
+    Generate MVT tile for segment anomalies of a specific device.
+
+    Args:
+        geotab_database_id: ID of the geotab database
+        z: Zoom level
+        x: Tile X coordinate
+        y: Tile Y coordinate
+        device_id: Device ID to filter anomalies
+    Returns:
+        MVT tile as bytes (empty bytes if no data in tile)
+    """
+
+    logger.info(
+        f"Generating segment anomaly MVT tile: z={z}, x={x}, y={y}, "
+        f"geotab_database_id={geotab_database_id}, device_id={device_id}"
+    )
+
+    bbox = tile_to_bbox(z, x, y)
+    logger.debug(f"Tile bbox (Web Mercator): {bbox}")
+
+    params = {
+        "db_id": geotab_database_id,
+        "minx": bbox[0],
+        "miny": bbox[1],
+        "maxx": bbox[2],
+        "maxy": bbox[3],
+        "device_id": device_id,
+    }
+
+    query = text(
+        """
+        WITH mvtgeom AS (
+            SELECT
+                ST_AsMVTGeom(
+                    ST_Transform(os.geometry, 3857),
+                    ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857),
+                    4096,
+                    256,
+                    true
+                ) AS geom,
+                sa.validation_id,
+                sa.segment_id,
+                sa.diagnostic_ids,
+                sa.current_values,
+                sa.reference_values,
+                sa.value_deviations,
+                sa.aggregate_deviation,
+                sa.is_warning,
+                sa.is_error,
+                sa.device_ids
+            FROM road_counter_results sa
+            JOIN overture_segments os ON os.id = sa.segment_id
+            WHERE sa.geotab_database_id = :db_id
+              AND :device_id = ANY(sa.device_ids)
+              AND ST_Transform(os.geometry, 3857) && ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857)
+        )
+        SELECT ST_AsMVT(mvtgeom.*, 'segment_anomaly', 4096, 'geom')
+        FROM mvtgeom
+        WHERE geom IS NOT NULL;
+        """
+    )
+
+    async with SessionLocal() as session:
+        count_query = text(
+            """
+            SELECT COUNT(*)
+            FROM road_counter_results sa
+            JOIN overture_segments os ON os.id = sa.segment_id
+            WHERE sa.geotab_database_id = :db_id
+              AND :device_id = ANY(sa.device_ids)
+              AND ST_Transform(os.geometry, 3857) && ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857)
+            """
+        )
+        count_result = await session.execute(count_query, params)
+        row_count = count_result.scalar()
+
+        logger.info(
+            f"Found {row_count} segment anomaly records in bbox for "
+            f"geotab_database_id={geotab_database_id}, device_id={device_id}, "
+            f"z={z}, x={x}, y={y}"
+        )
+
+        if row_count == 0:
+            return b""
+
+        result = await session.execute(query, params)
+        tile = result.scalar()
+
+        if tile is None or tile == b"":
+            logger.warning(
+                f"ST_AsMVT returned empty result despite {row_count} rows present"
+            )
+            return b""
+
+        tile_bytes = bytes(tile)
+
+        logger.info(
+            f"Generated segment anomaly MVT tile: {len(tile_bytes)} bytes for "
+            f"geotab_database_id={geotab_database_id}, device_id={device_id}, "
+            f"z={z}, x={x}, y={y}"
+        )
+
+        return tile_bytes

@@ -1,5 +1,6 @@
 from sqlalchemy import func, select
 
+from modules.validation.models.segment_anomaly import SegmentAnomaly
 from modules.validation.models.idle_outlier_result import IdleOutlierResult
 from database.database import SessionLocal
 from modules.geotab_database.services.geotab_database import (
@@ -15,6 +16,7 @@ from modules.validation.models.validation import Validation
 from modules.validation.schemas.validation import (
     DistanceToRoadWithLocationResponse,
     IdleOutlierResponse,
+    SegmentAnomalyResponse,
     TeleportationValidationResultResponse,
     ValidationByDeviceResponse,
     ValidationResponse,
@@ -256,6 +258,45 @@ async def get_idle_outliers_impl(
             external_id=row.external_id,
             longitude=row.longitude,
             latitude=row.latitude,
+        )
+        for row in rows
+    ]
+
+
+async def get_segment_anomalies_impl(
+    current_user: dict,
+    device_id: str | None = None,
+) -> list[SegmentAnomalyResponse]:
+    """Retrieve segment anomaly detection results for the specified device in the authenticated user's database."""
+
+    email, database_name = current_user["email"], current_user["database"]
+    db_entry = await get_database_by_email_and_name(email, database_name)
+
+    if not db_entry:
+        return []
+
+    stmt = select(SegmentAnomaly).where(SegmentAnomaly.geotab_database_id == db_entry.id)
+
+    if device_id:
+        stmt = stmt.where(SegmentAnomaly.device_ids.contains([device_id]))
+
+    async with SessionLocal() as session:
+        result = await session.execute(stmt)
+        rows: list[SegmentAnomaly] = result.scalars().all()
+
+    return [
+        SegmentAnomalyResponse(
+            validation_id=row.validation_id,
+            geotab_database_id=row.geotab_database_id,
+            segment_id=row.segment_id,
+            diagnostic_ids=row.diagnostic_ids,
+            current_values=row.current_values,
+            reference_values=row.reference_values,
+            value_deviations=row.value_deviations,
+            aggregate_deviation=row.aggregate_deviation,
+            is_warning=row.is_warning,
+            is_error=row.is_error,
+            device_ids=row.device_ids,
         )
         for row in rows
     ]
