@@ -1,6 +1,16 @@
 .data-quality-vehicle {
   display: flex;
   width: 100%;
+  > * h2 {
+    font-size: 1.25rem;
+    margin: 0px;
+    font-weight: 500;
+  }
+  > * h3 {
+    font-size: 1.125rem;
+    margin: 0px;
+    font-weight: 500;
+  }
 }
 .data-quality-vehicle-info {
   width: 50%;
@@ -26,5 +36,49 @@
   }
   > :last-child {
     color: var(--text-secondary);
+  }
+}
+
+.data-quality-vehicle-separate {
+  border-top: 1px solid var(--borders-general);
+}
+.data-quality-vehicle-select-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.data-quality-vehicle-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.data-quality-vehicle-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+
+  > span:first-of-type {
+    color: var(--text-secondary);
+  }
+  > span:last-of-type {
+    font-weight: bold;
+  }
+}
+.data-quality-vehicle-info-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.data-quality-vehicle-info-details-item {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  > div {
+    font-weight: 500;
+    color: var(--text-primary);
   }
 }
