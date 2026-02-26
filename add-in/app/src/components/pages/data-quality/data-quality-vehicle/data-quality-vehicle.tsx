@@ -1,12 +1,15 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import {
+  getValidationByDevice,
   getValidationDistanceToRoad,
   getValidationIdleOutliers,
   getValidationTeleportation,
 } from "@/api/validation";
 import GeotabMapChecks from "@/components/geotab-map/geotab-map-checks";
+import { useFetch } from "@/hooks/useFetch";
 import { AppContext } from "@/provider/app-provider";
 import {
+  ValidationDeviceResponse,
   ValidationDistanceToRoadResponse,
   ValidationIdleOutlierResponse,
   ValidationResponse,
@@ -14,7 +17,7 @@ import {
   ValidationType,
 } from "@/types/shemas/validaton";
 import { getThresholdClassName } from "@/utils/threshold";
-import { getValidationsPercentage } from "@/utils/validation";
+import { getAnomalyPercentage } from "@/utils/validation";
 import { IconChevronRightSmall } from "@geotab/zenith/esm/icons/iconChevronRightSmall";
 import { Select } from "@geotab/zenith/esm/select/select";
 import { GeotabCredentials } from "mg-api-js";
@@ -38,6 +41,12 @@ const DataQualityVehicle = ({
 }: DataQualityVehicleProps) => {
   const { session, databaseInfo } = useContext(AppContext);
   const [selectCheck, setSelectCheck] = useState<string>("");
+
+  const { data: validationByDevice } = useFetch<ValidationDeviceResponse[]>({
+    fn: () => getValidationByDevice(session as GeotabCredentials),
+    key: `all-validation-by-device-${deviceId}`,
+  });
+
   const [points, setPoints] = useState<
     | ValidationTeleportationResponse[]
     | ValidationDistanceToRoadResponse[]
@@ -95,10 +104,29 @@ const DataQualityVehicle = ({
     [points],
   );
 
-  const validationsPercentage = useMemo(
-    () => getValidationsPercentage(validations || []),
-    [validations],
-  );
+  const validationsPercentage = useMemo(() => {
+    const validationTypeById = new Map<number, ValidationType>(
+      validations.map((v) => [v.id, v.validation_type]),
+    );
+
+    const percentageByType = new Map<ValidationType, number>();
+    (validationByDevice || [])
+      .filter((v) => v.device_id === deviceId)
+      .forEach((v) => {
+        const validationType = validationTypeById.get(v.validation_id);
+        if (!validationType) return;
+
+        percentageByType.set(
+          validationType,
+          getAnomalyPercentage(v.warnings, v.errors, v.total),
+        );
+      });
+
+    return validations.map((validation) => ({
+      type: validation.validation_type,
+      percentage: percentageByType.get(validation.validation_type) ?? 100,
+    }));
+  }, [validations, validationByDevice, deviceId]);
 
   const handleSelectCheck = (id: string | undefined) => {
     if (!id) return;
@@ -173,7 +201,9 @@ const DataQualityVehicle = ({
           />
         )}
         {selectCheck === ValidationType.IDLE_OUTLIER && (
-          <TableIdleOutlier points={points as ValidationIdleOutlierResponse[]} />
+          <TableIdleOutlier
+            points={points as ValidationIdleOutlierResponse[]}
+          />
         )}
       </div>
       <GeotabMapChecks points={mapPoints} />
