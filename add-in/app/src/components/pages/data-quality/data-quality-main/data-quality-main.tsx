@@ -31,12 +31,12 @@ const ALL_CHECKS = {
 
 interface DataQualityMainProps {
   api: GeotabApi;
+  onSelectVehicle: (id: string) => void;
 }
 
-const DataQualityMain = ({ api }: DataQualityMainProps) => {
+const DataQualityMain = ({ api, onSelectVehicle }: DataQualityMainProps) => {
   const { session, databaseInfo } = useContext(AppContext);
   const [selectCheck, setSelectCheck] = useState<string>(ALL_CHECKS.id);
-  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null);
 
   const { data: validation } = useFetch<ValidationResponse[]>({
     fn: () => getValidation(session as GeotabCredentials),
@@ -179,9 +179,7 @@ const DataQualityMain = ({ api }: DataQualityMainProps) => {
       <Card size="L" fullWidth>
         <Card.Content>
           <div className="data-quality-main-info-card">
-            <h2>
-              Vehicles
-            </h2>
+            <h2>Vehicles</h2>
             <div>
               {validationByDevice?.map((item) => (
                 <div
@@ -196,7 +194,7 @@ const DataQualityMain = ({ api }: DataQualityMainProps) => {
                   <span>ID: {item.device_id}</span>
                   <Button
                     type="primary"
-                    onClick={() => setSelectedVehicleId(item.device_id)}
+                    onClick={() => onSelectVehicle(item.device_id)}
                   >
                     View Details
                   </Button>
