@@ -186,10 +186,11 @@ async def get_idle_outlier_mvt_tile(
 ) -> Response:
     """
     MVT tile for idle-outlier validation visualization.
-    Returns two layers:
+    Returns three layers:
       - 'idle_clusters'      : convex-hull polygons of recurring stop locations
                                (traffic lights, junctions, etc.) — pre-computed,
                                no DBSCAN overhead on tile request
+      - 'idle_normal'        : recent idle points inside known clusters (normal behaviour)
       - 'idle_outlier_flags' : recent idle points outside all clusters (anomalies)
     """
     if z < 0 or z > 22:

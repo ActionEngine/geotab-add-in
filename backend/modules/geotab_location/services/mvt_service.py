@@ -299,9 +299,10 @@ async def generate_idle_outlier_mvt_tile(
     date_to: datetime | None = None,
 ) -> bytes:
     """
-    Generate MVT tile with two layers for idle-outlier validation:
+    Generate MVT tile with three layers for idle-outlier validation:
       - 'idle_clusters'       : convex-hull polygons of DBSCAN clusters (pre-computed,
                                 stored in idle_clusters table — no per-request DBSCAN)
+      - 'idle_normal'         : recent idle points that fall within a known cluster (normal)
       - 'idle_outlier_flags'  : recent idle points flagged as outliers (outside all clusters)
     """
     bbox = tile_to_bbox(z, x, y)
@@ -347,7 +348,33 @@ async def generate_idle_outlier_mvt_tile(
               AND ST_Transform(geometry, 3857)
                   && ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857)
         ),
-        -- Layer 2: flagged idle outlier points
+        -- Layer 2: normal idle points (in a known cluster, not flagged as outlier)
+        -- Identified by LEFT JOIN exclusion: recent idle points absent from idle_outlier_results
+        normal_mvt AS (
+            SELECT
+                ST_AsMVTGeom(
+                    ST_Transform(gl.geometry, 3857),
+                    ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857),
+                    4096, 256, true
+                ) AS geom,
+                gl.id,
+                gl.device_id,
+                gl.datetime,
+                gl.speed
+            FROM geotab_location gl
+            JOIN latest_validation lv ON true
+            LEFT JOIN idle_outlier_results ior
+                   ON ior.geotab_location_id = gl.id
+                  AND ior.validation_id = lv.validation_id
+            WHERE gl.geotab_database_id = :db_id
+              AND gl.geometry IS NOT NULL
+              AND gl.speed <= 5
+              AND ior.geotab_location_id IS NULL
+              AND ST_Transform(gl.geometry, 3857)
+                  && ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857)
+              {date_filter}
+        ),
+        -- Layer 3: flagged idle outlier points
         flags_mvt AS (
             SELECT
                 ST_AsMVTGeom(
@@ -373,7 +400,12 @@ async def generate_idle_outlier_mvt_tile(
             )
             ||
             (
-                SELECT COALESCE(ST_AsMVT(flags_mvt.*, 'idle_outlier_flags', 4096, 'geom'), ''::bytea)
+                SELECT COALESCE(ST_AsMVT(normal_mvt.*,   'idle_normal',        4096, 'geom'), ''::bytea)
+                FROM normal_mvt WHERE geom IS NOT NULL
+            )
+            ||
+            (
+                SELECT COALESCE(ST_AsMVT(flags_mvt.*,    'idle_outlier_flags', 4096, 'geom'), ''::bytea)
                 FROM flags_mvt WHERE geom IS NOT NULL
             );
         """
