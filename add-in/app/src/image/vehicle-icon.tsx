@@ -1,7 +1,7 @@
-const VehicleIcon = () => {
+const VehicleIcon = ({ className }: { className?: string }) => {
   return (
     <svg
-      fill="#1c8d1c"
+      className={className}
       height="28px"
       width="28px"
       version="1.1"

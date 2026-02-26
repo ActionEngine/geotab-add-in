@@ -3,12 +3,10 @@ import MapLibre, { MapRef, Marker } from "react-map-gl/maplibre";
 import { useFetch } from "@/hooks/useFetch";
 import VehicleIcon from "@/image/vehicle-icon";
 import { VehicleStatusInfo } from "@/types/shemas/geotab";
+import { VehicleValidation } from "@/types/shemas/validaton";
 import { callAsync } from "@/utils/geotabApi";
+import { getThresholdClassName } from "@/utils/threshold";
 import "maplibre-gl/dist/maplibre-gl.css";
-
-interface GeotabMapProps {
-  api: GeotabApi;
-}
 
 const PADDING_PX = 80;
 const BBOX_PADDING_FACTOR = 0.1;
@@ -40,13 +38,29 @@ const getVehiclesBbox = (vehicles: VehicleStatusInfo[]) => {
 
   const width = xmax - xmin;
   const height = ymax - ymin;
-  const xPadding = Math.max(width * BBOX_PADDING_FACTOR, MIN_BBOX_PADDING_DEGREES);
-  const yPadding = Math.max(height * BBOX_PADDING_FACTOR, MIN_BBOX_PADDING_DEGREES);
+  const xPadding = Math.max(
+    width * BBOX_PADDING_FACTOR,
+    MIN_BBOX_PADDING_DEGREES,
+  );
+  const yPadding = Math.max(
+    height * BBOX_PADDING_FACTOR,
+    MIN_BBOX_PADDING_DEGREES,
+  );
 
-  return [xmin - xPadding, ymin - yPadding, xmax + xPadding, ymax + yPadding] as const;
+  return [
+    xmin - xPadding,
+    ymin - yPadding,
+    xmax + xPadding,
+    ymax + yPadding,
+  ] as const;
 };
 
-const GeotabMap = ({ api }: GeotabMapProps) => {
+interface GeotabMapProps {
+  api: GeotabApi;
+  vehicles?: VehicleValidation[];
+}
+
+const GeotabMap = ({ api, vehicles = [] }: GeotabMapProps) => {
   const mapRef = useRef<MapRef>(null);
   const [animatedVehicles, setAnimatedVehicles] = useState<VehicleStatusInfo[]>(
     [],
@@ -83,7 +97,7 @@ const GeotabMap = ({ api }: GeotabMapProps) => {
       {
         padding: PADDING_PX,
         duration: 2000,
-      }
+      },
     );
 
     hasZoomedRef.current = true;
@@ -169,16 +183,20 @@ const GeotabMap = ({ api }: GeotabMapProps) => {
         }} /* Not documented feature for better interaction experience */
         mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
       >
-        {animatedVehicles.map((vehicle, idx) => (
-          <Marker
-            key={vehicle.device.id || idx}
-            longitude={vehicle.longitude}
-            latitude={vehicle.latitude}
-            rotation={vehicle.bearing}
-          >
-            <VehicleIcon />
-          </Marker>
-        ))}
+        {animatedVehicles.map((vehicle, idx) => {
+          const find = vehicles.find((v) => v.device_id === vehicle.device.id);
+          const className = getThresholdClassName(find?.percentage ?? 0);
+          return (
+            <Marker
+              key={vehicle.device.id || idx}
+              longitude={vehicle.longitude}
+              latitude={vehicle.latitude}
+              rotation={vehicle.bearing}
+            >
+              <VehicleIcon className={className} />
+            </Marker>
+          );
+        })}
       </MapLibre>
     </div>
   );
