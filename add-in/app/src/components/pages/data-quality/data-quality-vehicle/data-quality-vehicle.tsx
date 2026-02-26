@@ -259,7 +259,13 @@ const DataQualityVehicle = ({
           />
         )}
       </div>
-      <GeotabMapChecks points={mapPoints} />
+      <GeotabMapChecks
+        points={mapPoints}
+        showOvertureSegments={selectCheck === ValidationType.DISTANCE_TO_ROAD}
+        showTeleportationMvtDots={selectCheck === ValidationType.TELEPORTATION}
+        showIdleOutlierMvtDots={selectCheck === ValidationType.IDLE_OUTLIER}
+        session={session}
+      />
     </div>
   );
 };
