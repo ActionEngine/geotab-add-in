@@ -76,3 +76,6 @@ body {
 .zen-card-container--auto-height {
   min-height: 310px !important;
 }
+.zen-empty-state__image {
+  height: 60px;
+}

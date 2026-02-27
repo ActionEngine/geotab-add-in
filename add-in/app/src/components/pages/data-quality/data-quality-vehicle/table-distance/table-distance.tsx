@@ -25,37 +25,22 @@ const TableDistance = ({ points }: TableDistanceProps) => {
       {
         id: "col1",
         title: "Lon",
-        meta: {
-          defaultWidth: 120,
-        },
       },
       {
         id: "col2",
         title: "Lat",
-        meta: {
-          defaultWidth: 120,
-        },
       },
       {
         id: "col3",
         title: "Time",
-        meta: {
-          defaultWidth: 200,
-        },
       },
       {
         id: "col4",
         title: "Distance",
-        meta: {
-          defaultWidth: 120,
-        },
       },
       {
         id: "col5",
         title: "Status",
-        meta: {
-          defaultWidth: 120,
-        },
       },
     ],
     [],
@@ -67,10 +52,10 @@ const TableDistance = ({ points }: TableDistanceProps) => {
 
         return {
           id: `${point.geotab_location_id}_${index}`,
-          col1: point.longitude.toFixed(6),
-          col2: point.latitude.toFixed(6),
+          col1: point.longitude?.toFixed(6),
+          col2: point.latitude?.toFixed(6),
           col3: moment(point.datetime).format("MMM DD, YYYY HH:mm"),
-          col4: `${point.distance.toFixed(2)} m`,
+          col4: `${point.distance?.toFixed(2)} m`,
           col5: <span className={status.className}>{status.label}</span>,
         };
       }),

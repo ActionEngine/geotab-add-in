@@ -13,30 +13,18 @@ const TableIdleOutlier = ({ points }: TableIdleOutlierProps) => {
       {
         id: "col1",
         title: "Lon",
-        meta: {
-          defaultWidth: 120,
-        },
       },
       {
         id: "col2",
         title: "Lat",
-        meta: {
-          defaultWidth: 120,
-        },
       },
       {
         id: "col3",
         title: "Time",
-        meta: {
-          defaultWidth: 200,
-        },
       },
       {
         id: "col4",
         title: "Type",
-        meta: {
-          defaultWidth: 140,
-        },
       },
     ],
     [],
@@ -51,8 +39,8 @@ const TableIdleOutlier = ({ points }: TableIdleOutlierProps) => {
 
         return {
           id: `${point.geotab_location_id}_${index}`,
-          col1: point.longitude.toFixed(6),
-          col2: point.latitude.toFixed(6),
+          col1: point.longitude?.toFixed(6),
+          col2: point.latitude?.toFixed(6),
           col3: moment(point.datetime).format("MMM DD, YYYY HH:mm"),
           col4: <span className={type.className}>{type.label}</span>,
         };

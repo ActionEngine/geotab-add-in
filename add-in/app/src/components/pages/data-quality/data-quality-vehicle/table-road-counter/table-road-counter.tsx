@@ -35,23 +35,14 @@ const TableRoadCounter = ({ points }: TableRoadCounterProps) => {
       {
         id: "col1",
         title: "Segment",
-        meta: {
-          defaultWidth: 120,
-        },
       },
       {
         id: "col2",
         title: "Id",
-        meta: {
-          defaultWidth: 120,
-        },
       },
       {
         id: "col3",
         title: "Check Result",
-        meta: {
-          defaultWidth: 200,
-        },
       },
     ],
     [],
@@ -68,7 +59,7 @@ const TableRoadCounter = ({ points }: TableRoadCounterProps) => {
           col3: (
             <div className={`check-result ${className}`}>
               {prefix}
-              {(point.aggregate_deviation * 100).toFixed(2)}
+              {(point.aggregate_deviation * 100)?.toFixed(2)}
               {icon}
             </div>
           ),
