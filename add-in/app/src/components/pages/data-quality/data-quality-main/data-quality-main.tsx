@@ -46,6 +46,7 @@ const DataQualityMain = ({
   const { data: validationByDevice } = useFetch<ValidationDeviceResponse[]>({
     fn: () => getValidationByDevice(session as GeotabCredentials),
     key: "all-validation-by-device",
+    refetchInterval: 10 * 1000,
   });
 
   const vehicles = useMemo(
@@ -101,16 +102,18 @@ const DataQualityMain = ({
             </div>
           </div>
           <div>
-            Validated for:
-            <div>
-              {moment(validations?.[0]?.finished_at)
-                .subtract(15, "minutes")
-                .format("MMM DD, YYYY HH:mm")}{" "}
-              -{" "}
-              {moment(validations?.[0]?.started_at).format(
-                "MMM DD, YYYY HH:mm",
-              )}
-            </div>
+            Validated for:{" "}
+            {validations.length > 0 && (
+              <div>
+                {moment(validations?.[0]?.finished_at)
+                  .subtract(15, "minutes")
+                  .format("MMM DD, YYYY HH:mm")}{" "}
+                -{" "}
+                {moment(validations?.[0]?.started_at).format(
+                  "MMM DD, YYYY HH:mm",
+                )}
+              </div>
+            )}
           </div>
           <Select
             placeholder="Select"
@@ -119,6 +122,7 @@ const DataQualityMain = ({
             value={selectCheck}
             onChange={handleSelectCheck}
             className="select-width"
+            disabled={validations.length === 0}
           />
         </div>
       </div>
@@ -128,14 +132,24 @@ const DataQualityMain = ({
             <div className="data-quality-main-info-card">
               <div className="block-header">{validationTitle}</div>
               <div className="data-quality-main-info-validation">
-                {selectCheck === "ALL_CHECKS" ? (
-                  <ChecksList validationsPercentage={validationsPercentage} />
-                ) : (
-                  <VehiclesList
-                    vehicles={vehicles.filter(
-                      (v) => v.validation_id === currentValidationId,
+                {validations.length > 0 ? (
+                  <>
+                    {selectCheck === "ALL_CHECKS" ? (
+                      <ChecksList
+                        validationsPercentage={validationsPercentage}
+                      />
+                    ) : (
+                      <VehiclesList
+                        vehicles={vehicles.filter(
+                          (v) => v.validation_id === currentValidationId,
+                        )}
+                      />
                     )}
-                  />
+                  </>
+                ) : (
+                  <span className="vehicles-list-label">
+                    Validation is being done
+                  </span>
                 )}
               </div>
             </div>

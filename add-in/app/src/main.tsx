@@ -27,7 +27,7 @@ if (isLocalDevelopment) {
       console.error("Geotab authentication failed:", error);
     });
 
-    root.render(<App api={localApi} isLocalDevelopment={true} />);
+    root.render(<App api={localApi} />);
   }
 } else {
   // Production mode - use Geotab add-in pattern
@@ -44,7 +44,7 @@ if (isLocalDevelopment) {
         const container = document.getElementById("root");
         if (container) {
           root = ReactDOM.createRoot(container);
-          root.render(<App api={api} isLocalDevelopment={false} />);
+          root.render(<App api={api} />);
         }
       },
 

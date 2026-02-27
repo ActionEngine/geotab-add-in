@@ -18,6 +18,7 @@ const DataQuality = ({ api }: DataQualityProps) => {
   const { data: validations } = useFetch<ValidationResponse[]>({
     fn: () => getValidation(session as GeotabCredentials),
     key: "all-validation",
+    refetchInterval: 10 * 1000,
   });
 
   const clearSelectedVehicle = () => {

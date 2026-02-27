@@ -3,6 +3,7 @@ import {
   ValidationDistanceToRoadResponse,
   ValidationIdleOutlierResponse,
   ValidationResponse,
+  ValidationSegmentAnomalyResponse,
   ValidationTeleportationResponse,
 } from "@/types/shemas/validaton";
 import { GeotabCredentials } from "mg-api-js";
@@ -18,6 +19,8 @@ const GET_VALIDATION_DISTANCE_TO_ROAD_ENDPOINT = (device_id: string) =>
   `${VALIDATION_ENDPOINT}/distance-to-road/?device_id=${device_id}`;
 const GET_VALIDATION_IDLE_OUTLIERS_ENDPOINT = (device_id: string) =>
   `${VALIDATION_ENDPOINT}/idle-outliers/?device_id=${device_id}`;
+const GET_VALIDATION_SEGMENT_ANOMALY_ENDPOINT = (device_id: string) =>
+  `${VALIDATION_ENDPOINT}/segment_anomaly/?device_id=${device_id}`;
 
 export const getValidation = async (
   session: GeotabCredentials,
@@ -101,6 +104,27 @@ export const getValidationIdleOutliers = async (
   const headers = getHeaders(session);
   const response = await fetch(
     GET_VALIDATION_IDLE_OUTLIERS_ENDPOINT(devaceId),
+    {
+      method: "GET",
+      headers,
+    },
+  );
+  if (response.status !== 200) {
+    return [];
+  }
+
+  const result = await response.json();
+
+  return result;
+};
+
+export const getValidationSegmentAomaly = async (
+  session: GeotabCredentials,
+  devaceId: string,
+): Promise<ValidationSegmentAnomalyResponse[] | []> => {
+  const headers = getHeaders(session);
+  const response = await fetch(
+    GET_VALIDATION_SEGMENT_ANOMALY_ENDPOINT(devaceId),
     {
       method: "GET",
       headers,

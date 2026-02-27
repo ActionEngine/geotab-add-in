@@ -36,17 +36,18 @@ const AppView = ({ api }: AppViewProps) => {
     }
   };
 
-  const fetchDatabase = useCallback(() => {
+  const fetchDatabase = useCallback(async () => {
     if (session === null) return;
-    getDatabase(session)
-      .then((response) => {
-        if (!response) {
-          setOpenModal(true);
-          return;
-        }
-        updateDatabaseInfo(response);
-      })
-      .finally(() => updateIsLoading(false));
+    try {
+      const response = await getDatabase(session);
+      if (!response) {
+        setOpenModal(true);
+        return;
+      }
+      updateDatabaseInfo(response);
+    } finally {
+      updateIsLoading(false);
+    }
   }, [session]);
 
   useEffect(() => {
@@ -70,12 +71,26 @@ const AppView = ({ api }: AppViewProps) => {
       return;
     }
 
-    const intervalId = window.setInterval(() => {
-      fetchDatabase();
-    }, 15000);
+    let timeoutId: number | null = null;
+    let isCancelled = false;
+
+    const pollDatabase = async () => {
+      await fetchDatabase();
+
+      if (isCancelled) {
+        return;
+      }
+
+      timeoutId = window.setTimeout(pollDatabase, 15000);
+    };
+
+    timeoutId = window.setTimeout(pollDatabase, 15000);
 
     return () => {
-      window.clearInterval(intervalId);
+      isCancelled = true;
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, [databaseInfo, fetchDatabase]);
 

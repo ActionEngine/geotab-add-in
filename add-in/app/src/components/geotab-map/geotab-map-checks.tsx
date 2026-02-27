@@ -11,9 +11,12 @@ interface GeotabMapChecksProps {
   showOvertureSegments?: boolean;
   showTeleportationMvtDots?: boolean;
   showIdleOutlierMvtDots?: boolean;
+  showRoadCounterDots?: boolean;
   session?: GeotabCredentials | null;
 }
 
+const ROAD_COUNTER_SEGMENTS_SOURCE_ID = "segment-anomaly-source";
+const ROAD_COUNTER_SEGMENTS_LAYER_ID = "segment-anomaly-layer";
 const OVERTURE_SEGMENTS_SOURCE_ID = "overture-segments-source";
 const OVERTURE_SEGMENTS_LAYER_ID = "overture-segments-layer";
 const TELEPORTATION_SOURCE_ID = "teleportation-source";
@@ -26,6 +29,7 @@ const GeotabMapChecks = ({
   showOvertureSegments = false,
   showTeleportationMvtDots = false,
   showIdleOutlierMvtDots = false,
+  showRoadCounterDots = false,
   session = null,
 }: GeotabMapChecksProps) => {
   const mapRef = useRef<MapRef>(null);
@@ -40,6 +44,10 @@ const GeotabMapChecks = ({
   const idleOutliersTilesUrl = useMemo(() => {
     const baseUrl = import.meta.env.VITE_BASE_URL;
     return `${baseUrl}/tiles?z={z}&x={x}&y={y}`;
+  }, []);
+  const roadCounterTilesUrl = useMemo(() => {
+    const baseUrl = import.meta.env.VITE_BASE_URL;
+    return `${baseUrl}/tiles/segments?z={z}&x={x}&y={y}`;
   }, []);
 
   const sessionHeaders = useMemo(() => {
@@ -70,6 +78,15 @@ const GeotabMapChecks = ({
     const map = mapRef.current?.getMap();
     if (!map) return;
 
+    const removeRoadCounterLayer = () => {
+      if (map.getLayer(ROAD_COUNTER_SEGMENTS_LAYER_ID)) {
+        map.removeLayer(ROAD_COUNTER_SEGMENTS_LAYER_ID);
+      }
+      if (map.getSource(ROAD_COUNTER_SEGMENTS_SOURCE_ID)) {
+        map.removeSource(ROAD_COUNTER_SEGMENTS_SOURCE_ID);
+      }
+    };
+
     const removeOvertureLayer = () => {
       if (map.getLayer(OVERTURE_SEGMENTS_LAYER_ID)) {
         map.removeLayer(OVERTURE_SEGMENTS_LAYER_ID);
@@ -99,6 +116,39 @@ const GeotabMapChecks = ({
 
     const applyOvertureLayer = () => {
       if (!map.isStyleLoaded()) return;
+
+      if (!showRoadCounterDots) {
+        removeRoadCounterLayer();
+      } else {
+        if (!map.getSource(ROAD_COUNTER_SEGMENTS_SOURCE_ID)) {
+          map.addSource(ROAD_COUNTER_SEGMENTS_SOURCE_ID, {
+            type: "vector",
+            tiles: [roadCounterTilesUrl],
+          });
+        }
+
+        if (!map.getLayer(ROAD_COUNTER_SEGMENTS_LAYER_ID)) {
+          map.addLayer({
+            id: ROAD_COUNTER_SEGMENTS_LAYER_ID,
+            type: "line",
+            source: ROAD_COUNTER_SEGMENTS_SOURCE_ID,
+            "source-layer": "segment-anomaly",
+            paint: {
+              "line-color": "#8e8e8e",
+              "line-opacity": 0.45,
+              "line-width": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                8,
+                1,
+                14,
+                2.5,
+              ],
+            },
+          });
+        }
+      }
 
       if (!showOvertureSegments) {
         removeOvertureLayer();
@@ -217,10 +267,12 @@ const GeotabMapChecks = ({
   }, [
     idleOutliersTilesUrl,
     segmentsTilesUrl,
+    roadCounterTilesUrl,
+    teleportationTilesUrl,
+    showRoadCounterDots,
     showIdleOutlierMvtDots,
     showOvertureSegments,
     showTeleportationMvtDots,
-    teleportationTilesUrl,
   ]);
 
   return (

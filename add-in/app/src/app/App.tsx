@@ -6,14 +6,13 @@ import "./style.css";
 
 interface AppProps {
   api: GeotabApi; // Type is defined globally in geotab.d.ts
-  isLocalDevelopment: boolean;
 }
 
-const App = ({ api, isLocalDevelopment }: AppProps) => {
+const App = ({ api }: AppProps) => {
   return (
     <QueryProvider>
       <AppContextProvider>
-        <AppView api={api} isLocalDevelopment={isLocalDevelopment} />
+        <AppView api={api} />
       </AppContextProvider>
     </QueryProvider>
   );
