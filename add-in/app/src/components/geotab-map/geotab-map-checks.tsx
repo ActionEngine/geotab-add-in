@@ -12,6 +12,7 @@ interface GeotabMapChecksProps {
   showTeleportationMvtDots?: boolean;
   showIdleOutlierMvtDots?: boolean;
   showRoadCounterDots?: boolean;
+  roadCounterDeviceId?: string;
   session?: GeotabCredentials | null;
 }
 
@@ -30,6 +31,7 @@ const GeotabMapChecks = ({
   showTeleportationMvtDots = false,
   showIdleOutlierMvtDots = false,
   showRoadCounterDots = false,
+  roadCounterDeviceId,
   session = null,
 }: GeotabMapChecksProps) => {
   const mapRef = useRef<MapRef>(null);
@@ -47,8 +49,11 @@ const GeotabMapChecks = ({
   }, []);
   const roadCounterTilesUrl = useMemo(() => {
     const baseUrl = import.meta.env.VITE_BASE_URL;
-    return `${baseUrl}/tiles/segments?z={z}&x={x}&y={y}`;
-  }, []);
+    const query = roadCounterDeviceId
+      ? `&device_id=${encodeURIComponent(roadCounterDeviceId)}`
+      : "";
+    return `${baseUrl}/tiles/segment-anomaly?z={z}&x={x}&y={y}${query}`;
+  }, [roadCounterDeviceId]);
 
   const sessionHeaders = useMemo(() => {
     if (!session) return null;
@@ -132,9 +137,16 @@ const GeotabMapChecks = ({
             id: ROAD_COUNTER_SEGMENTS_LAYER_ID,
             type: "line",
             source: ROAD_COUNTER_SEGMENTS_SOURCE_ID,
-            "source-layer": "segment-anomaly",
+            "source-layer": "segment_anomaly",
             paint: {
-              "line-color": "#8e8e8e",
+              "line-color": [
+                "case",
+                ["==", ["get", "is_error"], true],
+                "#D92D20",
+                ["==", ["get", "is_warning"], true],
+                "#F79009",
+                "#12B76A",
+              ],
               "line-opacity": 0.45,
               "line-width": [
                 "interpolate",
@@ -260,6 +272,7 @@ const GeotabMapChecks = ({
 
     return () => {
       map.off("styledata", applyOvertureLayer);
+      removeRoadCounterLayer();
       removeOvertureLayer();
       removeTeleportationLayer();
       removeIdleOutlierLayer();
