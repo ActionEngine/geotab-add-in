@@ -159,7 +159,7 @@ const DataQualityMain = ({
           </Card.Content>
         </Card>
       </div>
-      <Card size="L" fullWidth>
+      <Card size="L" fullWidth autoHeight={true}>
         <Card.Content>
           <div className="data-quality-main-info-card">
             <div className="block-header">
