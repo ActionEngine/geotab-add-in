@@ -83,7 +83,8 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                 database=database,
             )
             api.authenticate()
-
+            # Set last_sync time
+            current_time = datetime.utcnow()
             # Handle different object types
             if object_type == "LogRecord":
                 # Fetch new log records using GetFeed
@@ -109,17 +110,28 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                                 continue
                         
                         await session.commit()
-
+                
                 # Update feed version and last_sync
                 async with SessionLocal() as session:
                     result = await session.execute(
                         select(GeotabFeed).where(GeotabFeed.id == feed_id)
                     )
-                    feed_entry = result.scalars().first()
+                    feed_entry: GeotabFeed = result.scalars().first()
                     
                     if feed_entry:
                         feed_entry.feed_version = new_version
-                        feed_entry.last_sync = datetime.utcnow()
+                        feed_entry.last_sync = current_time
+                        await session.commit()
+
+                # Update last_sync for the database entry
+                async with SessionLocal() as session:
+                    result = await session.execute(
+                        select(GeotabDatabase).where(GeotabDatabase.id == feed_entry.geotab_database_id)
+                    )
+                    db_entry: GeotabDatabase = result.scalars().first()
+                    
+                    if db_entry:
+                        db_entry.last_sync = current_time
                         await session.commit()
             
             elif object_type == "StatusData":
@@ -148,11 +160,22 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
                     result = await session.execute(
                         select(GeotabFeed).where(GeotabFeed.id == feed_id)
                     )
-                    feed_entry = result.scalars().first()
+                    feed_entry: GeotabFeed = result.scalars().first()
                     
                     if feed_entry:
                         feed_entry.feed_version = new_version
-                        feed_entry.last_sync = datetime.utcnow()
+                        feed_entry.last_sync = current_time
+                        await session.commit()
+
+                # Update last_sync for the database entry
+                async with SessionLocal() as session:
+                    result = await session.execute(
+                        select(GeotabDatabase).where(GeotabDatabase.id == feed_entry.geotab_database_id)
+                    )
+                    db_entry: GeotabDatabase = result.scalars().first()
+                    
+                    if db_entry:
+                        db_entry.last_sync = current_time
                         await session.commit()
 
                 diagnostic_ids = set(sd["diagnostic"]["id"] for sd in status_data_list)
