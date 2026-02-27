@@ -76,7 +76,11 @@ const TableRoadCounter = ({ points }: TableRoadCounterProps) => {
       }),
     [points],
   );
-  return <Table columns={columns} entities={entities} />;
+  return (
+    <Table columns={columns} entities={entities}>
+      <Table.Empty description="No data yet" />
+    </Table>
+  );
 };
 
 export default TableRoadCounter;

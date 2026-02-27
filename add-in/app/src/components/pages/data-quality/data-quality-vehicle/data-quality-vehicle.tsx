@@ -256,26 +256,28 @@ const DataQualityVehicle = ({
             className="select-width"
           />
         </div>
-        {selectCheck === ValidationType.TELEPORTATION && (
-          <TableTeleportation
-            points={points as ValidationTeleportationResponse[]}
-          />
-        )}
-        {selectCheck === ValidationType.DISTANCE_TO_ROAD && (
-          <TableDistance
-            points={points as ValidationDistanceToRoadResponse[]}
-          />
-        )}
-        {selectCheck === ValidationType.IDLE_OUTLIER && (
-          <TableIdleOutlier
-            points={points as ValidationIdleOutlierResponse[]}
-          />
-        )}
-        {selectCheck === ValidationType.ROAD_COUNTER_2H && (
-          <TableRoadCounter
-            points={points as ValidationSegmentAnomalyResponse[]}
-          />
-        )}
+        <div className="table-container">
+          {selectCheck === ValidationType.TELEPORTATION && (
+            <TableTeleportation
+              points={points as ValidationTeleportationResponse[]}
+            />
+          )}
+          {selectCheck === ValidationType.DISTANCE_TO_ROAD && (
+            <TableDistance
+              points={points as ValidationDistanceToRoadResponse[]}
+            />
+          )}
+          {selectCheck === ValidationType.IDLE_OUTLIER && (
+            <TableIdleOutlier
+              points={points as ValidationIdleOutlierResponse[]}
+            />
+          )}
+          {selectCheck === ValidationType.ROAD_COUNTER_2H && (
+            <TableRoadCounter
+              points={points as ValidationSegmentAnomalyResponse[]}
+            />
+          )}
+        </div>
       </div>
       <GeotabMapChecks
         points={mapPoints}

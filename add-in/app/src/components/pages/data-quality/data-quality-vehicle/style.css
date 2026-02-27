@@ -82,3 +82,16 @@
     color: var(--text-primary);
   }
 }
+
+.table-container {
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.table-container > .zen-layout__full-screen-element {
+  height: 100%;
+}
+
+.table-container > .zen-layout__full-screen-element > .zen-table-wrapper {
+  height: 100% !important;
+}
