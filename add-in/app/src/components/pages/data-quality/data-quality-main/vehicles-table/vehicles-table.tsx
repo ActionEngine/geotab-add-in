@@ -18,9 +18,10 @@ interface VehiclesTableProps {
 interface GroupedVehicle {
   id: string;
   device_id: string;
-  distance_to_road: number;
-  teleportation: number;
-  idle_outlier: number;
+  distance_to_road: number | null;
+  teleportation: number | null;
+  idle_outlier: number | null;
+  road_counter2h: number | null;
 }
 
 const VehiclesTable = ({
@@ -41,9 +42,10 @@ const VehiclesTable = ({
         row = {
           id: vehicle.device_id,
           device_id: vehicle.device_id,
-          distance_to_road: 0,
-          teleportation: 0,
-          idle_outlier: 0,
+          distance_to_road: null,
+          teleportation: null,
+          idle_outlier: null,
+          road_counter2h: null,
         };
         grouped.set(vehicle.device_id, row);
       }
@@ -56,11 +58,27 @@ const VehiclesTable = ({
         row.teleportation = vehicle.percentage;
       } else if (type === ValidationType.IDLE_OUTLIER) {
         row.idle_outlier = vehicle.percentage;
+      } else if (type === ValidationType.ROAD_COUNTER_2H) {
+        row.road_counter2h = vehicle.percentage;
       }
     });
 
     return Array.from(grouped.values());
   }, [vehicles, validations]);
+
+  const renderValidationValue = (value: number | null) => {
+    if (value === null) {
+      return <span className="no-data">No Data</span>;
+    }
+
+    const percentageValue = value === 0 ? 100 : value;
+
+    return (
+      <span className={getThresholdClassName(percentageValue)}>
+        {percentageValue}%
+      </span>
+    );
+  };
 
   const columns = useMemo<IListColumn<GroupedVehicle>[]>(
     () => [
@@ -75,35 +93,28 @@ const VehiclesTable = ({
         id: "distance_to_road",
         title: "Distance to Road",
         columnComponent: {
-          render: (vehicle) => (
-            <span
-              className={`${getThresholdClassName(vehicle.distance_to_road)}`}
-            >
-              {vehicle.distance_to_road === 0 ? 100 : vehicle.distance_to_road}%
-            </span>
-          ),
+          render: (vehicle) => renderValidationValue(vehicle.distance_to_road),
         },
       },
       {
         id: "teleportation",
         title: "Teleportation",
         columnComponent: {
-          render: (vehicle) => (
-            <span className={`${getThresholdClassName(vehicle.teleportation)}`}>
-              {vehicle.teleportation === 0 ? 100 : vehicle.teleportation}%
-            </span>
-          ),
+          render: (vehicle) => renderValidationValue(vehicle.teleportation),
         },
       },
       {
         id: "idle_outlier",
         title: "Idle outlier",
         columnComponent: {
-          render: (vehicle) => (
-            <span className={`${getThresholdClassName(vehicle.idle_outlier)}`}>
-              {vehicle.idle_outlier === 0 ? 100 : vehicle.idle_outlier}%
-            </span>
-          ),
+          render: (vehicle) => renderValidationValue(vehicle.idle_outlier),
+        },
+      },
+      {
+        id: "road_counter2h",
+        title: "Road Counter 2H",
+        columnComponent: {
+          render: (vehicle) => renderValidationValue(vehicle.road_counter2h),
         },
       },
       {
@@ -124,7 +135,13 @@ const VehiclesTable = ({
     [onSelectVehicle],
   );
 
-  return <Table columns={columns} entities={mappedVehicles} />;
+  return (
+    <div className="table-container">
+      <Table columns={columns} entities={mappedVehicles}>
+        <Table.Empty description="No data yet" />
+      </Table>
+    </div>
+  );
 };
 
 export default VehiclesTable;
