@@ -17,7 +17,7 @@ export const getAnomalyPercentage = (
 ) => {
   const anomalies = warnings + errors;
   if (anomalies === 0) return 100;
-  return Number((100 - (anomalies / total) * 100).toFixed(0));
+  return Number((100 - (anomalies / total) * 100)?.toFixed(0));
 };
 
 export const getValidationsPercentage = (

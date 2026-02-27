@@ -143,7 +143,7 @@ const DataQualityVehicle = ({
       return [];
     }
 
-    if (selectCheck === ValidationType.TELEPORTATION) {
+    if (selectCheck === ValidationType.TELEPORTATION && points.length > 0) {
       return (points as ValidationTeleportationResponse[]).map((point) => ({
         latitude: point.latitude,
         longitude: point.longitude,
@@ -151,7 +151,7 @@ const DataQualityVehicle = ({
       }));
     }
 
-    if (selectCheck === ValidationType.DISTANCE_TO_ROAD) {
+    if (selectCheck === ValidationType.DISTANCE_TO_ROAD && points.length > 0) {
       return (points as ValidationDistanceToRoadResponse[]).map((point) => ({
         latitude: point.latitude,
         longitude: point.longitude,
@@ -159,7 +159,7 @@ const DataQualityVehicle = ({
       }));
     }
 
-    if (selectCheck === ValidationType.IDLE_OUTLIER) {
+    if (selectCheck === ValidationType.IDLE_OUTLIER && points.length > 0) {
       return (points as ValidationIdleOutlierResponse[]).map((point) => ({
         latitude: point.latitude,
         longitude: point.longitude,

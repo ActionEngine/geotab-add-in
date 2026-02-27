@@ -25,37 +25,22 @@ const TableTeleportation = ({ points }: TableTeleportationProps) => {
       {
         id: "col1",
         title: "Lon",
-        meta: {
-          defaultWidth: 120,
-        },
       },
       {
         id: "col2",
         title: "Lat",
-        meta: {
-          defaultWidth: 120,
-        },
       },
       {
         id: "col3",
         title: "Time",
-        meta: {
-          defaultWidth: 200,
-        },
       },
       {
         id: "col4",
         title: "Speed",
-        meta: {
-          defaultWidth: 120,
-        },
       },
       {
         id: "col5",
         title: "Status",
-        meta: {
-          defaultWidth: 120,
-        },
       },
     ],
     [],
@@ -67,10 +52,10 @@ const TableTeleportation = ({ points }: TableTeleportationProps) => {
 
         return {
           id: `${point.geotab_location_id}_${index}`,
-          col1: point.longitude.toFixed(6),
-          col2: point.latitude.toFixed(6),
+          col1: point.longitude?.toFixed(6),
+          col2: point.latitude?.toFixed(6),
           col3: moment(point.datetime).format("MMM DD, YYYY HH:mm"),
-          col4: `${point.implied_speed_kmh.toFixed(2)} km/h`,
+          col4: `${point.implied_speed_kmh?.toFixed(2)} km/h`,
           col5: <span className={status.className}>{status.label}</span>,
         };
       }),
