@@ -289,7 +289,7 @@ const GeotabMapChecks = ({
   ]);
 
   return (
-    <div style={{ width: "100%", height: "100vh" }}>
+    <div style={{ width: "100%", height: "100%" }}>
       <MapLibre
         ref={mapRef}
         initialViewState={{
