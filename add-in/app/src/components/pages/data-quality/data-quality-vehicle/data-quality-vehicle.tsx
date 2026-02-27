@@ -285,6 +285,7 @@ const DataQualityVehicle = ({
         showTeleportationMvtDots={selectCheck === ValidationType.TELEPORTATION}
         showIdleOutlierMvtDots={selectCheck === ValidationType.IDLE_OUTLIER}
         showRoadCounterDots={selectCheck === ValidationType.ROAD_COUNTER_2H}
+        roadCounterDeviceId={deviceId}
         session={session}
       />
     </div>
