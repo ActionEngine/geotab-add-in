@@ -73,3 +73,7 @@ body {
 .table-container > .zen-layout__full-screen-element > .zen-table-wrapper {
   height: 100% !important;
 }
+
+.zen-card-container--large {
+  max-height: 100%;
+}
