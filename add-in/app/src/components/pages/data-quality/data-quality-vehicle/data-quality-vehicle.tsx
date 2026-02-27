@@ -3,6 +3,7 @@ import {
   getValidationByDevice,
   getValidationDistanceToRoad,
   getValidationIdleOutliers,
+  getValidationSegmentAomaly,
   getValidationTeleportation,
 } from "@/api/validation";
 import GeotabMapChecks from "@/components/geotab-map/geotab-map-checks";
@@ -13,6 +14,7 @@ import {
   ValidationDistanceToRoadResponse,
   ValidationIdleOutlierResponse,
   ValidationResponse,
+  ValidationSegmentAnomalyResponse,
   ValidationTeleportationResponse,
   ValidationType,
 } from "@/types/shemas/validaton";
@@ -26,6 +28,7 @@ import { validationTypeLabelMap } from "../constants";
 import "./style.css";
 import TableDistance from "./table-distance/table-distance";
 import TableIdleOutlier from "./table-idle-outlier/table-idle-outlier";
+import TableRoadCounter from "./table-road-counter/table-road-counter";
 import TableTeleportation from "./table-teleportation/table-teleportation";
 
 interface DataQualityVehicleProps {
@@ -81,6 +84,7 @@ const DataQualityVehicle = ({
     | ValidationTeleportationResponse[]
     | ValidationDistanceToRoadResponse[]
     | ValidationIdleOutlierResponse[]
+    | ValidationSegmentAnomalyResponse[]
   >([]);
 
   const options = useMemo(
@@ -124,9 +128,21 @@ const DataQualityVehicle = ({
         },
       );
     }
+
+    if (selectCheck === ValidationType.ROAD_COUNTER_2H) {
+      getValidationSegmentAomaly(session as GeotabCredentials, deviceId).then(
+        (res) => {
+          setPoints(res);
+        },
+      );
+    }
   }, [selectCheck]);
 
   const mapPoints = useMemo(() => {
+    if (selectCheck === ValidationType.ROAD_COUNTER_2H) {
+      return [];
+    }
+
     if (selectCheck === ValidationType.TELEPORTATION) {
       return (points as ValidationTeleportationResponse[]).map((point) => ({
         latitude: point.latitude,
@@ -151,10 +167,7 @@ const DataQualityVehicle = ({
       }));
     }
 
-    return points.map((point) => ({
-      latitude: point.latitude,
-      longitude: point.longitude,
-    }));
+    return [];
   }, [points, selectCheck]);
 
   const validationsPercentage = useMemo(() => {
@@ -258,12 +271,18 @@ const DataQualityVehicle = ({
             points={points as ValidationIdleOutlierResponse[]}
           />
         )}
+        {selectCheck === ValidationType.ROAD_COUNTER_2H && (
+          <TableRoadCounter
+            points={points as ValidationSegmentAnomalyResponse[]}
+          />
+        )}
       </div>
       <GeotabMapChecks
         points={mapPoints}
         showOvertureSegments={selectCheck === ValidationType.DISTANCE_TO_ROAD}
         showTeleportationMvtDots={selectCheck === ValidationType.TELEPORTATION}
         showIdleOutlierMvtDots={selectCheck === ValidationType.IDLE_OUTLIER}
+        showRoadCounterDots={selectCheck === ValidationType.ROAD_COUNTER_2H}
         session={session}
       />
     </div>
