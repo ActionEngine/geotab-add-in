@@ -27,35 +27,136 @@ CheckScript = tuple[str, list[tuple[str, str]], Mapping[str, Any]]
 #   - script_folder: directory under scripts/ containing SQL files
 #   - params: dict of parameters passed to SQL via %(name)s syntax
 CHECKS: Mapping[str, Mapping[str, Any]] = {
-    "road-counter-2h": {
+    # Engine RPM Anomaly
+    # Detects when engine is working harder than usual (dragging brakes, overloading, transmission issues)
+    # Diagnostic: Engine speed (DiagnosticEngineSpeedId)
+    # Unit: RPM (revolutions per minute)
+    "road-counter-rpm": {
         "script_folder": "road-counter",
         "params": {
             "target_interval_end": "$NOW",
             "target_interval_depth_minutes": timedelta(minutes=120),
             "historical_interval_end": "$NOW",
-            "historical_interval_depth_minutes": timedelta(hours=6),
-            "diagnostic_ids": ["DiagnosticEngineSpeedId", "DiagnosticEngineRoadSpeedId", "DiagnosticDeviceTotalFuelId"],
-            "warning_threshold": 0.15,
-            "error_threshold": 0.30,
+            "historical_interval_depth_minutes": timedelta(days=7),
+            "diagnostic_ids": ["DiagnosticEngineSpeedId"],
+            "warning_threshold": 0.20,
+            "error_threshold": 0.35,
             "segment_proximity_filter": 0.005,
-            "validation_type": "ROAD_COUNTER_2h",
-            # Done and done. Like Ron Dunn
-            # https://www.youtube.com/watch?v=5B29xg3aMXw
+            "validation_type": "ROAD_COUNTER_RPM",
             "done": "DONE",
         },
     },
-    "road-counter-realtime": {
+    # Fuel Consumption Anomaly
+    # Detects fuel efficiency loss (tire pressure issues, engine degradation, fuel leaks, driver behavior changes)
+    # Diagnostic: Trip fuel used (DiagnosticTotalTripFuelUsedId)
+    # Unit: Liters
+    "road-counter-fuel-consumption": {
         "script_folder": "road-counter",
         "params": {
             "target_interval_end": "$NOW",
-            "target_interval_depth_minutes": timedelta(minutes=15),
-            "historical_interval_end": datetime(year=2026, month=2, day=22, hour=16, tzinfo=timezone.utc),
-            "historical_interval_depth_minutes": timedelta(hours=6),
-            "diagnostic_ids": ["DiagnosticEngineRoadSpeedId"],
+            "target_interval_depth_minutes": timedelta(hours=4),
+            "historical_interval_end": "$NOW",
+            "historical_interval_depth_minutes": timedelta(days=14),
+            "diagnostic_ids": ["DiagnosticTotalTripFuelUsedId"],
             "warning_threshold": 0.15,
             "error_threshold": 0.30,
             "segment_proximity_filter": 0.005,
-            "validation_type": "ROAD_COUNTER_REALTIME",
+            "validation_type": "ROAD_COUNTER_FUEL_CONSUMPTION",
+            "done": "DONE",
+        },
+    },
+    # Coolant Temperature Rising
+    # Early warning of cooling system issues (coolant leaks, radiator blockage, thermostat failure)
+    # Diagnostic: Engine coolant temperature (DiagnosticEngineCoolantTemperatureId)
+    # Unit: Degrees Celsius (°C)
+    "road-counter-coolant-temp": {
+        "script_folder": "road-counter",
+        "params": {
+            "target_interval_end": "$NOW",
+            "target_interval_depth_minutes": timedelta(hours=2),
+            "historical_interval_end": "$NOW",
+            "historical_interval_depth_minutes": timedelta(days=30),
+            "diagnostic_ids": ["DiagnosticEngineCoolantTemperatureId"],
+            "warning_threshold": 0.10,
+            "error_threshold": 0.20,
+            "segment_proximity_filter": 0.005,
+            "validation_type": "ROAD_COUNTER_COOLANT_TEMP",
+            "done": "DONE",
+        },
+    },
+    # Cranking Voltage Degradation
+    # Predictive battery health monitoring to prevent no-start situations
+    # Diagnostic: Cranking voltage (DiagnosticCrankingVoltageId)
+    # Unit: Volts (V)
+    "road-counter-cranking-voltage": {
+        "script_folder": "road-counter",
+        "params": {
+            "target_interval_end": "$NOW",
+            "target_interval_depth_minutes": timedelta(days=1),
+            "historical_interval_end": "$NOW",
+            "historical_interval_depth_minutes": timedelta(days=30),
+            "diagnostic_ids": ["DiagnosticCrankingVoltageId"],
+            "warning_threshold": 0.10,
+            "error_threshold": 0.20,
+            "segment_proximity_filter": 0.005,
+            "validation_type": "ROAD_COUNTER_CRANKING_VOLTAGE",
+            "done": "DONE",
+        },
+    },
+    # Idle Fuel Consumption Anomaly
+    # Detects excessive idling (driver behavior changes, inefficient operation)
+    # Diagnostic: Trip idle fuel used (DiagnosticTotalTripIdleFuelUsedId)
+    # Unit: Liters
+    "road-counter-idle-fuel": {
+        "script_folder": "road-counter",
+        "params": {
+            "target_interval_end": "$NOW",
+            "target_interval_depth_minutes": timedelta(days=1),
+            "historical_interval_end": "$NOW",
+            "historical_interval_depth_minutes": timedelta(days=7),
+            "diagnostic_ids": ["DiagnosticTotalTripIdleFuelUsedId"],
+            "warning_threshold": 0.25,
+            "error_threshold": 0.50,
+            "segment_proximity_filter": 0.005,
+            "validation_type": "ROAD_COUNTER_IDLE_FUEL",
+            "done": "DONE",
+        },
+    },
+    # EV Battery Discharge Rate Anomaly
+    # Monitors electric vehicle battery health (degradation, parasitic loads, HVAC overuse)
+    # Diagnostic: Electric vehicle battery total energy out while driving (DiagnosticElectricEnergyOutId)
+    # Unit: Kilowatt-hours (kWh)
+    "road-counter-ev-battery-discharge": {
+        "script_folder": "road-counter",
+        "params": {
+            "target_interval_end": "$NOW",
+            "target_interval_depth_minutes": timedelta(hours=4),
+            "historical_interval_end": "$NOW",
+            "historical_interval_depth_minutes": timedelta(days=21),
+            "diagnostic_ids": ["DiagnosticElectricEnergyOutId"],
+            "warning_threshold": 0.18,
+            "error_threshold": 0.30,
+            "segment_proximity_filter": 0.005,
+            "validation_type": "ROAD_COUNTER_EV_BATTERY_DISCHARGE",
+            "done": "DONE",
+        },
+    },
+    # DEF Consumption Anomaly
+    # Detects diesel emissions system issues (SCR system failure, NOx sensor failures)
+    # Diagnostic: DEF level (DiagnosticDieselExhaustFluidId)
+    # Unit: Percentage (%)
+    "road-counter-def-consumption": {
+        "script_folder": "road-counter",
+        "params": {
+            "target_interval_end": "$NOW",
+            "target_interval_depth_minutes": timedelta(days=3),
+            "historical_interval_end": "$NOW",
+            "historical_interval_depth_minutes": timedelta(days=30),
+            "diagnostic_ids": ["DiagnosticDieselExhaustFluidId"],
+            "warning_threshold": 0.30,
+            "error_threshold": 0.60,
+            "segment_proximity_filter": 0.005,
+            "validation_type": "ROAD_COUNTER_DEF_CONSUMPTION",
             "done": "DONE",
         },
     },
