@@ -1,5 +1,5 @@
 .banner-ui {
-  position: fixed;
+  position: absolute;
   top: calc(50px + 2rem);
   left: 2rem;
 }
