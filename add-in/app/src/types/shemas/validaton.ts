@@ -57,3 +57,17 @@ export interface ValidationDistanceToRoadResponse extends ValidationCheckRespons
 export interface ValidationIdleOutlierResponse extends ValidationCheckResponse {
   is_outlier: boolean;
 }
+
+export interface ValidationSegmentAnomalyResponse {
+  aggregate_deviation: number;
+  current_values: number[];
+  device_ids: string[];
+  diagnostic_ids: string[];
+  geotab_database_id: number;
+  is_error: boolean;
+  is_warning: boolean;
+  reference_values: number[];
+  segment_id: number;
+  validation_id: number;
+  value_deviations: number[];
+}

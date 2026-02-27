@@ -11,9 +11,11 @@ body {
 
 #root {
   display: flex;
-  height: 100%;
   width: 100%;
+  height: 100%;
   position: relative;
+  padding-top: 50px;
+  box-sizing: border-box;
 }
 .overlay {
   position: fixed;
@@ -57,4 +59,17 @@ body {
 
 .circle.fall {
   background-color: var(--color-error, #d22d2d);
+}
+
+.table-container {
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.table-container > .zen-layout__full-screen-element {
+  height: 100%;
+}
+
+.table-container > .zen-layout__full-screen-element > .zen-table-wrapper {
+  height: 100% !important;
 }

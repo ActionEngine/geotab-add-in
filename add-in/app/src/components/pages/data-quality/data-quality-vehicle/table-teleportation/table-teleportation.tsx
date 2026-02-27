@@ -77,7 +77,11 @@ const TableTeleportation = ({ points }: TableTeleportationProps) => {
     [points],
   );
 
-  return <Table columns={columns} entities={entities}></Table>;
+  return (
+    <Table columns={columns} entities={entities}>
+      <Table.Empty description="No data yet" />
+    </Table>
+  );
 };
 
 export default TableTeleportation;
