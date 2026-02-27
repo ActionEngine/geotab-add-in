@@ -1,22 +1,16 @@
 import { useContext, useMemo, useState } from "react";
-import { getValidationByDevice } from "@/api/validation";
 import GeotabMap from "@/components/geotab-map/geotab-map";
-import { useFetch } from "@/hooks/useFetch";
 import MapIcon from "@/image/map-icon";
 import TrackIcon from "@/image/track-icon";
 import { AppContext } from "@/provider/app-provider";
 import {
-  ValidationDeviceResponse,
   ValidationResponse,
   ValidationType,
+  VehicleValidation,
 } from "@/types/shemas/validaton";
-import {
-  getValidationsPercentage,
-  makeVehiclesByStatus,
-} from "@/utils/validation";
+import { getValidationsPercentage } from "@/utils/validation";
 import { Card } from "@geotab/zenith/esm/card/card";
 import { Select } from "@geotab/zenith/esm/select/select";
-import { GeotabCredentials } from "mg-api-js";
 import moment from "moment";
 import { validationTypeLabelMap } from "../constants";
 import ChecksList from "./checks-list/checks-list";
@@ -31,28 +25,19 @@ const ALL_CHECKS = {
 
 interface DataQualityMainProps {
   api: GeotabApi;
-  validations: ValidationResponse[] | [];
+  vehicles: VehicleValidation[];
+  validations: ValidationResponse[];
   onSelectVehicle: (id: string) => void;
 }
 
 const DataQualityMain = ({
   api,
   validations,
+  vehicles,
   onSelectVehicle,
 }: DataQualityMainProps) => {
-  const { session, databaseInfo } = useContext(AppContext);
+  const { databaseInfo } = useContext(AppContext);
   const [selectCheck, setSelectCheck] = useState<string>(ALL_CHECKS.id);
-
-  const { data: validationByDevice } = useFetch<ValidationDeviceResponse[]>({
-    fn: () => getValidationByDevice(session as GeotabCredentials),
-    key: "all-validation-by-device",
-    refetchInterval: 10 * 1000,
-  });
-
-  const vehicles = useMemo(
-    () => makeVehiclesByStatus(validationByDevice || []),
-    [validationByDevice],
-  );
 
   const currentValidationId = useMemo(() => {
     if (selectCheck === ALL_CHECKS.id) return null;
