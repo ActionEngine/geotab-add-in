@@ -1,5 +1,5 @@
 -- Compute segment-level anomalies with device list
--- Inserts into validation and road_counter_results tables
+-- Inserts into validation, road_counter_results, and validation_results_by_device tables
 
 WITH comparison AS (
     -- Per-device, per-diagnostic comparison
@@ -32,7 +32,7 @@ segment_vectors AS (
     SELECT
         geotab_database_id,
         actionengine_segment_id,
-        ARRAY[device_id] AS device_ids, -- this is a scalar value, but we keep it as a vector for historical compatibility
+        device_id,
         ARRAY_AGG(diagnostic_id ORDER BY diagnostic_id) AS diagnostic_ids,
         ARRAY_AGG(current_value ORDER BY diagnostic_id) AS current_values,
         ARRAY_AGG(reference_value ORDER BY diagnostic_id) AS reference_values,
@@ -72,6 +72,22 @@ validation_insert AS (
     FROM classification
     GROUP BY geotab_database_id
     RETURNING id, geotab_database_id
+),
+device_stats AS (
+    SELECT
+        geotab_database_id,
+        device_id,
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE is_warning) AS warnings,
+        COUNT(*) FILTER (WHERE is_error) AS errors
+    FROM classification
+    GROUP BY geotab_database_id, device_id
+),
+device_insert AS (
+    INSERT INTO validation_results_by_device (validation_id, device_id, total, warnings, errors)
+    SELECT v.id, d.device_id, d.total, d.warnings, d.errors
+    FROM device_stats d
+    JOIN validation_insert v ON v.geotab_database_id = d.geotab_database_id
 )
 INSERT INTO road_counter_results (
     validation_id,
@@ -86,11 +102,11 @@ INSERT INTO road_counter_results (
     is_warning,
     is_error
 )
-SELECT 
+SELECT
     v.id,
     c.geotab_database_id,
     c.actionengine_segment_id AS segment_id,
-    c.device_ids,
+    ARRAY[c.device_id] AS device_ids,  -- this is a scalar value, but we keep it as a vector for historical compatibility
     c.diagnostic_ids,
     c.current_values,
     c.reference_values,
