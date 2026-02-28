@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
+import os
 
 from sqlalchemy import text
 from logging_config import configure_logger
@@ -7,6 +8,7 @@ from logging_config import configure_logger
 from database.database import SessionLocal
 from modules.geotab_database.models.geotab_database import GeotabDatabase  # noqa: F401
 from modules.geotab_location.enums import ValidationStatus
+from modules.utils.utils import require_recent_data
 from modules.validation.models.validation import Validation
 
 logger = configure_logger(__name__)
@@ -25,13 +27,15 @@ VALIDATION_TYPE = "TELEPORTATION"
 # dividing gives m/s, multiplying by 3.6 converts to km/h  (3600 s/h ÷ 1000 m/km).
 WARNING_THRESHOLD_KMH = 100  # well above GPS noise for vehicles up to ~120 km/h
 ERROR_THRESHOLD_KMH = 200  # clear GPS teleportation jump
+RECENT_WINDOW_MINUTES = int(os.getenv("RECENT_WINDOW_MINUTES", "15"))
 
 
+@require_recent_data
 async def run_single_teleportation_validation() -> None:
     """Run a single teleportation validation."""
 
     run_started_at = datetime.utcnow()
-    from_datetime = run_started_at - timedelta(minutes=15)
+    from_datetime = run_started_at - timedelta(minutes=RECENT_WINDOW_MINUTES)
 
     async with SessionLocal() as session:
         database_ids_query = text(

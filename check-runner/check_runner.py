@@ -13,6 +13,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from psycopg2 import pool as psycopg2_pool
+import psycopg2
 from psycopg2.extensions import connection as PgConnection
 from psycopg2.extras import Json
 
@@ -188,6 +189,25 @@ def load_scripts(
     return scripts
 
 
+def has_recent_locations(db_url: str, window_minutes: int = 15) -> bool:
+    """Return True if geotab_location has any rows within the last *window_minutes*.
+
+    Used as a lightweight pre-flight guard so checks are skipped when the
+    backend has been down long enough that no new data has arrived yet.
+    """
+    from_dt = datetime.now(tz=timezone.utc) - timedelta(minutes=window_minutes)
+    conn = psycopg2.connect(db_url)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT 1 FROM geotab_location WHERE datetime >= %s LIMIT 1",
+                (from_dt,),
+            )
+            return cur.fetchone() is not None
+    finally:
+        conn.close()
+
+
 def _resolve_param_markers(params: Mapping[str, Any]) -> dict[str, Any]:
     """Replace parameter markers like '$NOW' with actual values."""
     resolved = {}
@@ -207,6 +227,10 @@ def run_once(
     pool_factory: Callable[..., Any],
 ) -> int:
     """Run all checks once. Returns exit code."""
+    if not has_recent_locations(db_url):
+        logger.info("Skipping checks: no geotab_location data in the last 15 minutes")
+        return 0
+
     try:
         scripts = load_scripts(scripts_dir, CHECKS)
     except FileNotFoundError as e:
