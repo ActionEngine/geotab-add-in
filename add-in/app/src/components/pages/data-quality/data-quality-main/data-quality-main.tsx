@@ -87,17 +87,19 @@ const DataQualityMain = ({
             </div>
           </div>
           <div>
-            Validated for:{" "}
             {validations.length > 0 && (
-              <div>
-                {moment(validations?.[0]?.finished_at)
-                  .subtract(15, "minutes")
-                  .format("MMM DD, YYYY HH:mm")}{" "}
-                -{" "}
-                {moment(validations?.[0]?.started_at).format(
-                  "MMM DD, YYYY HH:mm",
-                )}
-              </div>
+              <>
+                Validated for:{" "}
+                <div>
+                  {moment(validations?.[0]?.finished_at)
+                    .subtract(15, "minutes")
+                    .format("MMM DD, YYYY HH:mm")}{" "}
+                  -{" "}
+                  {moment(validations?.[0]?.started_at).format(
+                    "MMM DD, YYYY HH:mm",
+                  )}
+                </div>
+              </>
             )}
           </div>
           <Select

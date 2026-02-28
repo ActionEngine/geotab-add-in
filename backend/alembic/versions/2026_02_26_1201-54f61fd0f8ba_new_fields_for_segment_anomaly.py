@@ -53,6 +53,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.execute("TRUNCATE TABLE segment_anomaly")
     op.add_column(
         "segment_anomaly",
         sa.Column("diagnostic_id", sa.VARCHAR(), autoincrement=False, nullable=False),
