@@ -34,7 +34,10 @@ const VALIDATION_FETCHERS_MAP = {
   [ValidationType.TELEPORTATION]: getValidationTeleportation,
   [ValidationType.DISTANCE_TO_ROAD]: getValidationDistanceToRoad,
   [ValidationType.IDLE_OUTLIER]: getValidationIdleOutliers,
-  [ValidationType.ROAD_COUNTER_2H]: getValidationSegmentAomaly,
+  [ValidationType.ROAD_COUNTER_FUEL_CONSUMPTION]: getValidationSegmentAomaly,
+  [ValidationType.ROAD_COUNTER_COOLANT_TEMP]: getValidationSegmentAomaly,
+  [ValidationType.ROAD_COUNTER_EV_BATTERY_DISCHARGE]:
+    getValidationSegmentAomaly,
 };
 
 const DataQualityVehicle = ({
@@ -197,7 +200,11 @@ const DataQualityVehicle = ({
         showOvertureSegments={selectCheck === ValidationType.DISTANCE_TO_ROAD}
         showTeleportationMvtDots={selectCheck === ValidationType.TELEPORTATION}
         showIdleOutlierMvtDots={selectCheck === ValidationType.IDLE_OUTLIER}
-        showRoadCounterDots={selectCheck === ValidationType.ROAD_COUNTER_2H}
+        showRoadCounterDots={
+          selectCheck === ValidationType.ROAD_COUNTER_FUEL_CONSUMPTION ||
+          selectCheck === ValidationType.ROAD_COUNTER_COOLANT_TEMP ||
+          selectCheck === ValidationType.ROAD_COUNTER_EV_BATTERY_DISCHARGE
+        }
         roadCounterDeviceId={deviceId}
       />
     </div>

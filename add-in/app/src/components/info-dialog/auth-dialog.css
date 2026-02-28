@@ -28,6 +28,10 @@
   margin: 0;
 }
 
+.dialog-info-text-bold {
+  font-weight: 500;
+}
+
 .info-block {
   display: flex;
   flex-direction: column;

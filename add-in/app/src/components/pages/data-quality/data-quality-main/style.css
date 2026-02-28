@@ -1,5 +1,5 @@
 .select-width {
-  width: 200px;
+  width: 250px;
 }
 
 .data-quality-main-container {
@@ -98,6 +98,7 @@
   }
 }
 
-.map-container, .map-container__provider {
+.map-container,
+.map-container__provider {
   position: relative !important;
 }

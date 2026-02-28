@@ -21,7 +21,9 @@ interface GroupedVehicle {
   distance_to_road: number | null;
   teleportation: number | null;
   idle_outlier: number | null;
-  road_counter2h: number | null;
+  road_counter_fuel_consumption: number | null;
+  road_counter_coolant_temp: number | null;
+  road_counter_ev_battery_discharge: number | null;
 }
 
 const VehiclesTable = ({
@@ -45,7 +47,9 @@ const VehiclesTable = ({
           distance_to_road: null,
           teleportation: null,
           idle_outlier: null,
-          road_counter2h: null,
+          road_counter_fuel_consumption: null,
+          road_counter_coolant_temp: null,
+          road_counter_ev_battery_discharge: null,
         };
         grouped.set(vehicle.device_id, row);
       }
@@ -58,8 +62,12 @@ const VehiclesTable = ({
         row.teleportation = vehicle.percentage;
       } else if (type === ValidationType.IDLE_OUTLIER) {
         row.idle_outlier = vehicle.percentage;
-      } else if (type === ValidationType.ROAD_COUNTER_2H) {
-        row.road_counter2h = vehicle.percentage;
+      } else if (type === ValidationType.ROAD_COUNTER_FUEL_CONSUMPTION) {
+        row.road_counter_fuel_consumption = vehicle.percentage;
+      } else if (type === ValidationType.ROAD_COUNTER_COOLANT_TEMP) {
+        row.road_counter_coolant_temp = vehicle.percentage;
+      } else if (type === ValidationType.ROAD_COUNTER_EV_BATTERY_DISCHARGE) {
+        row.road_counter_ev_battery_discharge = vehicle.percentage;
       }
     });
 
@@ -111,10 +119,27 @@ const VehiclesTable = ({
         },
       },
       {
-        id: "road_counter2h",
-        title: "Road Counter 2H",
+        id: "road_counter_fuel_consumption",
+        title: "Road Counter: Fuel Consumption",
         columnComponent: {
-          render: (vehicle) => renderValidationValue(vehicle.road_counter2h),
+          render: (vehicle) =>
+            renderValidationValue(vehicle.road_counter_fuel_consumption),
+        },
+      },
+      {
+        id: "road_counter_coolant_temp",
+        title: "Road Counter: Coolant Temp",
+        columnComponent: {
+          render: (vehicle) =>
+            renderValidationValue(vehicle.road_counter_coolant_temp),
+        },
+      },
+      {
+        id: "road_counter_ev_battery_discharge",
+        title: "Road Counter: EV Battery Discharge",
+        columnComponent: {
+          render: (vehicle) =>
+            renderValidationValue(vehicle.road_counter_ev_battery_discharge),
         },
       },
       {

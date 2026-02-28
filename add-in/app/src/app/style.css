@@ -83,3 +83,7 @@ body {
 .zen-empty-state__image {
   height: 60px;
 }
+
+.zen-card-container--large {
+  max-width: 100%;
+}

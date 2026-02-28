@@ -81,7 +81,11 @@ export const getTableComponent = (
       />
     );
   }
-  if (selectCheck === ValidationType.ROAD_COUNTER_2H) {
+  if (
+    selectCheck === ValidationType.ROAD_COUNTER_FUEL_CONSUMPTION ||
+    selectCheck === ValidationType.ROAD_COUNTER_COOLANT_TEMP ||
+    selectCheck === ValidationType.ROAD_COUNTER_EV_BATTERY_DISCHARGE
+  ) {
     return (
       <TableRoadCounter
         points={points as ValidationSegmentAnomalyResponse[]}
@@ -91,7 +95,11 @@ export const getTableComponent = (
   }
 };
 export const getPointsForMap = (selectCheck: string, points: Points) => {
-  if (selectCheck === ValidationType.ROAD_COUNTER_2H) {
+  if (
+    selectCheck === ValidationType.ROAD_COUNTER_FUEL_CONSUMPTION ||
+    selectCheck === ValidationType.ROAD_COUNTER_COOLANT_TEMP ||
+    selectCheck === ValidationType.ROAD_COUNTER_EV_BATTERY_DISCHARGE
+  ) {
     return [];
   }
 

@@ -32,20 +32,22 @@ const InfoDialog = ({ open, onClose }: InfoDialogProps) => {
         </div>
         <div className="dialog-info-content">
           <div className="info-block">
-            <h3 className="dialog-info-content-title">Distance to Road</h3>
+            <h3 className="dialog-info-content-title dialog-info-text-bold">
+              Distance to Road
+            </h3>
             <div>
               This metric evaluates the positioning accuracy of Geotab GO
               devices by analyzing the variance between the reported GPS
               coordinates and known road networks.
             </div>
             <div>
-              <b>Hardware Measurement:</b> It identifies GPS Drift, where
-              environmental factors or antenna degradation cause the device to
-              report coordinates that physically deviate from the drivable path.
-              A lower score suggests the device may be experiencing signal
+              Hardware Measurement: It identifies GPS Drift, where environmental
+              factors or antenna degradation cause the device to report
+              coordinates that physically deviate from the drivable path. A
+              lower score suggests the device may be experiencing signal
               multipath issues or requires a clear view of the sky.
             </div>
-            <b>Status Description:</b>
+            <span className="dialog-info-text-bold">Status Description:</span>
             <div className="info-block-item">
               <IconPlusCircle className="pass" size="huge" />
               <div>
@@ -74,20 +76,22 @@ const InfoDialog = ({ open, onClose }: InfoDialogProps) => {
             </div>
           </div>
           <div className="info-block">
-            <h3 className="dialog-info-content-title">Teleportation</h3>
+            <h3 className="dialog-info-content-title dialog-info-text-bold">
+              Teleportation
+            </h3>
             <div>
               This check monitors for impossible or illogical jumps in
               geographical coordinates between consecutive data pings.
             </div>
             <div>
-              <b>Hardware Measurement:</b> It assesses Telemetry Integrity. If a
-              device reports "teleporting" (moving between two points faster
-              than physically possible), it indicates hardware-level data
-              corruption, severe signal lag, or internal clock synchronization
-              errors. This is a primary indicator that a device may require a
-              firmware update or replacement.
+              Hardware Measurement: It assesses Telemetry Integrity. If a device
+              reports "teleporting" (moving between two points faster than
+              physically possible), it indicates hardware-level data corruption,
+              severe signal lag, or internal clock synchronization errors. This
+              is a primary indicator that a device may require a firmware update
+              or replacement.
             </div>
-            <b>Status Description:</b>
+            <span className="dialog-info-text-bold">Status Description:</span>
             <div className="info-block-item">
               <IconPlusCircle className="pass" size="huge" />
               <div>
@@ -115,21 +119,23 @@ const InfoDialog = ({ open, onClose }: InfoDialogProps) => {
             </div>
           </div>
           <div className="info-block">
-            <h3 className="dialog-info-content-title">Idle Outlier</h3>
+            <h3 className="dialog-info-content-title dialog-info-text-bold">
+              Idle Outlier
+            </h3>
             <div>
               This metric identifies vehicles that report excessive or unusual
               stationary durations that do not align with standard operational
               profiles.
             </div>
             <div>
-              <b>Hardware Measurement:</b> It evaluates the reliability of the
+              Hardware Measurement: It evaluates the reliability of the
               Accelerometer and Ignition Sense hardware. Persistent "Idle
               Outliers" often signal a faulty connection to the vehicle's engine
               bus or a miscalibrated internal accelerometer that fails to
               trigger "Trip Start" or "Trip Stop" events accurately, leading to
               "ghost" idling data.
             </div>
-            <b>Status Description:</b>
+            <span className="dialog-info-text-bold">Status Description:</span>
             <div className="info-block-item">
               <IconPlusCircle className="pass" size="huge" />
               <div>
