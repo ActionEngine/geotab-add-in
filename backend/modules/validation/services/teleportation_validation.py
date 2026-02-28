@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime, timedelta
 import os
 
@@ -8,7 +7,6 @@ from logging_config import configure_logger
 from database.database import SessionLocal
 from modules.geotab_database.models.geotab_database import GeotabDatabase  # noqa: F401
 from modules.geotab_location.enums import ValidationStatus
-from modules.utils.utils import require_recent_data
 from modules.validation.models.validation import Validation
 
 logger = configure_logger(__name__)
@@ -25,12 +23,11 @@ VALIDATION_TYPE = "TELEPORTATION"
 # ST_Distance(...::geography) → returns distance in meters;
 # EXTRACT(EPOCH FROM ...) → returns seconds;
 # dividing gives m/s, multiplying by 3.6 converts to km/h  (3600 s/h ÷ 1000 m/km).
-WARNING_THRESHOLD_KMH = 100  # well above GPS noise for vehicles up to ~120 km/h
+WARNING_THRESHOLD_KMH = 117  # well above GPS noise for vehicles up to ~120 km/h
 ERROR_THRESHOLD_KMH = 200  # clear GPS teleportation jump
 RECENT_WINDOW_MINUTES = int(os.getenv("RECENT_WINDOW_MINUTES", "15"))
 
 
-@require_recent_data
 async def run_single_teleportation_validation() -> None:
     """Run a single teleportation validation."""
 
@@ -249,13 +246,3 @@ async def run_single_teleportation_validation() -> None:
             )
 
         await session.commit()
-
-
-async def run_teleportation_validation_service(interval_seconds: int = 300) -> None:
-    while True:
-        try:
-            await run_single_teleportation_validation()
-        except Exception:
-            logger.exception("Teleportation validation run failed")
-
-        await asyncio.sleep(interval_seconds)

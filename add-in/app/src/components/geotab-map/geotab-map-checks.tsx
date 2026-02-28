@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef } from "react";
+import { useContext, useEffect, useMemo, useRef, useCallback } from "react";
 import { ViewStateChangeEvent } from "react-map-gl/mapbox-legacy";
 import MapLibre, { MapRef, Marker } from "react-map-gl/maplibre";
 import { getHeaders } from "@/api/helper";
@@ -60,6 +60,12 @@ const GeotabMapChecks = ({
     if (!session) return null;
     return getHeaders(session);
   }, [session]);
+
+  // Keep a ref so the transformRequest callback (set once at map creation)
+  // always reads the latest session headers. Assign synchronously during
+  // render (not in a useEffect) to avoid any async timing gap.
+  const sessionHeadersRef = useRef(sessionHeaders);
+  sessionHeadersRef.current = sessionHeaders;
 
   useEffect(() => {
     const map = mapRef.current?.getMap();
@@ -268,6 +274,9 @@ const GeotabMapChecks = ({
     showIdleOutlierMvtDots,
     showOvertureSegments,
     showTeleportationMvtDots,
+    // When session becomes available, remove and re-add all sources so
+    // MapLibre retries tile requests — this time with auth headers.
+    sessionHeaders,
   ]);
 
   const handleLoadMap = () => {
@@ -279,6 +288,29 @@ const GeotabMapChecks = ({
   const handleMapMove = (e: ViewStateChangeEvent) => {
     updateMapStateChecks(e.viewState);
   };
+
+  // Stable callback — reads from ref so it always uses the latest headers
+  // even though MapLibre captures transformRequest only at map creation.
+  // Empty dep array is intentional: stability matters, freshness comes from the ref.
+  const transformRequest = useCallback(
+    (url: string) => {
+      const headers = sessionHeadersRef.current;
+      if (!headers) {
+        return { url };
+      }
+
+      const baseUrl = import.meta.env.VITE_BASE_URL;
+      if (!url.startsWith(baseUrl)) {
+        return { url };
+      }
+
+      return {
+        url,
+        headers,
+      };
+    },
+    [], // intentionally empty — we rely on the ref for latest headers
+  );
 
   return (
     <div style={{ width: "100%", height: "100%" }}>
@@ -299,21 +331,7 @@ const GeotabMapChecks = ({
           aroundCenter: false,
         }} /* Not documented feature for better interaction experience */
         mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-        transformRequest={(url) => {
-          if (!sessionHeaders) {
-            return { url };
-          }
-
-          const baseUrl = import.meta.env.VITE_BASE_URL;
-          if (!url.startsWith(baseUrl)) {
-            return { url };
-          }
-
-          return {
-            url,
-            headers: sessionHeaders,
-          };
-        }}
+        transformRequest={transformRequest}
       >
         {points.map(({ latitude, longitude, className }, idx) => {
           return (

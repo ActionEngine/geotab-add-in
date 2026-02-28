@@ -305,6 +305,17 @@ async def ingest_log_records(
 
             await session.commit()
 
+        logger.info(
+            f"Successfully ingested {total_ingested} log records "
+            f"for database_id={geotab_database_id}"
+        )
+
+        # Ingest Overture segments after log records are done
+        logger.info(
+            f"Starting Overture segments ingestion for database_id={geotab_database_id}"
+        )
+        await ingest_overture_segments(geotab_database_id)
+
         # Update status to DONE and set last_sync
         async with SessionLocal() as session:
             result = await session.execute(
@@ -317,16 +328,7 @@ async def ingest_log_records(
                 db_entry.last_sync = datetime.utcnow()
                 await session.commit()
 
-        logger.info(
-            f"Successfully ingested {total_ingested} log records "
-            f"for database_id={geotab_database_id}"
-        )
-
-        # Ingest Overture segments after log records are done
-        logger.info(
-            f"Starting Overture segments ingestion for database_id={geotab_database_id}"
-        )
-        await ingest_overture_segments(geotab_database_id)
+        logger.info(f"Ingestion process completed for database_id={geotab_database_id}, status set to DONE")
 
     except Exception as e:
         logger.error(f"Error during log record ingestion: {e}")

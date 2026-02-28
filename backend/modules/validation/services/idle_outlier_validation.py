@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime, timedelta
 import os
 
@@ -8,7 +7,6 @@ from database.database import SessionLocal
 from logging_config import configure_logger
 from modules.geotab_database.models.geotab_database import GeotabDatabase  # noqa: F401
 from modules.geotab_location.enums import ValidationStatus
-from modules.utils.utils import require_recent_data
 from modules.validation.models.validation import Validation
 
 logger = configure_logger(__name__)
@@ -16,12 +14,11 @@ logger = configure_logger(__name__)
 VALIDATION_TYPE = "IDLE_OUTLIER"
 
 DBSCAN_EPS_METERS = 15
-DBSCAN_MIN_POINTS = 300
+DBSCAN_MIN_POINTS = 212
 CLUSTER_WINDOW_HOURS = 24
 RECENT_WINDOW_MINUTES = int(os.getenv("RECENT_WINDOW_MINUTES", "15"))
 
 
-@require_recent_data
 async def run_single_idle_outlier_validation() -> None:
     """Run a single idle-outlier validation pass.
 
@@ -298,13 +295,3 @@ async def run_single_idle_outlier_validation() -> None:
             )
 
         await session.commit()
-
-
-async def run_idle_outlier_validation_service(interval_seconds: int = 300) -> None:
-    while True:
-        try:
-            await run_single_idle_outlier_validation()
-        except Exception:
-            logger.exception("Idle outlier validation run failed")
-
-        await asyncio.sleep(interval_seconds)

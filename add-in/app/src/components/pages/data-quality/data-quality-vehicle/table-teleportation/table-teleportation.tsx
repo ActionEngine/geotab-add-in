@@ -1,5 +1,9 @@
 import { useMemo } from "react";
 import { ValidationTeleportationResponse } from "@/types/shemas/validaton";
+import {
+  TELEPORTATION_ERROR_THRESHOLD_KMH,
+  TELEPORTATION_WARNING_THRESHOLD_KMH,
+} from "@/utils/validation-thresholds";
 import { Table } from "@geotab/zenith/esm/table/table";
 import moment from "moment";
 
@@ -9,11 +13,11 @@ interface TableTeleportationProps {
 }
 
 const getSpeedStatus = (speed: number) => {
-  if (speed > 200) {
+  if (speed > TELEPORTATION_ERROR_THRESHOLD_KMH) {
     return { label: "Error", className: "fall" };
   }
 
-  if (speed >= 100) {
+  if (speed >= TELEPORTATION_WARNING_THRESHOLD_KMH) {
     return { label: "Warning", className: "warning" };
   }
 

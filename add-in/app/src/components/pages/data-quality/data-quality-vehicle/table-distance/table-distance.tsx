@@ -1,5 +1,9 @@
 import { useMemo } from "react";
 import { ValidationDistanceToRoadResponse } from "@/types/shemas/validaton";
+import {
+  DISTANCE_ERROR_THRESHOLD_METERS,
+  DISTANCE_WARNING_THRESHOLD_METERS,
+} from "@/utils/validation-thresholds";
 import { Table } from "@geotab/zenith/esm/table/table";
 import moment from "moment";
 
@@ -9,11 +13,11 @@ interface TableDistanceProps {
 }
 
 const getDistanceStatus = (distance: number) => {
-  if (distance > 10) {
+  if (distance > DISTANCE_ERROR_THRESHOLD_METERS) {
     return { label: "Error", className: "fall" };
   }
 
-  if (distance >= 5) {
+  if (distance >= DISTANCE_WARNING_THRESHOLD_METERS) {
     return { label: "Warning", className: "warning" };
   }
 

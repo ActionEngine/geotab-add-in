@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime, timedelta
 import os
 
@@ -8,15 +7,15 @@ from logging_config import configure_logger
 from database.database import SessionLocal
 from modules.geotab_database.models.geotab_database import GeotabDatabase  # noqa: F401
 from modules.geotab_location.enums import ValidationStatus
-from modules.utils.utils import require_recent_data
 from modules.validation.models.validation import Validation
 
 logger = configure_logger(__name__)
 
 RECENT_WINDOW_MINUTES = int(os.getenv("RECENT_WINDOW_MINUTES", "15"))
+WARNING_THRESHOLD_METERS = 12
+ERROR_THRESHOLD_METERS = 15
 
 
-@require_recent_data
 async def run_single_distance_validation() -> None:
     run_started_at = datetime.utcnow()
     from_datetime = run_started_at - timedelta(minutes=RECENT_WINDOW_MINUTES)
@@ -42,7 +41,9 @@ async def run_single_distance_validation() -> None:
         geotab_database_ids = database_ids_result.scalars().all()
 
         if not geotab_database_ids:
-            logger.info("Distance validation skipped: no databases with recent locations")
+            logger.info(
+                "Distance validation skipped: no databases with recent locations"
+            )
             return
 
         insert_results_query = text(
@@ -179,7 +180,7 @@ async def run_single_distance_validation() -> None:
                     "from_datetime": from_datetime,
                     "geotab_database_id": geotab_database_id,
                     "validation_id": validation_id,
-                    "warning_threshold": 5,
+                    "warning_threshold": WARNING_THRESHOLD_METERS,
                 },
             )
 
@@ -189,8 +190,8 @@ async def run_single_distance_validation() -> None:
                     "validation_id": validation_id,
                     "from_datetime": from_datetime,
                     "geotab_database_id": geotab_database_id,
-                    "warning_threshold": 5,
-                    "error_threshold": 10,
+                    "warning_threshold": WARNING_THRESHOLD_METERS,
+                    "error_threshold": ERROR_THRESHOLD_METERS,
                 },
             )
 
@@ -198,8 +199,8 @@ async def run_single_distance_validation() -> None:
                 summary_query,
                 {
                     "validation_id": validation_id,
-                    "warning_threshold": 5,
-                    "error_threshold": 10,
+                    "warning_threshold": WARNING_THRESHOLD_METERS,
+                    "error_threshold": ERROR_THRESHOLD_METERS,
                 },
             )
             warning_count, error_count = summary_result.one()
@@ -228,13 +229,3 @@ async def run_single_distance_validation() -> None:
             )
 
         await session.commit()
-
-
-async def run_distance_validation_service(interval_seconds: int = 300) -> None:
-    while True:
-        try:
-            await run_single_distance_validation()
-        except Exception:
-            logger.exception("Distance validation run failed")
-
-        await asyncio.sleep(interval_seconds)

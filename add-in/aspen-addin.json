@@ -1,14 +1,14 @@
 {
-  "name": "Aspen Add-In",
+  "name": "Aspen GIS Lite",
   "supportEmail": "victor.belomestnov@actionengine.com",
   "version": "1.0.0",
   "items": [
     {
-      "page": "Aspen DQ",
+      "page": "Aspen GIS Lite",
       "url": "https://main.d14o3o9kbo1n4h.amplifyapp.com",
       "path": "",
       "menuName": {
-        "en": "Aspen DQ"
+        "en": "Aspen GIS Lite"
       },
       "icon": "https://main.d14o3o9kbo1n4h.amplifyapp.com/public/favicon.ico"
     }
