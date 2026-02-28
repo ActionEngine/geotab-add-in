@@ -1,53 +1,70 @@
--- output: geotab_database_id, actionengine_segment_id, device_id, diagnostic_id, diagnostic_value_avg
+--output:
+--     geotab_database_id
+--     actionengine_segment_id
+--     device_id
+--     diagnostic_id
+--     diagnostic_value_avg
+
 
 CREATE TEMP TABLE target_diagnostic_avg ON COMMIT DROP
 
--- ====================================================================
--- or persist table for debug purposes 
--- ====================================================================
---DROP TABLE IF EXISTS target_diagnostic_avg;
--- CREATE TABLE target_diagnostic_avg
--- ====================================================================
+--====================================================================
+--or persist table for debug purposes 
+--====================================================================
+-- --DROP TABLE IF EXISTS target_diagnostic_avg;
+--CREATE TABLE target_diagnostic_avg
+--====================================================================
 
 AS
 
-WITH segment_with_device AS (
-  SELECT DISTINCT
-      device_location.geotab_database_id,
+WITH location_filtered AS (
+  SELECT
+      geotab_database_id,
+      device_id,
+      geometry
+  FROM geotab_location
+  WHERE
+    geometry IS NOT NULL
+    AND datetime >= %(target_interval_end)s - %(target_interval_depth_minutes)s
+    AND datetime < %(target_interval_end)s
+),
+
+segment_with_device AS (
+  SELECT
+      location_filtered.geotab_database_id,
       nearest_segment.actionengine_segment_id,
-      device_location.device_id
-  FROM geotab_location device_location
+      location_filtered.device_id
+  FROM location_filtered
   CROSS JOIN LATERAL (
       SELECT os.id AS actionengine_segment_id
       FROM overture_segments os
-      WHERE os.geotab_database_id = device_location.geotab_database_id
-        AND os.geometry && ST_Expand(device_location.geometry, %(segment_proximity_filter)s)
-      ORDER BY device_location.geometry <-> os.geometry
+      WHERE os.geotab_database_id = location_filtered.geotab_database_id
+        AND os.geometry && ST_Expand(location_filtered.geometry, %(segment_proximity_filter)s)
+      ORDER BY location_filtered.geometry <-> os.geometry
       LIMIT 1
   ) AS nearest_segment
-  WHERE device_location.geometry IS NOT NULL
-    AND device_location.datetime >= %(target_interval_end)s - %(target_interval_depth_minutes)s
-    AND device_location.datetime < %(target_interval_end)s
 ),
-diagnostic_avg AS (
+
+diagnostic_filtered AS (
     SELECT
         geotab_database_id,
         device_id,
         diagnostic_id,
-        AVG(data) AS diagnostic_value_avg
+        data AS diagnostic_value
     FROM geotab_status_data
     WHERE datetime >= %(target_interval_end)s - %(target_interval_depth_minutes)s
       AND datetime < %(target_interval_end)s
       AND diagnostic_id = ANY(%(diagnostic_ids)s)
-    GROUP BY 1, 2, 3
 )
+
 SELECT
-    swl.geotab_database_id,
-    swl.actionengine_segment_id,
-    swl.device_id,
-    diagnostic_avg.diagnostic_id,
-    diagnostic_avg.diagnostic_value_avg
-FROM segment_with_device swl
-JOIN diagnostic_avg
-    ON swl.geotab_database_id = diagnostic_avg.geotab_database_id
-    AND swl.device_id = diagnostic_avg.device_id;
+    seg2dev.geotab_database_id,
+    seg2dev.actionengine_segment_id,
+    seg2dev.device_id,
+    diagnostic_id,
+    AVG(diagnostic_value) AS diagnostic_value_avg
+FROM segment_with_device seg2dev
+JOIN diagnostic_filtered
+    ON seg2dev.geotab_database_id = diagnostic_filtered.geotab_database_id
+    AND seg2dev.device_id = diagnostic_filtered.device_id
+GROUP BY 1, 2, 3, 4;

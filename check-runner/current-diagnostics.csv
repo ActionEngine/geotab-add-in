@@ -1,0 +1,92 @@
+external_id,name,unit_of_measure,diagnostic_type,source
+a0AoHgMuba0SdPUfKQwV2Pg,Generic OBD II exhaust gas sensor monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+a0b2DCRbsQUqPKipsOJ9Vhw,Generic OBD II oxygen sensor monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+a0TorlrzX1UWoW-BUzIapsg,Generic OBD II AC refrigerant monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+a2cJr2HdL9UiQeEcvYL_Wkw,Generic OBD II EGR system monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+a4kUpYGyQ4E2uoQTp-ed0Ow,HV battery voltage,UnitOfMeasureVoltsId,GoDiagnostic,SourceGeotabGoId
+a6KUdqGiXdEGGVJ6tgfmagQ,Warmups since codes cleared,UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aAe5iiBAtT06lGzVHFzUhRw,Generic OBD II EGR system monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aaGTQft3gRUyikYnH2idkVQ,Generic OBD II catalyst monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aDn7Ky78pnUmai2B3dmPmqQ,Generic OBD II misfire monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+a-dPsmgsMg0OiBKjmQASXWQ,Generic OBD II catalyst monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+ae8RElYthNkaAK1Z2Rel6FQ,Generic OBD II AC refrigerant monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aFGR6Q9guoUeiaAZI1fD6oQ,Electric vehicle distance remaining,UnitOfMeasureMetersId,GoDiagnostic,SourceGeotabGoId
+aGft7B9Rwd0SH9UtvDNipKw,Generic OBD II NMHC catalyst monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+ah9WxHrTv3kCb2vzU_NS1bw,Generic OBD II boost pressure monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+ahl_lihpcMEK-3W7IneKoIg,Generic OBD II PM filter monitoring monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aHMpZBeCZs0i_Q2Sul4VC7g,Generic OBD II EGR VVT system monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aiXcms1pD7EqE7-mFeMuVcw,Generic OBD II evaporative system monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aJB7LUbAzoU6bdOUMc9WYkA,Generic OBD II components monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+ak0pLOA92RkSyQDvovh8Afg,Distance traveled with Malfuction Idicator Lamp (MIL) on,UnitOfMeasureMetersId,GoDiagnostic,SourceGeotabGoId
+aKpyOK5cMZkmSE_isEqk8iA,Distance traveled since codes cleared,UnitOfMeasureMetersId,GoDiagnostic,SourceGeotabGoId
+aKV1DLB7BYEC2fKN0BmVMTQ,Raw outside air temperature,UnitOfMeasureDegreesCelsiusId,GoDiagnostic,SourceGeotabGoId
+alR8pELGWXU6wbATRnMx0Nw,Generic OBD II secondary air system monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aLs4yb61T9EOyoCCTU_HR4w,Generic OBD II components monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+amJGoCL3hi0GRw5rxBAjUHg,Generic OBD II heated catalyst monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+ampvGtx48wECtM1P_hrAknw,Generic OBD II NMHC catalyst monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+anyieroQCdU-ykPRBJAFjJA,Engine OBD2 PID count,UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aonQc-2lmx0CCjhRvG1HG_g,Generic OBD II heated catalyst monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aoUXRRUiGQkaUxOWroTrC9Q,Generic OBD II boost pressure monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aptwTrzMS3Eqhr5e6R4z4sA,Generic OBD II NOx SCR monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aQay8frqJcUOYzrTNdH64EA,Generic OBD II oxygen sensor heater monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aQlf26vuLj06djxfNj-9rIQ,Generic OBD II oxygen sensor monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+asDySQHSKqUi-_sGgP_XSVw,Generic OBD II fuel system monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aSFrm_08IFk-4CNR1x1bS7w,Generic OBD II PM filter monitoring monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aswYrDbJ3q0qj0SXf7F09IA,Generic OBD II NOx SCR monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+asxyftJIo1Ey-YDoxliF2GA,Generic OBD II EGR VVT system monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aTe0A3rMcuESQjBDj1PHgpw,Generic OBD II exhaust gas sensor monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aTEM7u5qGsEe-gPR0o_6rvg,"Diesel particulate filter regeneration status (1. On, 0. Off)",UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aUzR3iQoKFEe-dwG9f2t6_A,Generic OBD II misfire monitor available,UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aVlhasyxMIkyUJNqrqGdLjg,Generic OBD II secondary air system monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aWAbniAeOPkKt1pL4lFukEg,Generic OBD II fuel system monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+awr4Fx0gYg0CcBEkKZStWHQ,Generic OBD II oxygen sensor heater monitor complete (1. Complete),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+ax5zzYLi3REKx7qGzmeExOw,"Diesel particulate filter regeneration type (1. Active regeneration, 0. Passive regeneration)",UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+aybl8B7xQt0yrRkcSZSq0vw,Time remaining until service required,UnitOfMeasureSecondsId,GoDiagnostic,SourceGeotabGoId
+ayrzDar9TCUCw_qH7L85JKw,Generic OBD II evaporative system monitor available (1. Available),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticAccelerationForwardBrakingId,Acceleration forward or braking,UnitOfMeasureMetersPerSecondSquaredId,DataDiagnostic,SourceSystemId
+DiagnosticAccelerationSideToSideId,Acceleration side to side,UnitOfMeasureMetersPerSecondSquaredId,DataDiagnostic,SourceSystemId
+DiagnosticAccelerationUpDownId,Acceleration up or down,UnitOfMeasureMetersPerSecondSquaredId,DataDiagnostic,SourceSystemId
+DiagnosticAux1Id,Aux 1 (1. On),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticAux2Id,Aux 2 (1. On),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticAux3Id,Aux 3 (1. On),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticAux4Id,Aux 4 (1. On),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticAux5Id,Aux 5 (1. On),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticAux6Id,Aux 6 (1. On),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticAux7Id,Aux 7 (1. On),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticAux8Id,Aux 8 (1. On),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticBatteryTemperatureId,Hybrid/EV battery temperature,UnitOfMeasureDegreesCelsiusId,GoDiagnostic,SourceGeotabGoId
+DiagnosticCrankingVoltageId,Cranking voltage,UnitOfMeasureVoltsId,GoDiagnostic,SourceGeotabGoId
+DiagnosticDeviceTotalFuelId,Total fuel used (since telematics device install),UnitOfMeasureLitersId,GoDiagnostic,SourceGeotabGoId
+DiagnosticDeviceTotalIdleFuelId,Total fuel used while idling (since telematics device install),UnitOfMeasureLitersId,GoDiagnostic,SourceGeotabGoId
+DiagnosticDieselExhaustFluidId,DEF level,UnitOfMeasurePercentageId,GoDiagnostic,SourceGeotabGoId
+DiagnosticDriverSeatbeltId,Driver seatbelt (1. Unbuckled),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticElectricEnergyInId,Electric vehicle battery total energy in while driving (since telematics install),UnitOfMeasureKiloWattHoursId,GoDiagnostic,SourceGeotabGoId
+DiagnosticElectricEnergyOutId,Electric vehicle battery total energy out while driving (since telematics install),UnitOfMeasureKiloWattHoursId,GoDiagnostic,SourceGeotabGoId
+DiagnosticElectricVehicleBatteryPowerId,Electric vehicle battery power,UnitOfMeasureWattsId,GoDiagnostic,SourceGeotabGoId
+DiagnosticEngineCoolantTemperatureId,Engine coolant temperature,UnitOfMeasureDegreesCelsiusId,GoDiagnostic,SourceGeotabGoId
+DiagnosticEngineDataActiveId,"Engine data (0. Inactive, 1. Active)",UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticEngineOilTemperatureID,Engine oil temperature,UnitOfMeasureDegreesCelsiusId,GoDiagnostic,SourceGeotabGoId
+DiagnosticEngineRoadSpeedId,Engine road speed,UnitOfMeasureKilometersPerHourId,GoDiagnostic,SourceGeotabGoId
+DiagnosticEngineSpeedId,Engine speed,UnitOfMeasureRevolutionsPerMinuteId,GoDiagnostic,SourceGeotabGoId
+DiagnosticFuelLevelId,Fuel level (percentage),UnitOfMeasurePercentageId,GoDiagnostic,SourceGeotabGoId
+DiagnosticFuelUnitsId,Fuel level (volume),UnitOfMeasureLitersId,GoDiagnostic,SourceGeotabGoId
+DiagnosticGearPositionId,Gear position (negative #s = reverse gears / positive #s = forward gears / 0 = neutral / 126 = park / 127 = drive / 129 = intermediate),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticGpsLogReasonId,Gps log reason,UnitOfMeasureNoneId,DataDiagnostic,SourceSystemId
+DiagnosticHybridVehicleDetectedId,Hybrid / electric vehicle detected,UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticIgnitionId,Ignition,UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticOBDCAN11Bit500KEngineProtocolDetectedId,OBD\CAN 11bit 500k engine protocol detected,UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticObdPortAlertStatusId,"Generic OBD port alert status (0. Unknown, 1. Enabled, 2. Disabled, 3. Not available)",UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticOdometerId,Odometer,UnitOfMeasureMetersId,GoDiagnostic,SourceGeotabGoId
+DiagnosticOutsideTemperatureId,Outside air temperature,UnitOfMeasureDegreesCelsiusId,GoDiagnostic,SourceGeotabGoId
+DiagnosticPassengerOccupancyId,Passenger occupancy (1. Occupied),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticPositionValidAtDeviceId,PositionValidAtDevice,UnitOfMeasureNoneId,DataDiagnostic,SourceSystemId
+DiagnosticPositionValidId,PositionValid,UnitOfMeasureNoneId,DataDiagnostic,SourceSystemId
+DiagnosticRawOdometerId,Raw odometer,UnitOfMeasureMetersId,DataDiagnostic,SourceSystemId
+DiagnosticStandardHarnessDetectedId,Standard harness detected,UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticStateOfChargeId,Generic state of charge,UnitOfMeasurePercentageId,GoDiagnostic,SourceGeotabGoId
+DiagnosticTotalLifetimeEnergyInWhileIdlingId,Electric vehicle battery total energy in while idling (since telematics install),UnitOfMeasureKiloWattHoursId,GoDiagnostic,SourceGeotabGoId
+DiagnosticTotalLifetimeEnergyOutWhileIdlingId,Electric vehicle battery total energy out while idling (since telematics install),UnitOfMeasureKiloWattHoursId,GoDiagnostic,SourceGeotabGoId
+DiagnosticTotalTripFuelUsedId,Trip fuel used,UnitOfMeasureLitersId,GoDiagnostic,SourceGeotabGoId
+DiagnosticTotalTripIdleFuelUsedId,Trip idle fuel used,UnitOfMeasureLitersId,GoDiagnostic,SourceGeotabGoId
+DiagnosticVehicleActiveId,Vehicle active (idle or driving),UnitOfMeasureNoneId,GoDiagnostic,SourceGeotabGoId
+DiagnosticWiFiHotspotDataUsageId,Wi-Fi hotspot data usage,UnitOfMeasureBytesId,GoDiagnostic,SourceGeotabGoId
