@@ -1,4 +1,9 @@
-import { BBOX_PADDING_FACTOR, MIN_BBOX_PADDING_DEGREES } from "./constants";
+import { MapRef } from "react-map-gl/mapbox";
+import {
+  BBOX_PADDING_FACTOR,
+  MIN_BBOX_PADDING_DEGREES,
+  PADDING_PX,
+} from "./constants";
 
 interface Points {
   latitude: number;
@@ -39,4 +44,21 @@ export const getBbox = (
     xmax + xPadding,
     ymax + yPadding,
   ] as const;
+};
+
+export const zoomToBBox = (
+  map: MapRef,
+  bbox: readonly [number, number, number, number],
+) => {
+  const [xmin, ymin, xmax, ymax] = bbox;
+  map.fitBounds(
+    [
+      [xmin, ymin],
+      [xmax, ymax],
+    ],
+    {
+      padding: PADDING_PX,
+      duration: 2000,
+    },
+  );
 };
