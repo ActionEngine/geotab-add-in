@@ -48,6 +48,8 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_overture_segments_id'), table_name='overture_segments')
     op.drop_index(op.f('ix_overture_segments_geotab_database_id'), table_name='overture_segments')
     op.drop_index(op.f('ix_overture_segments_external_id'), table_name='overture_segments')
-    op.drop_index('idx_overture_segments_geometry', table_name='overture_segments', postgresql_using='gist')
+    # idx_overture_segments_geometry is managed by migration 2df9e087f89d;
+    # by the time this downgrade runs it has already been dropped.
+    # op.drop_table handles any remaining indexes automatically.
     op.drop_table('overture_segments')
     # ### end Alembic commands ###
