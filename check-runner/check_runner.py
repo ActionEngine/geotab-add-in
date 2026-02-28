@@ -28,25 +28,6 @@ CheckScript = tuple[str, list[tuple[str, str]], Mapping[str, Any]]
 #   - params: dict of parameters passed to SQL via %(name)s syntax
 
 CHECKS: Mapping[str, Mapping[str, Any]] = {
-    # Engine RPM Anomaly
-    # Detects when engine is working harder than usual (dragging brakes, overloading, transmission issues)
-    # Diagnostic: Engine speed (DiagnosticEngineSpeedId)
-    # Unit: RPM (revolutions per minute)
-    "road-counter-rpm": {
-        "script_folder": "road-counter",
-        "params": {
-            "target_interval_end": "$NOW",
-            "target_interval_depth_minutes": timedelta(hours=2),
-            "historical_interval_end": "$NOW",
-            "historical_interval_depth_minutes": timedelta(hours=12),
-            "diagnostic_ids": ["DiagnosticEngineSpeedId"],
-            "warning_threshold": 0.16,
-            "error_threshold": 0.18,
-            "segment_proximity_filter": 0.005,
-            "validation_type": "ROAD_COUNTER_RPM",
-            "done": "DONE",
-        },
-    },
     # Fuel Consumption Anomaly
     # Detects fuel efficiency loss (tire pressure issues, engine degradation, fuel leaks, driver behavior changes)
     # Diagnostic: Trip fuel used (DiagnosticTotalTripFuelUsedId)
@@ -78,48 +59,10 @@ CHECKS: Mapping[str, Mapping[str, Any]] = {
             "historical_interval_end": "$NOW",
             "historical_interval_depth_minutes": timedelta(hours=12),
             "diagnostic_ids": ["DiagnosticEngineCoolantTemperatureId"],
-            "warning_threshold": 0.21,
-            "error_threshold": 0.26,
+            "warning_threshold": 0.56,
+            "error_threshold": 0.7,
             "segment_proximity_filter": 0.005,
             "validation_type": "ROAD_COUNTER_COOLANT_TEMP",
-            "done": "DONE",
-        },
-    },
-    # Cranking Voltage Degradation
-    # Predictive battery health monitoring to prevent no-start situations
-    # Diagnostic: Cranking voltage (DiagnosticCrankingVoltageId)
-    # Unit: Volts (V)
-    "road-counter-cranking-voltage": {
-        "script_folder": "road-counter",
-        "params": {
-            "target_interval_end": "$NOW",
-            "target_interval_depth_minutes": timedelta(hours=4),
-            "historical_interval_end": "$NOW",
-            "historical_interval_depth_minutes": timedelta(hours=12),
-            "diagnostic_ids": ["DiagnosticCrankingVoltageId"],
-            "warning_threshold": 0.004,
-            "error_threshold": 0.0045,
-            "segment_proximity_filter": 0.005,
-            "validation_type": "ROAD_COUNTER_CRANKING_VOLTAGE",
-            "done": "DONE",
-        },
-    },
-    # Idle Fuel Consumption Anomaly
-    # Detects excessive idling (driver behavior changes, inefficient operation)
-    # Diagnostic: Trip idle fuel used (DiagnosticTotalTripIdleFuelUsedId)
-    # Unit: Liters
-    "road-counter-idle-fuel": {
-        "script_folder": "road-counter",
-        "params": {
-            "target_interval_end": "$NOW",
-            "target_interval_depth_minutes": timedelta(hours=4),
-            "historical_interval_end": "$NOW",
-            "historical_interval_depth_minutes": timedelta(hours=12),
-            "diagnostic_ids": ["DiagnosticTotalTripIdleFuelUsedId"],
-            "warning_threshold": 0.12,
-            "error_threshold": 0.16,
-            "segment_proximity_filter": 0.005,
-            "validation_type": "ROAD_COUNTER_IDLE_FUEL",
             "done": "DONE",
         },
     },
@@ -135,29 +78,10 @@ CHECKS: Mapping[str, Mapping[str, Any]] = {
             "historical_interval_end": "$NOW",
             "historical_interval_depth_minutes": timedelta(hours=12),
             "diagnostic_ids": ["DiagnosticElectricEnergyOutId"],
-            "warning_threshold": 0.055,
-            "error_threshold": 0.075,
+            "warning_threshold": 0.003,
+            "error_threshold": 0.0035,
             "segment_proximity_filter": 0.005,
             "validation_type": "ROAD_COUNTER_EV_BATTERY_DISCHARGE",
-            "done": "DONE",
-        },
-    },
-    # DEF Consumption Anomaly
-    # Detects diesel emissions system issues (SCR system failure, NOx sensor failures)
-    # Diagnostic: DEF level (DiagnosticDieselExhaustFluidId)
-    # Unit: Percentage (%)
-    "road-counter-def-consumption": {
-        "script_folder": "road-counter",
-        "params": {
-            "target_interval_end": "$NOW",
-            "target_interval_depth_minutes": timedelta(hours=4),
-            "historical_interval_end": "$NOW",
-            "historical_interval_depth_minutes": timedelta(hours=12),
-            "diagnostic_ids": ["DiagnosticDieselExhaustFluidId"],
-            "warning_threshold": 0.0006,
-            "error_threshold": 0.0008,
-            "segment_proximity_filter": 0.005,
-            "validation_type": "ROAD_COUNTER_DEF_CONSUMPTION",
             "done": "DONE",
         },
     },
@@ -206,12 +130,19 @@ def run_check(
                 total_rows += cur.rowcount
 
     conn.commit()
-    return {"check": check_name, "status": "ok", "rows": total_rows, "stages": len(stages)}
+    return {
+        "check": check_name,
+        "status": "ok",
+        "rows": total_rows,
+        "stages": len(stages),
+    }
 
 
 @contextmanager
 def db_connection_pool(dsn: str, minconn: int = 1, maxconn: int = 20) -> Any:
-    pool = psycopg2_pool.ThreadedConnectionPool(minconn=minconn, maxconn=maxconn, dsn=dsn)
+    pool = psycopg2_pool.ThreadedConnectionPool(
+        minconn=minconn, maxconn=maxconn, dsn=dsn
+    )
     try:
         yield pool
     finally:
@@ -282,7 +213,9 @@ def load_scripts(
 
         sql_files = sorted(check_dir.glob("*.sql"))
         if not sql_files:
-            raise FileNotFoundError(f"No SQL files found in check directory: {check_dir}")
+            raise FileNotFoundError(
+                f"No SQL files found in check directory: {check_dir}"
+            )
 
         stages = [(f.name, f.read_text()) for f in sql_files]
         params = check_config.get("params", {})
@@ -315,7 +248,9 @@ def _resolve_param_markers(params: Mapping[str, Any]) -> dict[str, Any]:
     resolved = {}
     for key, val in params.items():
         if val == "$NOW":
-            resolved[key] = datetime.now(tz=timezone.utc).replace(second=0, microsecond=0)
+            resolved[key] = datetime.now(tz=timezone.utc).replace(
+                second=0, microsecond=0
+            )
         else:
             resolved[key] = val
     return resolved
@@ -390,12 +325,16 @@ def main(
 
     interval_str = environ.get("CHECK_INTERVAL_SECONDS")
     if interval_str is None:
-        return run_once(scripts_dir, db_url, max_workers, executor_factory, pool_factory)
+        return run_once(
+            scripts_dir, db_url, max_workers, executor_factory, pool_factory
+        )
 
     interval_seconds = int(interval_str)
     logger.info(f"Starting scheduler: running checks every {interval_seconds}s")
     while True:
-        exit_code = run_once(scripts_dir, db_url, max_workers, executor_factory, pool_factory)
+        exit_code = run_once(
+            scripts_dir, db_url, max_workers, executor_factory, pool_factory
+        )
         if exit_code != 0:
             logger.warning(f"Check run failed, will retry in {interval_seconds}s")
         time.sleep(interval_seconds)
