@@ -1,5 +1,6 @@
 """Smoke tests for main() with real database."""
 
+import asyncio
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -55,7 +56,7 @@ def test_main_road_counter_tmp_runs_without_error():
         try:
             with patch.dict(os.environ, {"DATABASE_URL": database_url}):
                 with patch("check_runner.CHECKS", test_checks):
-                    exit_code = main(scripts_dir=Path("scripts"))
+                    exit_code = asyncio.run(main(scripts_dir=Path("scripts")))
         finally:
             with conn.cursor() as cur:
                 cur.execute("DELETE FROM validation WHERE geotab_database_id = %s", (db_id,))

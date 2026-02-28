@@ -1,31 +1,18 @@
-"""Check-runner service. Periodically runs SQL scripts from scripts folder."""
-
-import json
+import asyncio
+import asyncpg
 import logging
 import os
+import re
 import sys
-from collections.abc import Callable, Mapping
-from concurrent.futures import Executor, ThreadPoolExecutor, as_completed
-from contextlib import contextmanager
+from collections.abc import Mapping
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from psycopg2 import pool as psycopg2_pool
-import psycopg2
-from psycopg2.extensions import connection as PgConnection
-from psycopg2.extras import Json
-
 logger = logging.getLogger("check-runner")
 
-# Type alias: (check_name, stages, params) where stages is list of (stage_name, sql)
-CheckScript = tuple[str, list[tuple[str, str]], Mapping[str, Any]]
-
-# Check configurations: maps check name to its configuration
-# Each check has:
-#   - script_folder: directory under scripts/ containing SQL files
-#   - params: dict of parameters passed to SQL via %(name)s syntax
+# --- Configurations ---
 CHECKS: Mapping[str, Mapping[str, Any]] = {
     "road-counter-2h": {
         "script_folder": "road-counter",
@@ -34,7 +21,11 @@ CHECKS: Mapping[str, Mapping[str, Any]] = {
             "target_interval_depth_minutes": timedelta(minutes=120),
             "historical_interval_end": "$NOW",
             "historical_interval_depth_minutes": timedelta(hours=6),
-            "diagnostic_ids": ["DiagnosticEngineSpeedId", "DiagnosticEngineRoadSpeedId", "DiagnosticDeviceTotalFuelId"],
+            "diagnostic_ids": [
+                "DiagnosticEngineSpeedId",
+                "DiagnosticEngineRoadSpeedId",
+                "DiagnosticDeviceTotalFuelId",
+            ],
             "warning_threshold": 0.15,
             "error_threshold": 0.30,
             "segment_proximity_filter": 0.005,
@@ -49,7 +40,9 @@ CHECKS: Mapping[str, Mapping[str, Any]] = {
         "params": {
             "target_interval_end": "$NOW",
             "target_interval_depth_minutes": timedelta(minutes=15),
-            "historical_interval_end": datetime(year=2026, month=2, day=22, hour=16, tzinfo=timezone.utc),
+            "historical_interval_end": datetime(
+                year=2026, month=2, day=22, hour=16, tzinfo=timezone.utc
+            ),
             "historical_interval_depth_minutes": timedelta(hours=6),
             "diagnostic_ids": ["DiagnosticEngineRoadSpeedId"],
             "warning_threshold": 0.15,
@@ -63,241 +56,196 @@ CHECKS: Mapping[str, Mapping[str, Any]] = {
 
 
 def get_database_url(environ: Mapping[str, str]) -> str:
+    """Retrieves and validates the database URL from environment variables."""
     database_url = environ.get("DATABASE_URL")
     if not database_url:
         raise ValueError("DATABASE_URL environment variable is required")
-
     parsed = urlparse(database_url)
     if parsed.scheme not in ("postgresql", "postgres"):
         raise ValueError(
-            f"DATABASE_URL must be a valid PostgreSQL URL "
-            f"(got scheme: '{parsed.scheme or 'empty'}')"
+            f"DATABASE_URL must be a valid PostgreSQL URL (got scheme: {parsed.scheme!r})"
         )
     if not parsed.hostname:
         raise ValueError("DATABASE_URL must include a host")
     if not parsed.path or parsed.path == "/":
         raise ValueError("DATABASE_URL must include a database name")
-
     return database_url
 
 
-def run_check(
-    conn: PgConnection,
-    check_name: str,
-    stages: list[tuple[str, str]],
-    params: Mapping[str, Any],
-) -> dict[str, Any]:
-    """Run a multi-stage SQL check. All stages execute in one transaction."""
-    total_rows = 0
+def _resolve_param_markers(params: Mapping[str, Any]) -> dict[str, Any]:
+    """Resolves special parameter markers like $NOW to actual values."""
 
-    with conn.cursor() as cur:
-        for stage_name, sql in stages:
-            try:
-                cur.execute(sql, params)
-            except KeyError as e:
-                param = str(e).strip("'")
-                raise ValueError(f"Missing parameter: '{param}'") from None
-
-            if cur.description:
-                total_rows += len(cur.fetchall())
-            else:
-                total_rows += cur.rowcount
-
-    conn.commit()
-    return {"check": check_name, "status": "ok", "rows": total_rows, "stages": len(stages)}
-
-
-@contextmanager
-def db_connection_pool(dsn: str, minconn: int = 1, maxconn: int = 20) -> Any:
-    pool = psycopg2_pool.ThreadedConnectionPool(minconn=minconn, maxconn=maxconn, dsn=dsn)
-    try:
-        yield pool
-    finally:
-        pool.closeall()
-
-
-def run_all_checks(
-    executor: Executor,
-    pool: Any,
-    scripts: list[CheckScript],
-) -> int:
-    """Run all check scripts. Returns number of failed checks."""
-    logger.info(f"Running {len(scripts)} check(s)")
-
-    def _run_single(
-        name: str, stages: list[tuple[str, str]], params: Mapping[str, Any]
-    ) -> dict[str, Any]:
-        conn = None
-        try:
-            conn = pool.getconn()
-            return run_check(conn, name, stages, params)
-        except Exception as e:
-            logger.error(f"{name} failed: {e}")
-            return {"check": name, "status": "failed", "error": str(e)}
-        finally:
-            if conn is not None:
-                pool.putconn(conn)
-
-    futures = [
-        executor.submit(_run_single, name, stages, params)
-        for name, stages, params in scripts
-    ]
-
-    failed = 0
-    for future in as_completed(futures):
-        result = future.result()
-        if result["status"] == "failed":
-            failed += 1
-            logger.error(f"FAILED: {result['check']} - {result.get('error')}")
-        else:
-            logger.info(
-                f"OK: {result['check']} ({result['rows']} rows, {result['stages']} stage(s))"
+    resolved = {}
+    for key, val in params.items():
+        if val == "$NOW":
+            resolved[key] = datetime.now(tz=timezone.utc).replace(
+                second=0, microsecond=0
             )
+        else:
+            resolved[key] = val
 
-    return failed
+    return resolved
 
 
-def load_scripts(
-    scripts_dir: Path, checks: Mapping[str, Mapping[str, Any]]
-) -> list[tuple[str, list[tuple[str, str]], Mapping[str, Any]]]:
-    """Load SQL scripts from directories specified in checks.
+def convert_sql_params(sql: str, params: Mapping[str, Any]) -> tuple[str, list[Any]]:
+    values = []
+    # Map parameter name -> its $N position
+    name_to_index = {}
 
-    Each check has a 'script_folder' key pointing to the directory containing SQL files.
-    SQL files within a directory are executed as stages, sorted by filename.
+    def replace(match):
+        name = match.group(1).strip()
+        if name not in params:
+            raise KeyError(f"SQL requires '{name}', but it's missing in params")
 
-    Returns list of (check_name, stages, params) tuples where params are passed to SQL.
+        if name not in name_to_index:
+            values.append(params[name])
+            name_to_index[name] = len(values)  # 1-based index for $N
 
-    Raises:
-        FileNotFoundError: If a check directory mentioned in checks doesn't exist.
-    """
-    scripts: list[tuple[str, list[tuple[str, str]], Mapping[str, Any]]] = []
+        return f"${name_to_index[name]}"
 
+    # Crucial: Use re.DOTALL and ensure we match the right pattern
+    new_sql = re.sub(r"%\((.*?)\)s", replace, sql, flags=re.DOTALL)
+
+    # If values is empty but the SQL still has $ signs,
+    # it means the regex didn't find anything to replace!
+    return new_sql, values
+
+
+async def has_recent_locations(db_url: str, window_minutes: int = 15) -> bool:
+    """Checks if there are any location records in the last `window_minutes` minutes."""
+
+    from_dt = datetime.now(tz=timezone.utc) - timedelta(minutes=window_minutes)
+    try:
+        conn = await asyncpg.connect(dsn=db_url)
+        try:
+            val = await conn.fetchval(
+                "SELECT 1 FROM geotab_location WHERE datetime >= $1 LIMIT 1", from_dt
+            )
+            return val is not None
+        finally:
+            await conn.close()
+    except Exception as e:
+        logger.error(f"Pre-flight check failed: {e}")
+
+        return False
+
+
+def load_scripts(scripts_dir: Path, checks: Mapping[str, Mapping[str, Any]]):
+    """Loads SQL scripts for each check based on the provided configuration."""
+
+    scripts = []
     for check_name, check_config in checks.items():
         folder_name = check_config.get("script_folder", check_name)
         check_dir = scripts_dir / folder_name
-        if not check_dir.is_dir():
-            raise FileNotFoundError(f"Check directory not found: {check_dir}")
-
+        if not check_dir.exists():
+            raise FileNotFoundError(
+                f"Check directory not found: {check_dir} (for check '{check_name}')"
+            )
         sql_files = sorted(check_dir.glob("*.sql"))
         if not sql_files:
-            raise FileNotFoundError(f"No SQL files found in check directory: {check_dir}")
-
+            raise FileNotFoundError(f"No SQL files found in {check_dir}")
         stages = [(f.name, f.read_text()) for f in sql_files]
-        params = check_config.get("params", {})
-        scripts.append((check_name, stages, params))
+        scripts.append((check_name, stages, check_config.get("params", {})))
 
     return scripts
 
 
-def has_recent_locations(db_url: str, window_minutes: int = 15) -> bool:
-    """Return True if geotab_location has any rows within the last *window_minutes*.
+async def run_check_async(
+    pool: asyncpg.Pool,
+    check_name: str,
+    stages: list[tuple[str, str]],
+    params: Mapping[str, Any],
+) -> dict[str, Any]:
+    total_rows = 0
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            for _, sql in stages:
+                # 1. Get the converted SQL and values list
+                converted_sql, values = convert_sql_params(sql, params)
 
-    Used as a lightweight pre-flight guard so checks are skipped when the
-    backend has been down long enough that no new data has arrived yet.
-    """
-    from_dt = datetime.now(tz=timezone.utc) - timedelta(minutes=window_minutes)
-    conn = psycopg2.connect(db_url)
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT 1 FROM geotab_location WHERE datetime >= %s LIMIT 1",
-                (from_dt,),
-            )
-            return cur.fetchone() is not None
-    finally:
-        conn.close()
+                if "SELECT" in converted_sql.upper():
+                    # 2. Pass the values list using unpacking *values
+                    rows = await conn.fetch(converted_sql, *values)
+                    total_rows += len(rows)
+                else:
+                    # 3. Here too, we must unpack *values
+                    status = await conn.execute(converted_sql, *values)
+                    try:
+                        if " " in status:
+                            total_rows += int(status.split()[-1])
+                    except (ValueError, IndexError):
+                        pass
+
+    return {
+        "check": check_name,
+        "status": "ok",
+        "rows": total_rows,
+        "stages": len(stages),
+    }
 
 
-def _resolve_param_markers(params: Mapping[str, Any]) -> dict[str, Any]:
-    """Replace parameter markers like '$NOW' with actual values."""
-    resolved = {}
-    for key, val in params.items():
-        if val == "$NOW":
-            resolved[key] = datetime.now(tz=timezone.utc).replace(second=0, microsecond=0)
-        else:
-            resolved[key] = val
-    return resolved
+async def run_once_async(scripts_dir: Path, db_url: str) -> int:
+    """Runs all checks once and returns 0 if all passed, 1 if any failed."""
 
-
-def run_once(
-    scripts_dir: Path,
-    db_url: str,
-    max_workers: int,
-    executor_factory: Callable[..., Executor],
-    pool_factory: Callable[..., Any],
-) -> int:
-    """Run all checks once. Returns exit code."""
-    if not has_recent_locations(db_url):
-        logger.info("Skipping checks: no geotab_location data in the last 15 minutes")
+    if not await has_recent_locations(db_url):
+        logger.info("Skipping: no new data in last 15m")
         return 0
 
-    try:
-        scripts = load_scripts(scripts_dir, CHECKS)
-    except FileNotFoundError as e:
-        logger.error(f"Failed to load scripts: {e}")
-        return 1
+    scripts = load_scripts(scripts_dir, CHECKS)
 
-    # Resolve parameter markers (e.g., '$NOW') for each check
-    resolved_scripts = [
-        (name, stages, _resolve_param_markers(params))
-        for name, stages, params in scripts
-    ]
+    async with asyncpg.create_pool(dsn=db_url, min_size=1, max_size=20) as pool:
+        tasks = []
+        for name, stages, params in scripts:
+            resolved = _resolve_param_markers(params)
+            tasks.append(run_check_async(pool, name, stages, resolved))
 
-    with executor_factory(max_workers=max_workers) as executor:
-        with pool_factory(dsn=db_url, minconn=1, maxconn=max_workers) as pool:
-            failed = run_all_checks(executor, pool, resolved_scripts)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
 
-    if failed:
-        logger.error(f"{failed} check(s) failed")
-        return 1
+        failed = 0
+        for res in results:
+            if isinstance(res, Exception):
+                logger.error(f"Check execution error: {res}")
+                failed += 1
+            elif res.get("status") == "failed":
+                failed += 1
+            else:
+                logger.info(f"OK: {res['check']} ({res['rows']} rows)")
 
-    logger.info("All checks completed successfully")
-    return 0
+        return 1 if failed > 0 else 0
 
 
-def main(
+async def main(
     scripts_dir: Path = Path("./scripts"),
     environ: Mapping[str, str] | None = None,
-    max_workers: int = 20,
-    executor_factory: Callable[..., Executor] | None = None,
-    pool_factory: Callable[..., Any] | None = None,
 ) -> int:
-    """Entry point. Returns exit code (0 for success, 1 for failure).
-
-    Set CHECK_INTERVAL_SECONDS env var to run in a loop.
-    """
-    import time
-
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-
-    if environ is None:
-        environ = os.environ
-    if executor_factory is None:
-        executor_factory = ThreadPoolExecutor
-    if pool_factory is None:
-        pool_factory = db_connection_pool
+    environ = environ or os.environ
 
     try:
         db_url = get_database_url(environ)
     except ValueError as e:
-        logger.error(f"Invalid DATABASE_URL: {e}")
+        logger.error(f"Database URL error: {e}")
         return 1
 
     interval_str = environ.get("CHECK_INTERVAL_SECONDS")
     if interval_str is None:
-        return run_once(scripts_dir, db_url, max_workers, executor_factory, pool_factory)
+        return await run_once_async(scripts_dir, db_url)
 
     interval_seconds = int(interval_str)
-    logger.info(f"Starting scheduler: running checks every {interval_seconds}s")
+    logger.info(f"Scheduler started: {interval_seconds}s interval")
+
     while True:
-        exit_code = run_once(scripts_dir, db_url, max_workers, executor_factory, pool_factory)
+        exit_code = await run_once_async(scripts_dir, db_url)
         if exit_code != 0:
-            logger.warning(f"Check run failed, will retry in {interval_seconds}s")
-        time.sleep(interval_seconds)
+            logger.warning("One or more checks failed")
+        await asyncio.sleep(interval_seconds)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(asyncio.run(main()))
+    except KeyboardInterrupt:
+        logger.info("Service stopped by user")

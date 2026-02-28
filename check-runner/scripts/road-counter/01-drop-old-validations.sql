@@ -7,6 +7,6 @@ WHERE validation_type = %(validation_type)s
   AND geotab_database_id IN (
       SELECT DISTINCT geotab_database_id
       FROM geotab_location
-      WHERE datetime >= %(target_interval_end)s - %(target_interval_depth_minutes)s
-        AND datetime < %(target_interval_end)s
+      WHERE datetime >= (%(target_interval_end)s::timestamptz - %(target_interval_depth_minutes)s::interval)
+        AND datetime < %(target_interval_end)s::timestamptz
   );
