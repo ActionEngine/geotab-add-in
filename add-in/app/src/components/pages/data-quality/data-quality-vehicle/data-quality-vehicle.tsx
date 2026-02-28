@@ -19,6 +19,12 @@ import {
   ValidationType,
 } from "@/types/shemas/validaton";
 import { getThresholdClassName } from "@/utils/threshold";
+import {
+  DISTANCE_ERROR_THRESHOLD_METERS,
+  DISTANCE_WARNING_THRESHOLD_METERS,
+  TELEPORTATION_ERROR_THRESHOLD_KMH,
+  TELEPORTATION_WARNING_THRESHOLD_KMH,
+} from "@/utils/validation-thresholds";
 import { getAnomalyPercentage } from "@/utils/validation";
 import { IconChevronRightSmall } from "@geotab/zenith/esm/icons/iconChevronRightSmall";
 import { Select } from "@geotab/zenith/esm/select/select";
@@ -40,11 +46,11 @@ interface DataQualityVehicleProps {
 const getTeleportationMapClassName = (
   point: ValidationTeleportationResponse,
 ) => {
-  if (point.implied_speed_kmh > 200) {
+  if (point.implied_speed_kmh > TELEPORTATION_ERROR_THRESHOLD_KMH) {
     return "fall";
   }
 
-  if (point.implied_speed_kmh >= 100) {
+  if (point.implied_speed_kmh >= TELEPORTATION_WARNING_THRESHOLD_KMH) {
     return "warning";
   }
 
@@ -52,11 +58,11 @@ const getTeleportationMapClassName = (
 };
 
 const getDistanceMapClassName = (point: ValidationDistanceToRoadResponse) => {
-  if (point.distance > 10) {
+  if (point.distance > DISTANCE_ERROR_THRESHOLD_METERS) {
     return "fall";
   }
 
-  if (point.distance >= 5) {
+  if (point.distance >= DISTANCE_WARNING_THRESHOLD_METERS) {
     return "warning";
   }
 

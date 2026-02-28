@@ -14,6 +14,8 @@ from modules.validation.models.validation import Validation
 logger = configure_logger(__name__)
 
 RECENT_WINDOW_MINUTES = int(os.getenv("RECENT_WINDOW_MINUTES", "15"))
+WARNING_THRESHOLD_METERS = 12
+ERROR_THRESHOLD_METERS = 15
 
 
 @require_recent_data
@@ -42,7 +44,9 @@ async def run_single_distance_validation() -> None:
         geotab_database_ids = database_ids_result.scalars().all()
 
         if not geotab_database_ids:
-            logger.info("Distance validation skipped: no databases with recent locations")
+            logger.info(
+                "Distance validation skipped: no databases with recent locations"
+            )
             return
 
         insert_results_query = text(
@@ -179,7 +183,7 @@ async def run_single_distance_validation() -> None:
                     "from_datetime": from_datetime,
                     "geotab_database_id": geotab_database_id,
                     "validation_id": validation_id,
-                    "warning_threshold": 5,
+                    "warning_threshold": WARNING_THRESHOLD_METERS,
                 },
             )
 
@@ -189,8 +193,8 @@ async def run_single_distance_validation() -> None:
                     "validation_id": validation_id,
                     "from_datetime": from_datetime,
                     "geotab_database_id": geotab_database_id,
-                    "warning_threshold": 5,
-                    "error_threshold": 10,
+                    "warning_threshold": WARNING_THRESHOLD_METERS,
+                    "error_threshold": ERROR_THRESHOLD_METERS,
                 },
             )
 
@@ -198,8 +202,8 @@ async def run_single_distance_validation() -> None:
                 summary_query,
                 {
                     "validation_id": validation_id,
-                    "warning_threshold": 5,
-                    "error_threshold": 10,
+                    "warning_threshold": WARNING_THRESHOLD_METERS,
+                    "error_threshold": ERROR_THRESHOLD_METERS,
                 },
             )
             warning_count, error_count = summary_result.one()

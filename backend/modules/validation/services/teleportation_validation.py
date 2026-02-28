@@ -25,7 +25,7 @@ VALIDATION_TYPE = "TELEPORTATION"
 # ST_Distance(...::geography) → returns distance in meters;
 # EXTRACT(EPOCH FROM ...) → returns seconds;
 # dividing gives m/s, multiplying by 3.6 converts to km/h  (3600 s/h ÷ 1000 m/km).
-WARNING_THRESHOLD_KMH = 100  # well above GPS noise for vehicles up to ~120 km/h
+WARNING_THRESHOLD_KMH = 117  # well above GPS noise for vehicles up to ~120 km/h
 ERROR_THRESHOLD_KMH = 200  # clear GPS teleportation jump
 RECENT_WINDOW_MINUTES = int(os.getenv("RECENT_WINDOW_MINUTES", "15"))
 
