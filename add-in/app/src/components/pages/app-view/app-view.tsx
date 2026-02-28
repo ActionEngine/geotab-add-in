@@ -26,6 +26,7 @@ const AppView = ({ api }: AppViewProps) => {
   } = useContext(AppContext);
 
   const [openModal, setOpenModal] = useState(false);
+  const [databaseInitialized, setDatabaseInitialized] = useState(true);
 
   const fetchSession = async () => {
     try {
@@ -39,12 +40,14 @@ const AppView = ({ api }: AppViewProps) => {
   const fetchDatabase = useCallback(async () => {
     if (session === null) return;
     try {
-      const response = await getDatabase(session);
-      if (!response) {
+      const database = await getDatabase(session);
+      setDatabaseInitialized(true);
+      if (!database) {
         setOpenModal(true);
+        setDatabaseInitialized(false);
         return;
       }
-      updateDatabaseInfo(response);
+      updateDatabaseInfo(database);
     } finally {
       updateIsLoading(false);
     }
@@ -109,9 +112,12 @@ const AppView = ({ api }: AppViewProps) => {
 
   return (
     <>
-      {databaseInfo?.ingestion_status === DATABASE_STATUS.DONE ? (
+      {databaseInfo?.ingestion_status === DATABASE_STATUS.DONE && (
         <DataQuality api={api} />
-      ) : (
+      )}
+      {(!databaseInitialized ||
+        (databaseInfo &&
+          databaseInfo.ingestion_status !== DATABASE_STATUS.DONE)) && (
         <GeotabMap api={api} />
       )}
       <AuthDialog open={openModal} onSubmit={handleAuthSubmit} />
