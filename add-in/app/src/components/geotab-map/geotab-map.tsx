@@ -1,14 +1,18 @@
-import { useEffect, useRef, useState } from "react";
-import MapLibre, { MapRef, Marker } from "react-map-gl/maplibre";
+import { useContext, useEffect, useRef, useState } from "react";
+import MapLibre, {
+  MapRef,
+  Marker,
+  ViewStateChangeEvent,
+} from "react-map-gl/maplibre";
 import { useFetch } from "@/hooks/useFetch";
 import VehicleIcon from "@/image/vehicle-icon";
+import { AppContext } from "@/provider/app-provider";
 import { VehicleStatusInfo } from "@/types/shemas/geotab";
 import { VehicleValidation } from "@/types/shemas/validaton";
 import { callAsync } from "@/utils/geotabApi";
 import { getThresholdClassName } from "@/utils/threshold";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { PADDING_PX } from "./constants";
-import { getBbox } from "./helper";
+import { getBbox, zoomToBBox } from "./helper";
 
 const getVehicleId = (vehicle: VehicleStatusInfo) => vehicle.device.id;
 
@@ -22,10 +26,17 @@ const lerpAngle = (from: number, to: number, t: number) => {
 interface GeotabMapProps {
   api: GeotabApi;
   vehicles?: VehicleValidation[];
+  isAuthPage?: boolean;
 }
 
-const GeotabMap = ({ api, vehicles = [] }: GeotabMapProps) => {
+const GeotabMap = ({
+  api,
+  vehicles = [],
+  isAuthPage = false,
+}: GeotabMapProps) => {
   const mapRef = useRef<MapRef>(null);
+  const { globalBbox, updateGlobalBbox, mapStateMain, updateMapStateMain } =
+    useContext(AppContext);
   const [animatedVehicles, setAnimatedVehicles] = useState<VehicleStatusInfo[]>(
     [],
   );
@@ -33,11 +44,6 @@ const GeotabMap = ({ api, vehicles = [] }: GeotabMapProps) => {
     new globalThis.Map(),
   );
   const lastFrameTimeRef = useRef<number | null>(null);
-  const hasZoomedRef = useRef(false);
-
-  useEffect(() => {
-    hasZoomedRef.current = false;
-  }, [api]);
 
   const data = useFetch<VehicleStatusInfo[]>({
     fn: () => callAsync(api, "Get", { typeName: "DeviceStatusInfo" }),
@@ -46,8 +52,16 @@ const GeotabMap = ({ api, vehicles = [] }: GeotabMapProps) => {
   });
 
   useEffect(() => {
+    if (globalBbox && mapRef.current) {
+      zoomToBBox(mapRef.current, globalBbox);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (globalBbox) return;
+
     const incoming = data.data ?? [];
-    if (!incoming.length || hasZoomedRef.current || !mapRef.current) return;
+    if (!incoming.length || !mapRef.current) return;
 
     const bbox = getBbox(
       incoming.map((vehicle) => ({
@@ -56,20 +70,8 @@ const GeotabMap = ({ api, vehicles = [] }: GeotabMapProps) => {
       })),
     );
     if (!bbox) return;
-
-    const [xmin, ymin, xmax, ymax] = bbox;
-    mapRef.current.fitBounds(
-      [
-        [xmin, ymin],
-        [xmax, ymax],
-      ],
-      {
-        padding: PADDING_PX,
-        duration: 2000,
-      },
-    );
-
-    hasZoomedRef.current = true;
+    zoomToBBox(mapRef.current, bbox);
+    updateGlobalBbox(bbox);
   }, [data.data]);
 
   useEffect(() => {
@@ -138,15 +140,33 @@ const GeotabMap = ({ api, vehicles = [] }: GeotabMapProps) => {
     };
   }, []);
 
+  const handleLoadMap = () => {
+    if (isAuthPage) return;
+    if (mapRef.current && globalBbox) {
+      zoomToBBox(mapRef.current, globalBbox);
+    }
+  };
+
+  const handleMapMove = (e: ViewStateChangeEvent) => {
+    if (isAuthPage) return;
+    updateMapStateMain(e.viewState);
+  };
+
   return (
     <div style={{ width: "100%", height: "100%" }}>
       <MapLibre
         ref={mapRef}
-        initialViewState={{
-          latitude: 30,
-          longitude: 0,
-          zoom: 1.5,
-        }}
+        initialViewState={
+          mapStateMain
+            ? { ...mapStateMain }
+            : {
+                latitude: 30,
+                longitude: 0,
+                zoom: 1.5,
+              }
+        }
+        onLoad={handleLoadMap}
+        onMove={handleMapMove}
         {...{
           aroundCenter: false,
         }} /* Not documented feature for better interaction experience */

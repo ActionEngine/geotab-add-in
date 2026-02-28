@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useContext, useEffect, useMemo, useRef } from "react";
+import { ViewStateChangeEvent } from "react-map-gl/mapbox-legacy";
 import MapLibre, { MapRef, Marker } from "react-map-gl/maplibre";
 import { getHeaders } from "@/api/helper";
+import { AppContext } from "@/provider/app-provider";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { GeotabCredentials } from "mg-api-js";
-import { PADDING_PX } from "./constants";
-import { getBbox } from "./helper";
+import { zoomToBBox } from "./helper";
 
 interface GeotabMapChecksProps {
   points?: { latitude: number; longitude: number; className?: string }[];
@@ -34,7 +35,10 @@ const GeotabMapChecks = ({
   roadCounterDeviceId,
   session = null,
 }: GeotabMapChecksProps) => {
+  const { globalBbox, mapStateChecks, updateMapStateChecks } =
+    useContext(AppContext);
   const mapRef = useRef<MapRef>(null);
+
   const segmentsTilesUrl = useMemo(() => {
     const baseUrl = import.meta.env.VITE_BASE_URL;
     return `${baseUrl}/tiles/segments?z={z}&x={x}&y={y}`;
@@ -59,25 +63,6 @@ const GeotabMapChecks = ({
     if (!session) return null;
     return getHeaders(session);
   }, [session]);
-
-  useEffect(() => {
-    if (!points.length || !mapRef.current) return;
-
-    const bbox = getBbox(points);
-    if (!bbox) return;
-
-    const [xmin, ymin, xmax, ymax] = bbox;
-    mapRef.current.fitBounds(
-      [
-        [xmin, ymin],
-        [xmax, ymax],
-      ],
-      {
-        padding: PADDING_PX,
-        duration: 2000,
-      },
-    );
-  }, [points]);
 
   useEffect(() => {
     const map = mapRef.current?.getMap();
@@ -288,15 +273,31 @@ const GeotabMapChecks = ({
     showTeleportationMvtDots,
   ]);
 
+  const handleLoadMap = () => {
+    if (mapRef.current && globalBbox) {
+      zoomToBBox(mapRef.current, globalBbox);
+    }
+  };
+
+  const handleMapMove = (e: ViewStateChangeEvent) => {
+    updateMapStateChecks(e.viewState);
+  };
+
   return (
     <div style={{ width: "100%", height: "100%" }}>
       <MapLibre
         ref={mapRef}
-        initialViewState={{
-          latitude: 30,
-          longitude: 0,
-          zoom: 1.5,
-        }}
+        onLoad={handleLoadMap}
+        onMove={handleMapMove}
+        initialViewState={
+          mapStateChecks
+            ? { ...mapStateChecks }
+            : {
+                latitude: 30,
+                longitude: 0,
+                zoom: 1.5,
+              }
+        }
         {...{
           aroundCenter: false,
         }} /* Not documented feature for better interaction experience */

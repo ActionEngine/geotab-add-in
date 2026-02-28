@@ -73,6 +73,20 @@ body {
   height: 100% !important;
 }
 
+.zen-data-grid__header-cell--first,
+.zen-data-grid__row-cell--first {
+  position: static;
+  left: auto;
+  z-index: auto;
+  font-weight: normal;
+}
+
+.zen-data-grid--horizontal-scroll .zen-data-grid__header-cell--first,
+.zen-data-grid--horizontal-scroll .zen-data-grid__row-cell--first {
+  border-inline-end: none;
+  box-shadow: none;
+}
+
 .zen-card-container--auto-height {
   min-height: 310px !important;
 }

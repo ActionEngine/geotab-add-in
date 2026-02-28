@@ -78,7 +78,7 @@ const DataQualityMain = ({
   return (
     <div className="data-quality-main-container">
       <div className="data-quality-main-header">
-        <h1>Data Quality</h1>
+        <h1>Aspen GIS Lite</h1>
         <div className="data-quality-main-header-right">
           <div>
             Last Data Sync:

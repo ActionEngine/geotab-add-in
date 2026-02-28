@@ -112,7 +112,7 @@ const AppView = ({ api }: AppViewProps) => {
       {databaseInfo?.ingestion_status === DATABASE_STATUS.DONE ? (
         <DataQuality api={api} />
       ) : (
-        <GeotabMap api={api} />
+        <GeotabMap api={api} isAuthPage />
       )}
       <AuthDialog open={openModal} onSubmit={handleAuthSubmit} />
       <AspenGis />
