@@ -273,7 +273,7 @@ def run_once(scripts_dir: Path, db_url: str, max_workers: int) -> int:
         return 1
 
 
-async def main_async(scripts_dir: Path, max_workers: int):
+async def main(scripts_dir: Path, max_workers: int):
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -310,6 +310,6 @@ async def main_async(scripts_dir: Path, max_workers: int):
 
 if __name__ == "__main__":
     try:
-        sys.exit(asyncio.run(main_async(Path("./scripts"), 20)))
+        sys.exit(asyncio.run(main(Path("./scripts"), 20)))
     except KeyboardInterrupt:
         pass

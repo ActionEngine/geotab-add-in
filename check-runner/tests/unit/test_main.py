@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from check_runner import main_async
+from check_runner import main
 
 
 # Script folders referenced by CHECKS (check name -> folder name)
