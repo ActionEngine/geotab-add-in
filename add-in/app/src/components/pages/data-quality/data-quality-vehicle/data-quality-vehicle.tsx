@@ -46,7 +46,11 @@ const DataQualityVehicle = ({
   const [selectCheck, setSelectCheck] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { data: validationByDevice } = useFetch<ValidationDeviceResponse[]>({
+  const {
+    data: validationByDevice,
+    isLoading: isValidationByDeviceLoading,
+    isRefetching: isValidationByDeviceRefetching,
+  } = useFetch<ValidationDeviceResponse[]>({
     fn: () => getValidationByDevice(session as GeotabCredentials),
     key: `all-validation-by-device-${deviceId}`,
   });
@@ -109,7 +113,7 @@ const DataQualityVehicle = ({
 
     return validations.map((validation) => ({
       type: validation.validation_type,
-      percentage: percentageByType.get(validation.validation_type) ?? 100,
+      percentage: percentageByType.get(validation.validation_type) ?? null,
     }));
   }, [validations, validationByDevice, deviceId]);
 
@@ -142,9 +146,15 @@ const DataQualityVehicle = ({
           {validationsPercentage.map((v) => (
             <div className="data-quality-vehicle-row" key={v.type}>
               <span>{validationTypeLabelMap[v.type]}</span>
-              <span className={getThresholdClassName(v.percentage)}>
-                {v.percentage}%
-              </span>
+              {isValidationByDeviceLoading || isValidationByDeviceRefetching ? (
+                <span>–</span>
+              ) : v.percentage !== null ? (
+                <span className={getThresholdClassName(v.percentage)}>
+                  {v.percentage}%
+                </span>
+              ) : (
+                <span>No data</span>
+              )}
             </div>
           ))}
         </div>
