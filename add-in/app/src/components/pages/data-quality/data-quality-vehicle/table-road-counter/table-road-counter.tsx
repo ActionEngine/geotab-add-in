@@ -6,6 +6,7 @@ import "./style.css";
 
 interface TableRoadCounterProps {
   points: ValidationSegmentAnomalyResponse[];
+  loading: boolean;
 }
 
 const getRoadConterStatus = ({
@@ -29,16 +30,12 @@ const getRoadConterStatus = ({
   };
 };
 
-const TableRoadCounter = ({ points }: TableRoadCounterProps) => {
+const TableRoadCounter = ({ points, loading }: TableRoadCounterProps) => {
   const columns = useMemo(
     () => [
       {
         id: "col1",
         title: "Segment",
-      },
-      {
-        id: "col2",
-        title: "Id",
       },
       {
         id: "col3",
@@ -55,7 +52,6 @@ const TableRoadCounter = ({ points }: TableRoadCounterProps) => {
         return {
           id: `${point.segment_id}_${index}`,
           col1: point.segment_id,
-          col2: "",
           col3: (
             <div className={`check-result ${className}`}>
               {prefix}
@@ -68,7 +64,7 @@ const TableRoadCounter = ({ points }: TableRoadCounterProps) => {
     [points],
   );
   return (
-    <Table columns={columns} entities={entities}>
+    <Table columns={columns} entities={entities} isLoading={loading}>
       <Table.Empty description="No data yet" />
     </Table>
   );

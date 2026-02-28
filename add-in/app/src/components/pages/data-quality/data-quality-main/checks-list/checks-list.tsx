@@ -1,7 +1,11 @@
 import MetricBar from "@/components/ui/metric-bar/metric-bar";
 import { ValidationType } from "@/types/shemas/validaton";
 import { getThresholdLabel } from "@/utils/threshold";
-import { validationTypeLabelMap } from "../../constants";
+import { Tooltip } from "@geotab/zenith/esm/tooltip/tooltip";
+import {
+  validationTypeLabelMap,
+  validationTypeTooltipMap,
+} from "../../constants";
 import "./style.css";
 
 interface ChecksListProps {
@@ -15,12 +19,19 @@ const ChecksList = ({ validationsPercentage }: ChecksListProps) => {
   return (
     <div className="checks">
       {validationsPercentage.map((v, idx) => (
-        <MetricBar
+        <Tooltip
           key={idx}
-          label={validationTypeLabelMap[v.type]}
-          percentage={v.percentage}
-          status={getThresholdLabel(v.percentage)}
-        />
+          alignment="top"
+          trigger={
+            <MetricBar
+              label={validationTypeLabelMap[v.type]}
+              percentage={v.percentage}
+              status={getThresholdLabel(v.percentage)}
+            />
+          }
+        >
+          {validationTypeTooltipMap[v.type]}
+        </Tooltip>
       ))}
     </div>
   );

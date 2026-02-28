@@ -6,3 +6,13 @@ export const validationTypeLabelMap: Record<ValidationType, string> = {
   [ValidationType.IDLE_OUTLIER]: "Idle outlier",
   [ValidationType.ROAD_COUNTER_2H]: "Road counter 2h",
 };
+
+export const validationTypeTooltipMap: Record<ValidationType, string> = {
+  [ValidationType.TELEPORTATION]:
+    "This check monitors for impossible or illogical jumps in geographical coordinates between consecutive data pings.",
+  [ValidationType.DISTANCE_TO_ROAD]:
+    "This metric evaluates the positioning accuracy of devices by analyzing the variance between the reported GPS coordinates and known road networks.",
+  [ValidationType.IDLE_OUTLIER]:
+    "This metric identifies vehicles that report excessive or unusual stationary durations.",
+  [ValidationType.ROAD_COUNTER_2H]: "Road counter 2h",
+};

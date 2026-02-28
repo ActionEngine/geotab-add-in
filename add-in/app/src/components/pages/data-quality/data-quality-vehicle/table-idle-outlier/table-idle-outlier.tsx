@@ -5,9 +5,10 @@ import moment from "moment";
 
 interface TableIdleOutlierProps {
   points: ValidationIdleOutlierResponse[];
+  loading: boolean;
 }
 
-const TableIdleOutlier = ({ points }: TableIdleOutlierProps) => {
+const TableIdleOutlier = ({ points, loading }: TableIdleOutlierProps) => {
   const columns = useMemo(
     () => [
       {
@@ -49,7 +50,7 @@ const TableIdleOutlier = ({ points }: TableIdleOutlierProps) => {
   );
 
   return (
-    <Table columns={columns} entities={entities}>
+    <Table columns={columns} entities={entities} isLoading={loading}>
       <Table.Empty description="No data yet" />
     </Table>
   );

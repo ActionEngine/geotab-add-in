@@ -11,31 +11,18 @@ import { useFetch } from "@/hooks/useFetch";
 import { AppContext } from "@/provider/app-provider";
 import {
   ValidationDeviceResponse,
-  ValidationDistanceToRoadResponse,
-  ValidationIdleOutlierResponse,
   ValidationResponse,
-  ValidationSegmentAnomalyResponse,
-  ValidationTeleportationResponse,
   ValidationType,
 } from "@/types/shemas/validaton";
 import { getThresholdClassName } from "@/utils/threshold";
-import {
-  DISTANCE_ERROR_THRESHOLD_METERS,
-  DISTANCE_WARNING_THRESHOLD_METERS,
-  TELEPORTATION_ERROR_THRESHOLD_KMH,
-  TELEPORTATION_WARNING_THRESHOLD_KMH,
-} from "@/utils/validation-thresholds";
 import { getAnomalyPercentage } from "@/utils/validation";
 import { IconChevronRightSmall } from "@geotab/zenith/esm/icons/iconChevronRightSmall";
 import { Select } from "@geotab/zenith/esm/select/select";
 import { GeotabCredentials } from "mg-api-js";
 import moment from "moment";
 import { validationTypeLabelMap } from "../constants";
+import { getPointsForMap, getTableComponent, Points } from "./helper";
 import "./style.css";
-import TableDistance from "./table-distance/table-distance";
-import TableIdleOutlier from "./table-idle-outlier/table-idle-outlier";
-import TableRoadCounter from "./table-road-counter/table-road-counter";
-import TableTeleportation from "./table-teleportation/table-teleportation";
 
 interface DataQualityVehicleProps {
   deviceId: string;
@@ -43,34 +30,11 @@ interface DataQualityVehicleProps {
   onBack: () => void;
 }
 
-const getTeleportationMapClassName = (
-  point: ValidationTeleportationResponse,
-) => {
-  if (point.implied_speed_kmh > TELEPORTATION_ERROR_THRESHOLD_KMH) {
-    return "fall";
-  }
-
-  if (point.implied_speed_kmh >= TELEPORTATION_WARNING_THRESHOLD_KMH) {
-    return "warning";
-  }
-
-  return "pass";
-};
-
-const getDistanceMapClassName = (point: ValidationDistanceToRoadResponse) => {
-  if (point.distance > DISTANCE_ERROR_THRESHOLD_METERS) {
-    return "fall";
-  }
-
-  if (point.distance >= DISTANCE_WARNING_THRESHOLD_METERS) {
-    return "warning";
-  }
-
-  return "pass";
-};
-
-const getIdleOutlierMapClassName = (point: ValidationIdleOutlierResponse) => {
-  return point.is_outlier ? "fall" : "pass";
+const VALIDATION_FETCHERS_MAP = {
+  [ValidationType.TELEPORTATION]: getValidationTeleportation,
+  [ValidationType.DISTANCE_TO_ROAD]: getValidationDistanceToRoad,
+  [ValidationType.IDLE_OUTLIER]: getValidationIdleOutliers,
+  [ValidationType.ROAD_COUNTER_2H]: getValidationSegmentAomaly,
 };
 
 const DataQualityVehicle = ({
@@ -80,18 +44,14 @@ const DataQualityVehicle = ({
 }: DataQualityVehicleProps) => {
   const { session, databaseInfo } = useContext(AppContext);
   const [selectCheck, setSelectCheck] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const { data: validationByDevice } = useFetch<ValidationDeviceResponse[]>({
     fn: () => getValidationByDevice(session as GeotabCredentials),
     key: `all-validation-by-device-${deviceId}`,
   });
 
-  const [points, setPoints] = useState<
-    | ValidationTeleportationResponse[]
-    | ValidationDistanceToRoadResponse[]
-    | ValidationIdleOutlierResponse[]
-    | ValidationSegmentAnomalyResponse[]
-  >([]);
+  const [points, setPoints] = useState<Points>([]);
 
   const options = useMemo(
     () =>
@@ -111,70 +71,23 @@ const DataQualityVehicle = ({
 
   useEffect(() => {
     if (!selectCheck) return;
-
-    if (selectCheck === ValidationType.TELEPORTATION) {
-      getValidationTeleportation(session as GeotabCredentials, deviceId).then(
-        (res) => {
-          setPoints(res);
-        },
-      );
-    }
-    if (selectCheck === ValidationType.DISTANCE_TO_ROAD) {
-      getValidationDistanceToRoad(session as GeotabCredentials, deviceId).then(
-        (res) => {
-          setPoints(res);
-        },
-      );
-    }
-
-    if (selectCheck === ValidationType.IDLE_OUTLIER) {
-      getValidationIdleOutliers(session as GeotabCredentials, deviceId).then(
-        (res) => {
-          setPoints(res);
-        },
-      );
-    }
-
-    if (selectCheck === ValidationType.ROAD_COUNTER_2H) {
-      getValidationSegmentAomaly(session as GeotabCredentials, deviceId).then(
-        (res) => {
-          setPoints(res);
-        },
-      );
-    }
+    setLoading(true);
+    VALIDATION_FETCHERS_MAP[selectCheck as ValidationType](
+      session as GeotabCredentials,
+      deviceId,
+    )
+      .then((res) => {
+        setPoints(res);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [selectCheck]);
 
-  const mapPoints = useMemo(() => {
-    if (selectCheck === ValidationType.ROAD_COUNTER_2H) {
-      return [];
-    }
-
-    if (selectCheck === ValidationType.TELEPORTATION && points.length > 0) {
-      return (points as ValidationTeleportationResponse[]).map((point) => ({
-        latitude: point.latitude,
-        longitude: point.longitude,
-        className: getTeleportationMapClassName(point),
-      }));
-    }
-
-    if (selectCheck === ValidationType.DISTANCE_TO_ROAD && points.length > 0) {
-      return (points as ValidationDistanceToRoadResponse[]).map((point) => ({
-        latitude: point.latitude,
-        longitude: point.longitude,
-        className: getDistanceMapClassName(point),
-      }));
-    }
-
-    if (selectCheck === ValidationType.IDLE_OUTLIER && points.length > 0) {
-      return (points as ValidationIdleOutlierResponse[]).map((point) => ({
-        latitude: point.latitude,
-        longitude: point.longitude,
-        className: getIdleOutlierMapClassName(point),
-      }));
-    }
-
-    return [];
-  }, [points, selectCheck]);
+  const mapPoints = useMemo(
+    () => getPointsForMap(selectCheck, points),
+    [points, selectCheck],
+  );
 
   const validationsPercentage = useMemo(() => {
     const validationTypeById = new Map<number, ValidationType>(
@@ -210,6 +123,11 @@ const DataQualityVehicle = ({
   const handleBack = () => {
     onBack();
   };
+
+  const tableComponent = useMemo(
+    () => getTableComponent(selectCheck, points, loading),
+    [selectCheck, points, loading],
+  );
 
   return (
     <div className="data-quality-vehicle">
@@ -262,28 +180,7 @@ const DataQualityVehicle = ({
             className="select-width"
           />
         </div>
-        <div className="table-container">
-          {selectCheck === ValidationType.TELEPORTATION && (
-            <TableTeleportation
-              points={points as ValidationTeleportationResponse[]}
-            />
-          )}
-          {selectCheck === ValidationType.DISTANCE_TO_ROAD && (
-            <TableDistance
-              points={points as ValidationDistanceToRoadResponse[]}
-            />
-          )}
-          {selectCheck === ValidationType.IDLE_OUTLIER && (
-            <TableIdleOutlier
-              points={points as ValidationIdleOutlierResponse[]}
-            />
-          )}
-          {selectCheck === ValidationType.ROAD_COUNTER_2H && (
-            <TableRoadCounter
-              points={points as ValidationSegmentAnomalyResponse[]}
-            />
-          )}
-        </div>
+        <div className="table-container">{tableComponent}</div>
       </div>
       <GeotabMapChecks
         points={mapPoints}
