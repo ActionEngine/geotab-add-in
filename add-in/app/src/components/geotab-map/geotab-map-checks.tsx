@@ -1,4 +1,11 @@
-import { useContext, useEffect, useMemo, useRef, useCallback } from "react";
+import {
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+  useState,
+} from "react";
 import { ViewStateChangeEvent } from "react-map-gl/mapbox-legacy";
 import MapLibre, { MapRef, Marker } from "react-map-gl/maplibre";
 import { getHeaders } from "@/api/helper";
@@ -35,6 +42,7 @@ const GeotabMapChecks = ({
   const { globalBbox, mapStateChecks, updateMapStateChecks, session } =
     useContext(AppContext);
   const mapRef = useRef<MapRef>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   const segmentsTilesUrl = useMemo(() => {
     const baseUrl = import.meta.env.VITE_BASE_URL;
@@ -135,7 +143,7 @@ const GeotabMapChecks = ({
                 "#F79009",
                 "#12B76A",
               ],
-              "line-opacity": 0.45,
+              "line-opacity": 0.8,
               "line-width": [
                 "interpolate",
                 ["linear"],
@@ -274,12 +282,14 @@ const GeotabMapChecks = ({
     showIdleOutlierMvtDots,
     showOvertureSegments,
     showTeleportationMvtDots,
-    // When session becomes available, remove and re-add all sources so
-    // MapLibre retries tile requests — this time with auth headers.
     sessionHeaders,
+    // Re-run once the map has fired onLoad so mapRef.current?.getMap()
+    // is guaranteed to be non-null.
+    mapLoaded,
   ]);
 
   const handleLoadMap = () => {
+    setMapLoaded(true);
     if (mapRef.current && globalBbox) {
       zoomToBBox(mapRef.current, globalBbox);
     }
