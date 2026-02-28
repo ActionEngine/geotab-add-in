@@ -1,8 +1,10 @@
-import asyncio
+"""Check-runner service. Periodically runs SQL scripts from scripts folder."""
+
+import json
 import logging
 import os
 import sys
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from concurrent.futures import Executor, ThreadPoolExecutor, as_completed
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -13,6 +15,7 @@ from urllib.parse import urlparse
 from psycopg2 import pool as psycopg2_pool
 import psycopg2
 from psycopg2.extensions import connection as PgConnection
+from psycopg2.extras import Json
 
 logger = logging.getLogger("check-runner")
 
@@ -216,7 +219,13 @@ def _resolve_param_markers(params: Mapping[str, Any]) -> dict[str, Any]:
     return resolved
 
 
-def run_once(scripts_dir: Path, db_url: str, max_workers: int) -> int:
+def run_once(
+    scripts_dir: Path,
+    db_url: str,
+    max_workers: int,
+    executor_factory: Callable[..., Executor],
+    pool_factory: Callable[..., Any],
+) -> int:
     """Run all checks once. Returns exit code."""
     if not has_recent_locations(db_url):
         logger.info("Skipping checks: no geotab_location data in the last 15 minutes")
@@ -224,92 +233,71 @@ def run_once(scripts_dir: Path, db_url: str, max_workers: int) -> int:
 
     try:
         scripts = load_scripts(scripts_dir, CHECKS)
-        resolved_scripts = [(n, s, _resolve_param_markers(p)) for n, s, p in scripts]
-        
-        logger.info(f"Loaded {len(resolved_scripts)} scripts. Starting execution...")
-        
-        failed = 0
-        # Use ThreadPoolExecutor since psycopg2 is blocking. Each check runs in its own thread with a connection from the pool.
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            with db_connection_pool(dsn=db_url, maxconn=max_workers) as pool:
-                futures = []
-                
-                for name, stages, params in resolved_scripts:
-                    # Internal function to run a single check
-                    def _task(n=name, st=stages, pr=params):
-                        conn = None
-                        try:
-                            # Log the start of the check
-                            logger.info(f"Starting check: {n}")
-                            conn = pool.getconn()
-                            result = run_check(conn, n, st, pr)
-                            # Log the successful completion with details
-                            logger.info(f"OK: {n} (Rows: {result.get('rows', 0)})")
-                            return result
-                        except Exception as e:
-                            # Log the error for the specific check
-                            logger.error(f"FAILED: {n}. Error: {e}")
-                            return {"status": "failed", "check": n, "error": str(e)}
-                        finally:
-                            if conn:
-                                pool.putconn(conn)
-
-                    futures.append(executor.submit(_task))
-                
-                # Collect results as they complete
-                for f in futures:
-                    res = f.result()
-                    if res.get("status") == "failed":
-                        failed += 1
-
-        if failed == 0:
-            logger.info("All checks in this cycle completed successfully.")
-        else:
-            logger.warning(f"Cycle finished with {failed} failure(s).")
-            
-        return 1 if failed > 0 else 0
-    except Exception as e:
-        logger.error(f"Critical error in run_once: {e}")
+    except FileNotFoundError as e:
+        logger.error(f"Failed to load scripts: {e}")
         return 1
 
+    # Resolve parameter markers (e.g., '$NOW') for each check
+    resolved_scripts = [
+        (name, stages, _resolve_param_markers(params))
+        for name, stages, params in scripts
+    ]
 
-async def main(scripts_dir: Path, max_workers: int):
+    with executor_factory(max_workers=max_workers) as executor:
+        with pool_factory(dsn=db_url, minconn=1, maxconn=max_workers) as pool:
+            failed = run_all_checks(executor, pool, resolved_scripts)
+
+    if failed:
+        logger.error(f"{failed} check(s) failed")
+        return 1
+
+    logger.info("All checks completed successfully")
+    return 0
+
+
+def main(
+    scripts_dir: Path = Path("./scripts"),
+    environ: Mapping[str, str] | None = None,
+    max_workers: int = 20,
+    executor_factory: Callable[..., Executor] | None = None,
+    pool_factory: Callable[..., Any] | None = None,
+) -> int:
+    """Entry point. Returns exit code (0 for success, 1 for failure).
+
+    Set CHECK_INTERVAL_SECONDS env var to run in a loop.
+    """
+    import time
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-    environ = os.environ
+    if environ is None:
+        environ = os.environ
+    if executor_factory is None:
+        executor_factory = ThreadPoolExecutor
+    if pool_factory is None:
+        pool_factory = db_connection_pool
+
     try:
         db_url = get_database_url(environ)
     except ValueError as e:
-        logger.error(e)
+        logger.error(f"Invalid DATABASE_URL: {e}")
         return 1
 
     interval_str = environ.get("CHECK_INTERVAL_SECONDS")
-    loop = asyncio.get_running_loop()
+    if interval_str is None:
+        return run_once(scripts_dir, db_url, max_workers, executor_factory, pool_factory)
 
+    interval_seconds = int(interval_str)
+    logger.info(f"Starting scheduler: running checks every {interval_seconds}s")
     while True:
-        logger.info("Starting checks run...")
-        exit_code = await loop.run_in_executor(
-            None, 
-            run_once, 
-            scripts_dir, 
-            db_url, 
-            max_workers
-        )
-
-        if interval_str is None:
-            return exit_code
-
-        interval_seconds = int(interval_str)
-        logger.info(f"Cycle finished. Sleeping for {interval_seconds}s...")
-
-        await asyncio.sleep(interval_seconds)
+        exit_code = run_once(scripts_dir, db_url, max_workers, executor_factory, pool_factory)
+        if exit_code != 0:
+            logger.warning(f"Check run failed, will retry in {interval_seconds}s")
+        time.sleep(interval_seconds)
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(asyncio.run(main(Path("./scripts"), 20)))
-    except KeyboardInterrupt:
-        pass
+    sys.exit(main())
