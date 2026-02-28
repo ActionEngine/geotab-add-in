@@ -1,5 +1,6 @@
 import { useContext, useMemo, useState } from "react";
 import GeotabMap from "@/components/geotab-map/geotab-map";
+import InfoDialog from "@/components/info-dialog/info-dialog";
 import MapIcon from "@/image/map-icon";
 import TrackIcon from "@/image/track-icon";
 import { AppContext } from "@/provider/app-provider";
@@ -9,8 +10,10 @@ import {
   VehicleValidation,
 } from "@/types/shemas/validaton";
 import { getValidationsPercentage } from "@/utils/validation";
+import { IconInfoCircle } from "@geotab/zenith";
 import { Card } from "@geotab/zenith/esm/card/card";
 import { Select } from "@geotab/zenith/esm/select/select";
+import { TextIconButton } from "@geotab/zenith/esm/textIconButton/textIconButton";
 import moment from "moment";
 import { validationTypeLabelMap } from "../constants";
 import ChecksList from "./checks-list/checks-list";
@@ -38,6 +41,7 @@ const DataQualityMain = ({
 }: DataQualityMainProps) => {
   const { databaseInfo } = useContext(AppContext);
   const [selectCheck, setSelectCheck] = useState<string>(ALL_CHECKS.id);
+  const [openInfo, setOpenInfo] = useState(false);
 
   const currentValidationId = useMemo(() => {
     if (selectCheck === ALL_CHECKS.id) return null;
@@ -73,6 +77,14 @@ const DataQualityMain = ({
     if (!id) return;
 
     setSelectCheck(id);
+  };
+
+  const handleOpenInfo = () => {
+    setOpenInfo(true);
+  };
+
+  const handleCloseInfo = () => {
+    setOpenInfo(false);
   };
 
   return (
@@ -117,7 +129,14 @@ const DataQualityMain = ({
         <Card size="L">
           <Card.Content>
             <div className="data-quality-main-info-card">
-              <div className="block-header">{validationTitle}</div>
+              <div className="block-header">
+                {validationTitle}{" "}
+                <TextIconButton
+                  type="tertiary"
+                  icon={IconInfoCircle}
+                  onClick={handleOpenInfo}
+                />
+              </div>
               <div className="data-quality-main-info-validation">
                 {validations.length > 0 ? (
                   <>
@@ -180,6 +199,7 @@ const DataQualityMain = ({
           </div>
         </Card.Content>
       </Card>
+      <InfoDialog open={openInfo} onClose={handleCloseInfo} />
     </div>
   );
 };

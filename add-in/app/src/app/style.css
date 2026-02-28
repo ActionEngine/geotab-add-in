@@ -26,6 +26,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 99;
 }
 
 .pass {
@@ -72,19 +73,8 @@ body {
 .table-container > .zen-layout__full-screen-element > .zen-table-wrapper {
   height: 100% !important;
 }
-
-.zen-data-grid__header-cell--first,
-.zen-data-grid__row-cell--first {
-  position: static;
-  left: auto;
-  z-index: auto;
+.zen-data-grid-header {
   font-weight: normal;
-}
-
-.zen-data-grid--horizontal-scroll .zen-data-grid__header-cell--first,
-.zen-data-grid--horizontal-scroll .zen-data-grid__row-cell--first {
-  border-inline-end: none;
-  box-shadow: none;
 }
 
 .zen-card-container--auto-height {

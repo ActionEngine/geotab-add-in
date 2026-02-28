@@ -5,6 +5,7 @@ import moment from "moment";
 
 interface TableDistanceProps {
   points: ValidationDistanceToRoadResponse[];
+  loading: boolean;
 }
 
 const getDistanceStatus = (distance: number) => {
@@ -19,7 +20,7 @@ const getDistanceStatus = (distance: number) => {
   return { label: "OK", className: "pass" };
 };
 
-const TableDistance = ({ points }: TableDistanceProps) => {
+const TableDistance = ({ points, loading }: TableDistanceProps) => {
   const columns = useMemo(
     () => [
       {
@@ -63,7 +64,7 @@ const TableDistance = ({ points }: TableDistanceProps) => {
   );
 
   return (
-    <Table columns={columns} entities={entities}>
+    <Table columns={columns} entities={entities} isLoading={loading}>
       <Table.Empty description="No data yet" />
     </Table>
   );

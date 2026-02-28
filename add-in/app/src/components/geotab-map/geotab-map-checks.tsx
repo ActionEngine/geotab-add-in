@@ -4,7 +4,6 @@ import MapLibre, { MapRef, Marker } from "react-map-gl/maplibre";
 import { getHeaders } from "@/api/helper";
 import { AppContext } from "@/provider/app-provider";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { GeotabCredentials } from "mg-api-js";
 import { zoomToBBox } from "./helper";
 
 interface GeotabMapChecksProps {
@@ -14,7 +13,6 @@ interface GeotabMapChecksProps {
   showIdleOutlierMvtDots?: boolean;
   showRoadCounterDots?: boolean;
   roadCounterDeviceId?: string;
-  session?: GeotabCredentials | null;
 }
 
 const ROAD_COUNTER_SEGMENTS_SOURCE_ID = "segment-anomaly-source";
@@ -33,9 +31,8 @@ const GeotabMapChecks = ({
   showIdleOutlierMvtDots = false,
   showRoadCounterDots = false,
   roadCounterDeviceId,
-  session = null,
 }: GeotabMapChecksProps) => {
-  const { globalBbox, mapStateChecks, updateMapStateChecks } =
+  const { globalBbox, mapStateChecks, updateMapStateChecks, session } =
     useContext(AppContext);
   const mapRef = useRef<MapRef>(null);
 

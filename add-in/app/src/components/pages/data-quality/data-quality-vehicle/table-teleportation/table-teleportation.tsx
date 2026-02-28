@@ -5,6 +5,7 @@ import moment from "moment";
 
 interface TableTeleportationProps {
   points: ValidationTeleportationResponse[];
+  loading: boolean;
 }
 
 const getSpeedStatus = (speed: number) => {
@@ -19,7 +20,7 @@ const getSpeedStatus = (speed: number) => {
   return { label: "OK", className: "pass" };
 };
 
-const TableTeleportation = ({ points }: TableTeleportationProps) => {
+const TableTeleportation = ({ points, loading }: TableTeleportationProps) => {
   const columns = useMemo(
     () => [
       {
@@ -63,7 +64,7 @@ const TableTeleportation = ({ points }: TableTeleportationProps) => {
   );
 
   return (
-    <Table columns={columns} entities={entities}>
+    <Table columns={columns} entities={entities} isLoading={loading}>
       <Table.Empty description="No data yet" />
     </Table>
   );
