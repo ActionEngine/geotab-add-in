@@ -56,17 +56,38 @@ const VehiclesTable = ({
 
       const type = idToTypeMap.get(vehicle.validation_id);
 
-      if (type === ValidationType.DISTANCE_TO_ROAD) {
+      // Only set the value if it's not already populated — validationByDevice is sorted
+      // by validation_id DESC (newest first), so the first occurrence is the latest run.
+      // Without this guard, older runs (often 100%) would overwrite newer anomaly data.
+      if (
+        type === ValidationType.DISTANCE_TO_ROAD &&
+        row.distance_to_road === null
+      ) {
         row.distance_to_road = vehicle.percentage;
-      } else if (type === ValidationType.TELEPORTATION) {
+      } else if (
+        type === ValidationType.TELEPORTATION &&
+        row.teleportation === null
+      ) {
         row.teleportation = vehicle.percentage;
-      } else if (type === ValidationType.IDLE_OUTLIER) {
+      } else if (
+        type === ValidationType.IDLE_OUTLIER &&
+        row.idle_outlier === null
+      ) {
         row.idle_outlier = vehicle.percentage;
-      } else if (type === ValidationType.ROAD_COUNTER_FUEL_CONSUMPTION) {
+      } else if (
+        type === ValidationType.ROAD_COUNTER_FUEL_CONSUMPTION &&
+        row.road_counter_fuel_consumption === null
+      ) {
         row.road_counter_fuel_consumption = vehicle.percentage;
-      } else if (type === ValidationType.ROAD_COUNTER_COOLANT_TEMP) {
+      } else if (
+        type === ValidationType.ROAD_COUNTER_COOLANT_TEMP &&
+        row.road_counter_coolant_temp === null
+      ) {
         row.road_counter_coolant_temp = vehicle.percentage;
-      } else if (type === ValidationType.ROAD_COUNTER_EV_BATTERY_DISCHARGE) {
+      } else if (
+        type === ValidationType.ROAD_COUNTER_EV_BATTERY_DISCHARGE &&
+        row.road_counter_ev_battery_discharge === null
+      ) {
         row.road_counter_ev_battery_discharge = vehicle.percentage;
       }
     });
@@ -79,13 +100,7 @@ const VehiclesTable = ({
       return <span className="no-data">No Data</span>;
     }
 
-    const percentageValue = value === 0 ? 100 : value;
-
-    return (
-      <span className={getThresholdClassName(percentageValue)}>
-        {percentageValue}%
-      </span>
-    );
+    return <span className={getThresholdClassName(value)}>{value}%</span>;
   };
 
   const columns = useMemo<IListColumn<GroupedVehicle>[]>(
@@ -120,7 +135,7 @@ const VehiclesTable = ({
       },
       {
         id: "road_counter_fuel_consumption",
-        title: "Road Counter: Fuel Consumption",
+        title: "Fuel Consumption",
         columnComponent: {
           render: (vehicle) =>
             renderValidationValue(vehicle.road_counter_fuel_consumption),
@@ -128,7 +143,7 @@ const VehiclesTable = ({
       },
       {
         id: "road_counter_coolant_temp",
-        title: "Road Counter: Coolant Temp",
+        title: "Coolant Temp",
         columnComponent: {
           render: (vehicle) =>
             renderValidationValue(vehicle.road_counter_coolant_temp),
@@ -136,7 +151,7 @@ const VehiclesTable = ({
       },
       {
         id: "road_counter_ev_battery_discharge",
-        title: "Road Counter: EV Battery Discharge",
+        title: "EV Battery Discharge",
         columnComponent: {
           render: (vehicle) =>
             renderValidationValue(vehicle.road_counter_ev_battery_discharge),
