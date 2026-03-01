@@ -325,6 +325,7 @@ def main(
 
     interval_str = environ.get("CHECK_INTERVAL_SECONDS")
     if interval_str is None:
+        logger.info("Running checks once (no CHECK_INTERVAL_SECONDS set)")
         return run_once(
             scripts_dir, db_url, max_workers, executor_factory, pool_factory
         )
