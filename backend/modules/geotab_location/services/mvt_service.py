@@ -508,6 +508,7 @@ async def generate_segment_anomaly_mvt_tile(
     x: int,
     y: int,
     device_id: str,
+    validation_id: int | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
 ) -> bytes:
@@ -543,14 +544,17 @@ async def generate_segment_anomaly_mvt_tile(
         "device_id": device_id,
     }
     
-    date_conditions = []
+    extra_conditions = []
     if date_from is not None:
-        date_conditions.append("AND v.started_at >= :date_from")
+        extra_conditions.append("AND v.started_at >= :date_from")
         params["date_from"] = date_from
     if date_to is not None:
-        date_conditions.append("AND v.started_at <= :date_to")
+        extra_conditions.append("AND v.started_at <= :date_to")
         params["date_to"] = date_to
-    date_filter = " ".join(date_conditions)
+    if validation_id is not None:
+        extra_conditions.append("AND sa.validation_id = :validation_id")
+        params["validation_id"] = validation_id
+    date_filter = " ".join(extra_conditions)
 
     query = text(
         f"""

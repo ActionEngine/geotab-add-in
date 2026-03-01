@@ -328,6 +328,7 @@ async def get_segment_anomalies_mvt_tile(
     x: int,
     y: int,
     device_id: str,
+    validation_id: int | None = Query(None, description="Filter by validation ID"),
     date_from: datetime | None = Query(None, description="Filter from this date"),
     date_to: datetime | None = Query(None, description="Filter to this date"),
     current_user: dict = Depends(get_current_user),
@@ -391,6 +392,7 @@ async def get_segment_anomalies_mvt_tile(
         x=x,
         y=y,
         device_id=device_id,
+        validation_id=validation_id,
         date_from=date_from,
         date_to=date_to,
     )
