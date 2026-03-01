@@ -163,3 +163,17 @@ docker compose run -u $(id -u):$(id -g) --rm backend \
 docker compose run --rm backend alembic upgrade head
 docker compose run --rm backend alembic downgrade -1
 ```
+---
+
+## Development Approach
+
+This project was built using a **vibe coding** approach — the team worked interactively with AI coding assistants throughout the entire development cycle, from scaffolding and feature implementation to refactoring and documentation.
+
+**Tooling:** [GitHub Copilot](https://github.com/features/copilot) inside **Visual Studio Code**
+
+**Models used:**
+- Claude Sonnet 4.6
+- GPT-5.3-Codex
+- Gemini 3 Pro
+
+AI assistance was used for generating boilerplate, writing SQL queries and Alembic migrations, building React components, debugging data-staleness issues, and authoring this documentation.
