@@ -25,7 +25,7 @@ WITH location_filtered AS (
   FROM geotab_location
   WHERE
     geometry IS NOT NULL
-    AND datetime >= %(historical_interval_end)s - %(historical_interval_depth_minutes)s
+    AND datetime >= %(historical_interval_end)s - %(historical_interval_depth)s
     AND datetime < %(historical_interval_end)s
 ),
 
@@ -52,7 +52,7 @@ diagnostic_filtered AS (
         diagnostic_id,
         data AS diagnostic_value
     FROM geotab_status_data
-    WHERE datetime >= %(historical_interval_end)s - %(historical_interval_depth_minutes)s
+    WHERE datetime >= %(historical_interval_end)s - %(historical_interval_depth)s
       AND datetime < %(historical_interval_end)s
       AND diagnostic_id = ANY(%(diagnostic_ids)s)
 ),
