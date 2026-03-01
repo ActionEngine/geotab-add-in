@@ -49,6 +49,11 @@ classification AS (
         ABS(aggregate_deviation) > %(error_threshold)s AS is_error
     FROM segment_vectors
 ),
+cleanup AS (
+    DELETE FROM validation
+    WHERE validation_type = %(validation_type)s
+      AND geotab_database_id IN (SELECT DISTINCT geotab_database_id FROM classification)
+),
 validation_insert AS (
     INSERT INTO validation (
         geotab_database_id,
