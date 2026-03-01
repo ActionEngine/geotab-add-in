@@ -60,7 +60,7 @@ services:
       context: ..
       dockerfile: check-runner/Dockerfile
     environment:
-      CHECK_INTERVAL_SECONDS: 120
+      CHECK_INTERVAL_SECONDS: 900
       # psycopg2 uses postgresql:// not postgresql+asyncpg://
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
     env_file:

@@ -17,7 +17,7 @@ CHECKS = {
         "script_folder": "road-counter",  # Folder under scripts/ containing SQL
         "params": {              # Parameters passed to SQL
             "target_interval_end": "$NOW",  # Special marker → current time
-            "target_interval_depth_minutes": timedelta(minutes=120),
+            "target_interval_depth": timedelta(minutes=120),
             "validation_type": "MY_CHECK",
             "done": "DONE",
         },
@@ -30,7 +30,7 @@ CHECKS = {
 
 **Interval pattern** (used for time-range queries):
 - `*_interval_end` - The end timestamp of the interval
-- `*_interval_depth_minutes` - Duration looking backward (timedelta)
+- `*_interval_depth` - Duration looking backward (timedelta)
 - SQL calculates start as: `end - depth`
 
 ## Adding a New Check
@@ -45,7 +45,7 @@ DELETE FROM validation WHERE validation_type = %(validation_type)s;
 
 -- 02-collect.sql
 CREATE TEMP TABLE my_data AS
-SELECT * FROM somewhere WHERE datetime >= %(target_interval_end)s - %(target_interval_depth_minutes)s;
+SELECT * FROM somewhere WHERE datetime >= %(target_interval_end)s - %(target_interval_depth)s;
 
 -- 03-insert.sql
 INSERT INTO validation (geotab_database_id, validation_type, status, total)
@@ -61,7 +61,7 @@ GROUP BY geotab_database_id;
     "script_folder": "my-folder",  # matches scripts/my-folder/
     "params": {
         "target_interval_end": "$NOW",
-        "target_interval_depth_minutes": timedelta(minutes=60),
+        "target_interval_depth": timedelta(minutes=60),
         "validation_type": "MY_NEW_CHECK",
         "done": "DONE",
     },
@@ -75,11 +75,11 @@ Multiple checks can use the same `script_folder` with different params:
 ```python
 "road-counter-2h": {
     "script_folder": "road-counter",
-    "params": {"target_interval_depth_minutes": timedelta(minutes=120), ...}
+    "params": {"target_interval_depth": timedelta(minutes=120), ...}
 },
 "road-counter-realtime": {
     "script_folder": "road-counter", 
-    "params": {"target_interval_depth_minutes": timedelta(minutes=15), ...}
+    "params": {"target_interval_depth": timedelta(minutes=15), ...}
 },
 ```
 
