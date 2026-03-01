@@ -19,7 +19,7 @@ logger = configure_logger(__name__)
 
 
 # Run validation services
-INTERVAL_SECONDS = 300
+INTERVAL_SECONDS = 900  # 15 minutes
 
 # List of validation functions
 VALIDATION_TASKS = [
