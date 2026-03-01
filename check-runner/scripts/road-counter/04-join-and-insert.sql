@@ -63,7 +63,7 @@ validation_insert AS (
     SELECT 
         geotab_database_id,
         NOW(),
-        NOW(),
+        clock_timestamp(),
         %(validation_type)s,
         'DONE',
         COUNT(*) FILTER (WHERE is_warning),
