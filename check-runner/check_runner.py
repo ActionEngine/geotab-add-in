@@ -60,7 +60,7 @@ CHECKS: Mapping[str, Mapping[str, Any]] = {
             "historical_interval_depth_minutes": timedelta(hours=12),
             "diagnostic_ids": ["DiagnosticEngineCoolantTemperatureId"],
             "warning_threshold": 0.5,
-            "error_threshold": 0.10,
+            "error_threshold": 0.65,
             "segment_proximity_filter": 0.005,
             "validation_type": "ROAD_COUNTER_COOLANT_TEMP",
             "done": "DONE",
