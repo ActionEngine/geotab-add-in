@@ -1,5 +1,5 @@
 import MetricBar from "@/components/ui/metric-bar/metric-bar";
-import { ValidationType } from "@/types/shemas/validaton";
+import { ValidationType } from "@/types/schemas/validation";
 import { getThresholdLabel } from "@/utils/threshold";
 import { Tooltip } from "@geotab/zenith/esm/tooltip/tooltip";
 import {

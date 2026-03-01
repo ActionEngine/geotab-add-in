@@ -4,7 +4,7 @@ import {
   ValidationSegmentAnomalyResponse,
   ValidationTeleportationResponse,
   ValidationType,
-} from "@/types/shemas/validaton";
+} from "@/types/schemas/validation";
 import {
   TELEPORTATION_ERROR_THRESHOLD_KMH,
   TELEPORTATION_WARNING_THRESHOLD_KMH,
@@ -56,6 +56,7 @@ export const getTableComponent = (
   selectCheck: string,
   points: Points,
   loading: boolean,
+  validationId?: number,
 ) => {
   if (selectCheck === ValidationType.TELEPORTATION) {
     return (
@@ -89,6 +90,7 @@ export const getTableComponent = (
     return (
       <TableRoadCounter
         points={points as ValidationSegmentAnomalyResponse[]}
+        validationId={validationId}
         loading={loading}
       />
     );

@@ -13,7 +13,7 @@ import {
   ValidationDeviceResponse,
   ValidationResponse,
   ValidationType,
-} from "@/types/shemas/validaton";
+} from "@/types/schemas/validation";
 import { getThresholdClassName } from "@/utils/threshold";
 import { getAnomalyPercentage } from "@/utils/validation";
 import { IconChevronRightSmall } from "@geotab/zenith/esm/icons/iconChevronRightSmall";
@@ -132,8 +132,14 @@ const DataQualityVehicle = ({
   };
 
   const tableComponent = useMemo(
-    () => getTableComponent(selectCheck, points, loading),
-    [selectCheck, points, loading],
+    () =>
+      getTableComponent(
+        selectCheck,
+        points,
+        loading,
+        validations?.find((v) => v.validation_type === selectCheck)?.id,
+      ),
+    [selectCheck, points, loading, validations],
   );
 
   return (

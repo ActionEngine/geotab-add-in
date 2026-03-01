@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ValidationIdleOutlierResponse } from "@/types/shemas/validaton";
+import { ValidationIdleOutlierResponse } from "@/types/schemas/validation";
 import { Table } from "@geotab/zenith/esm/table/table";
 import moment from "moment";
 

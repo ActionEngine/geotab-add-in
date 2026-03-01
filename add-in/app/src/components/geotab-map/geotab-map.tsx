@@ -7,8 +7,8 @@ import MapLibre, {
 import { useFetch } from "@/hooks/useFetch";
 import VehicleIcon from "@/image/vehicle-icon";
 import { AppContext } from "@/provider/app-provider";
-import { VehicleStatusInfo } from "@/types/shemas/geotab";
-import { VehicleValidation } from "@/types/shemas/validaton";
+import { VehicleStatusInfo } from "@/types/schemas/geotab";
+import { VehicleValidation } from "@/types/schemas/validation";
 import { callAsync } from "@/utils/geotabApi";
 import { getThresholdClassName } from "@/utils/threshold";
 import "maplibre-gl/dist/maplibre-gl.css";

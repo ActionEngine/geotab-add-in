@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ValidationDistanceToRoadResponse } from "@/types/shemas/validaton";
+import { ValidationDistanceToRoadResponse } from "@/types/schemas/validation";
 import {
   DISTANCE_ERROR_THRESHOLD_METERS,
   DISTANCE_WARNING_THRESHOLD_METERS,

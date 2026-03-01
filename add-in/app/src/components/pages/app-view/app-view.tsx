@@ -6,7 +6,7 @@ import DataQuality from "@/components/pages/data-quality/data-quality";
 import AspenGis from "@/components/ui/aspen-gis/aspen-gis";
 import { AppContext } from "@/provider/app-provider";
 import { AuthInitialState } from "@/types/auth";
-import { DATABASE_STATUS } from "@/types/shemas/database";
+import { DATABASE_STATUS } from "@/types/schemas/database";
 import { getSessionAsync } from "@/utils/geotabApi";
 import { geotabSessionParse } from "@/utils/sessionParse";
 import "@geotab/zenith/dist/index.css";

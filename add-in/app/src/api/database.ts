@@ -1,5 +1,5 @@
 import { AuthInitialState } from "@/types/auth";
-import { DatabaseResponse } from "@/types/shemas/database";
+import { DatabaseResponse } from "@/types/schemas/database";
 import { GeotabCredentials } from "mg-api-js";
 import { getHeaders } from "./helper";
 

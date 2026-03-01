@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ValidationTeleportationResponse } from "@/types/shemas/validaton";
+import { ValidationTeleportationResponse } from "@/types/schemas/validation";
 import {
   TELEPORTATION_ERROR_THRESHOLD_KMH,
   TELEPORTATION_WARNING_THRESHOLD_KMH,
