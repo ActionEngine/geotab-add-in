@@ -56,6 +56,17 @@ export const getValidationByDevice = async (
   return result;
 };
 
+export const getValidationAndByDevice = async (
+  session: GeotabCredentials,
+): Promise<{
+  validations: ValidationResponse[];
+  byDevice: ValidationDeviceResponse[];
+}> => {
+  const validations = await getValidation(session);
+  const byDevice = await getValidationByDevice(session);
+  return { validations, byDevice };
+};
+
 export const getValidationTeleportation = async (
   session: GeotabCredentials,
   devaceId: string,

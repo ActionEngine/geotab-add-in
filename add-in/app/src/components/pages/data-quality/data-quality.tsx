@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { getValidation, getValidationByDevice } from "@/api/validation";
+import { getValidationAndByDevice } from "@/api/validation";
 import { useFetch } from "@/hooks/useFetch";
 import { AppContext } from "@/provider/app-provider";
 import {
@@ -22,35 +22,25 @@ const DataQuality = ({ api }: DataQualityProps) => {
   const [validations, setValidations] = useState<ValidationResponse[]>([]);
   const [vehicles, setVehicles] = useState<VehicleValidation[]>([]);
 
-  const { data: validationsRes } = useFetch<ValidationResponse[]>({
-    fn: () => getValidation(session as GeotabCredentials),
-    key: "all-validation",
-    refetchInterval: 10 * 1000,
-  });
-
-  const { data: validationByDevice } = useFetch<ValidationDeviceResponse[]>({
-    fn: () => getValidationByDevice(session as GeotabCredentials),
-    key: "all-validation-by-device",
+  const { data: validationData } = useFetch<{
+    validations: ValidationResponse[];
+    byDevice: ValidationDeviceResponse[];
+  }>({
+    fn: () => getValidationAndByDevice(session as GeotabCredentials),
+    key: "all-validation-and-by-device",
     refetchInterval: 10 * 1000,
   });
 
   useEffect(() => {
+    if (!validationData) return;
     if (
-      validationsRes?.length &&
-      JSON.stringify(validationsRes) !== JSON.stringify(validations)
+      validationData.validations?.length &&
+      JSON.stringify(validationData.validations) !== JSON.stringify(validations)
     ) {
-      setValidations(validationsRes);
+      setValidations(validationData.validations);
+      setVehicles(makeVehiclesByStatus(validationData.byDevice));
     }
-  }, [validationsRes]);
-
-  useEffect(() => {
-    if (
-      validationByDevice?.length &&
-      JSON.stringify(validationByDevice) !== JSON.stringify(vehicles)
-    ) {
-      setVehicles(makeVehiclesByStatus(validationByDevice || []));
-    }
-  }, [validationByDevice]);
+  }, [validationData]);
 
   const clearSelectedVehicle = () => {
     setSelectedVehicle(null);
@@ -62,6 +52,8 @@ const DataQuality = ({ api }: DataQualityProps) => {
         deviceId={selectedVehicle}
         onBack={clearSelectedVehicle}
         validations={validations || []}
+        validationByDevice={validationData?.byDevice || []}
+        isValidationByDeviceLoading={!validationData}
       />
     );
   }
