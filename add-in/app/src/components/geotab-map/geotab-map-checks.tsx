@@ -20,6 +20,7 @@ interface GeotabMapChecksProps {
   showIdleOutlierMvtDots?: boolean;
   showRoadCounterDots?: boolean;
   roadCounterDeviceId?: string;
+  roadCounterValidationId?: number;
 }
 
 const ROAD_COUNTER_SEGMENTS_SOURCE_ID = "segment-anomaly-source";
@@ -38,6 +39,7 @@ const GeotabMapChecks = ({
   showIdleOutlierMvtDots = false,
   showRoadCounterDots = false,
   roadCounterDeviceId,
+  roadCounterValidationId,
 }: GeotabMapChecksProps) => {
   const { globalBbox, mapStateChecks, updateMapStateChecks, session } =
     useContext(AppContext);
@@ -58,11 +60,13 @@ const GeotabMapChecks = ({
   }, []);
   const roadCounterTilesUrl = useMemo(() => {
     const baseUrl = import.meta.env.VITE_BASE_URL;
-    const query = roadCounterDeviceId
-      ? `&device_id=${encodeURIComponent(roadCounterDeviceId)}`
-      : "";
+    const params = new URLSearchParams();
+    if (roadCounterDeviceId) params.set("device_id", roadCounterDeviceId);
+    if (roadCounterValidationId !== null)
+      params.set("validation_id", String(roadCounterValidationId));
+    const query = params.toString() ? `&${params.toString()}` : "";
     return `${baseUrl}/tiles/segment-anomaly?z={z}&x={x}&y={y}${query}`;
-  }, [roadCounterDeviceId]);
+  }, [roadCounterDeviceId, roadCounterValidationId]);
 
   const sessionHeaders = useMemo(() => {
     if (!session) return null;

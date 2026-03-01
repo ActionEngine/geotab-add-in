@@ -212,6 +212,9 @@ const DataQualityVehicle = ({
           selectCheck === ValidationType.ROAD_COUNTER_EV_BATTERY_DISCHARGE
         }
         roadCounterDeviceId={deviceId}
+        roadCounterValidationId={
+          validations?.find((v) => v.validation_type === selectCheck)?.id
+        }
       />
     </div>
   );
