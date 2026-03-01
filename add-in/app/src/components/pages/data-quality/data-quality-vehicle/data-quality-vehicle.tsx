@@ -1,13 +1,11 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import {
-  getValidationByDevice,
   getValidationDistanceToRoad,
   getValidationIdleOutliers,
   getValidationSegmentAomaly,
   getValidationTeleportation,
 } from "@/api/validation";
 import GeotabMapChecks from "@/components/geotab-map/geotab-map-checks";
-import { useFetch } from "@/hooks/useFetch";
 import { AppContext } from "@/provider/app-provider";
 import {
   ValidationDeviceResponse,
@@ -27,6 +25,8 @@ import "./style.css";
 interface DataQualityVehicleProps {
   deviceId: string;
   validations: ValidationResponse[] | [];
+  validationByDevice: ValidationDeviceResponse[];
+  isValidationByDeviceLoading: boolean;
   onBack: () => void;
 }
 
@@ -43,20 +43,13 @@ const VALIDATION_FETCHERS_MAP = {
 const DataQualityVehicle = ({
   deviceId,
   validations,
+  validationByDevice,
+  isValidationByDeviceLoading,
   onBack,
 }: DataQualityVehicleProps) => {
   const { session, databaseInfo } = useContext(AppContext);
   const [selectCheck, setSelectCheck] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-
-  const {
-    data: validationByDevice,
-    isLoading: isValidationByDeviceLoading,
-    isRefetching: isValidationByDeviceRefetching,
-  } = useFetch<ValidationDeviceResponse[]>({
-    fn: () => getValidationByDevice(session as GeotabCredentials),
-    key: `all-validation-by-device-${deviceId}`,
-  });
 
   const [points, setPoints] = useState<Points>([]);
 
@@ -155,7 +148,7 @@ const DataQualityVehicle = ({
           {validationsPercentage.map((v) => (
             <div className="data-quality-vehicle-row" key={v.type}>
               <span>{validationTypeLabelMap[v.type]}</span>
-              {isValidationByDeviceLoading || isValidationByDeviceRefetching ? (
+              {isValidationByDeviceLoading ? (
                 <span>–</span>
               ) : v.percentage !== null ? (
                 <span className={getThresholdClassName(v.percentage)}>
