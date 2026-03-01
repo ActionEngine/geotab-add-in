@@ -173,8 +173,14 @@ const GeotabMap = ({
         mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
       >
         {animatedVehicles.map((vehicle, idx) => {
-          const find = vehicles.find((v) => v.device_id === vehicle.device.id);
-          const className = getThresholdClassName(find?.percentage ?? 0);
+          const matches = vehicles.filter(
+            (v) => v.device_id === vehicle.device.id,
+          );
+          const worstPercentage =
+            matches.length > 0
+              ? Math.min(...matches.map((v) => v.percentage))
+              : 0;
+          const className = getThresholdClassName(worstPercentage);
           return (
             <Marker
               key={vehicle.device.id || idx}

@@ -2,8 +2,8 @@ const VehicleIcon = ({ className }: { className?: string }) => {
   return (
     <svg
       className={className}
-      height="12px"
-      width="12px"
+      height="16px"
+      width="16px"
       version="1.1"
       id="Capa_1"
       xmlns="http://www.w3.org/2000/svg"
