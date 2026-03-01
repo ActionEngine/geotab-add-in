@@ -323,7 +323,7 @@ def main(
         logger.error(f"Invalid DATABASE_URL: {e}")
         return 1
 
-    interval_str = environ.get("CHECK_INTERVAL_SECONDS")
+    interval_str = environ.get("CHECK_INTERVAL_SECONDS", "900")  # Default to 15 minutes
     if interval_str is None:
         return run_once(
             scripts_dir, db_url, max_workers, executor_factory, pool_factory
