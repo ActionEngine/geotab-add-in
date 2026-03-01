@@ -3,7 +3,7 @@ import {
   ValidationResponse,
   ValidationType,
   VehicleValidation,
-} from "@/types/shemas/validaton";
+} from "@/types/schemas/validation";
 import { getThresholdClassName } from "@/utils/threshold";
 import { Table, IListColumn } from "@geotab/zenith";
 import { Button } from "@geotab/zenith/esm/button/button";

@@ -3,7 +3,7 @@ import {
   ValidationPercentage,
   ValidationResponse,
   VehicleValidation,
-} from "@/types/shemas/validaton";
+} from "@/types/schemas/validation";
 import {
   getThresholdLabel,
   THRESHOLD_CLASSNAME,

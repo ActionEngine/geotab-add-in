@@ -8,7 +8,7 @@ import {
   ValidationResponse,
   ValidationType,
   VehicleValidation,
-} from "@/types/shemas/validaton";
+} from "@/types/schemas/validation";
 import { getValidationsPercentage } from "@/utils/validation";
 import { IconInfoCircle } from "@geotab/zenith";
 import { Card } from "@geotab/zenith/esm/card/card";

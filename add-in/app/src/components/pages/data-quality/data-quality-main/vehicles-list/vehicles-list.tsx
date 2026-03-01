@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import MetricBar from "@/components/ui/metric-bar/metric-bar";
-import { VehicleValidation } from "@/types/shemas/validaton";
+import { VehicleValidation } from "@/types/schemas/validation";
 import { getThresholdLabel, THRESHOLD_LABEL } from "@/utils/threshold";
 import "./style.css";
 

@@ -5,7 +5,7 @@ import {
   ValidationResponse,
   ValidationSegmentAnomalyResponse,
   ValidationTeleportationResponse,
-} from "@/types/shemas/validaton";
+} from "@/types/schemas/validation";
 import { GeotabCredentials } from "mg-api-js";
 import { getHeaders } from "./helper";
 

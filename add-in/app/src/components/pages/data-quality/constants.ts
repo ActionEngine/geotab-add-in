@@ -1,4 +1,4 @@
-import { ValidationType } from "@/types/shemas/validaton";
+import { ValidationType } from "@/types/schemas/validation";
 
 export const validationTypeLabelMap: Record<ValidationType, string> = {
   [ValidationType.TELEPORTATION]: "Teleportation",

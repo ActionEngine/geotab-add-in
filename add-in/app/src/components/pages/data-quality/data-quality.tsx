@@ -6,7 +6,7 @@ import {
   ValidationDeviceResponse,
   ValidationResponse,
   VehicleValidation,
-} from "@/types/shemas/validaton";
+} from "@/types/schemas/validation";
 import { makeVehiclesByStatus } from "@/utils/validation";
 import { GeotabCredentials } from "mg-api-js";
 import DataQualityMain from "./data-quality-main/data-quality-main";

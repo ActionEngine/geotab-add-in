@@ -2,7 +2,7 @@ import { createContext, useState } from "react";
 import { LngLatLike } from "react-map-gl/mapbox-legacy";
 import Loader from "@/components/loader/loader";
 import BannerUI from "@/components/ui/banner/banner";
-import { DATABASE_STATUS, DatabaseResponse } from "@/types/shemas/database";
+import { DATABASE_STATUS, DatabaseResponse } from "@/types/schemas/database";
 import { GeotabCredentials } from "mg-api-js";
 
 interface ViewMapState {

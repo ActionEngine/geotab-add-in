@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ValidationSegmentAnomalyResponse } from "@/types/shemas/validaton";
+import { ValidationSegmentAnomalyResponse } from "@/types/schemas/validation";
 import { IconArrowBottom, IconArrowTop } from "@geotab/zenith";
 import { Table } from "@geotab/zenith/esm/table/table";
 import "./style.css";
@@ -7,6 +7,7 @@ import "./style.css";
 interface TableRoadCounterProps {
   points: ValidationSegmentAnomalyResponse[];
   loading: boolean;
+  validationId?: number;
 }
 
 const getRoadConterStatus = ({
@@ -30,7 +31,19 @@ const getRoadConterStatus = ({
   };
 };
 
-const TableRoadCounter = ({ points, loading }: TableRoadCounterProps) => {
+const TableRoadCounter = ({
+  points,
+  loading,
+  validationId,
+}: TableRoadCounterProps) => {
+  const filteredPoints = useMemo(
+    () =>
+      validationId
+        ? points.filter((point) => point.validation_id === validationId)
+        : points,
+    [points, validationId],
+  );
+
   const columns = useMemo(
     () => [
       {
@@ -46,7 +59,7 @@ const TableRoadCounter = ({ points, loading }: TableRoadCounterProps) => {
   );
   const entities = useMemo(
     () =>
-      points.map((point, index) => {
+      filteredPoints.map((point, index) => {
         const { className, prefix, icon } = getRoadConterStatus(point);
 
         return {
@@ -61,7 +74,7 @@ const TableRoadCounter = ({ points, loading }: TableRoadCounterProps) => {
           ),
         };
       }),
-    [points],
+    [filteredPoints],
   );
   return (
     <Table columns={columns} entities={entities} isLoading={loading}>
