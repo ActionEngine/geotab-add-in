@@ -68,7 +68,7 @@ const TableRoadCounter = ({
           col3: (
             <div className={`check-result ${className}`}>
               {prefix}
-              {(point.aggregate_deviation * 100)?.toFixed(2)}
+              {(Math.abs(point.aggregate_deviation) * 100).toFixed(2)}
               {icon}
             </div>
           ),
