@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from modules.utils.utils import is_db_has_recent_data
 from logging_config import configure_logger, configure_root_logging
@@ -19,7 +20,7 @@ logger = configure_logger(__name__)
 
 
 # Run validation services
-INTERVAL_SECONDS = 900  # 15 minutes
+INTERVAL_SECONDS = int(os.getenv("CHECK_INTERVAL_SECONDS", 900))  # default: 15 minutes
 
 # List of validation functions
 VALIDATION_TASKS = [
