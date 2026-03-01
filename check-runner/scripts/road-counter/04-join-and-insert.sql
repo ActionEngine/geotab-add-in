@@ -16,9 +16,9 @@ WITH comparison AS (
                 AND COALESCE(t.diagnostic_value_avg, 0) = 0
                 THEN 0
             WHEN COALESCE(h.diagnostic_value_avg, 0) = 0 THEN 1
-            WHEN COALESCE(t.diagnostic_value_avg, 0) = 0 THEN 1
+            WHEN COALESCE(t.diagnostic_value_avg, 0) = 0 THEN -1
             ELSE
-                ABS(t.diagnostic_value_avg - h.diagnostic_value_avg)
+                (t.diagnostic_value_avg - h.diagnostic_value_avg)
                 /
                 GREATEST(t.diagnostic_value_avg, h.diagnostic_value_avg)
         END
@@ -44,9 +44,9 @@ segment_vectors AS (
 classification AS (
     SELECT 
         *,
-        aggregate_deviation > %(warning_threshold)s 
-            AND aggregate_deviation <= %(error_threshold)s AS is_warning,
-        aggregate_deviation > %(error_threshold)s AS is_error
+        ABS(aggregate_deviation) > %(warning_threshold)s 
+            AND ABS(aggregate_deviation) <= %(error_threshold)s AS is_warning,
+        ABS(aggregate_deviation) > %(error_threshold)s AS is_error
     FROM segment_vectors
 ),
 validation_insert AS (
