@@ -8,7 +8,7 @@ and saves new records to the geotab_location table.
 import asyncio
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 import mygeotab
 from sqlalchemy import select
@@ -84,7 +84,7 @@ async def poll_single_feed(feed_id: int, poll_interval: int = 30) -> None:
             )
             api.authenticate()
             # Set last_sync time
-            current_time = datetime.utcnow()
+            current_time = datetime.now(timezone.utc)
             # Handle different object types
             if object_type == "LogRecord":
                 # Fetch new log records using GetFeed
