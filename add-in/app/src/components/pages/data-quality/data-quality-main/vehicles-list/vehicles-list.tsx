@@ -6,6 +6,7 @@ import "./style.css";
 
 interface VehiclesListProps {
   vehicles: VehicleValidation[];
+  selectedCheck: string;
   sortBy?: "percentage" | "status";
 }
 const statusOrder: Record<THRESHOLD_LABEL, number> = {
@@ -16,6 +17,7 @@ const statusOrder: Record<THRESHOLD_LABEL, number> = {
 
 const VehiclesList = ({
   vehicles,
+  selectedCheck,
   sortBy = "percentage",
 }: VehiclesListProps) => {
   const sortedVehicles = useMemo(() => {
@@ -37,11 +39,12 @@ const VehiclesList = ({
   return (
     <div className="vehicles-list-container">
       <div className="vehicles-list-label">
-        Top 5 Vehicles with Worst Battery Health
+        Top 5 Vehicles by {selectedCheck}
       </div>
       <div className="vehicles-list">
         {sortedVehicles.map((vehicle) => (
           <MetricBar
+            key={vehicle.device_id}
             label={vehicle.device_id}
             percentage={vehicle.percentage}
             status={getThresholdLabel(vehicle.percentage)}

@@ -149,6 +149,7 @@ const DataQualityMain = ({
                         vehicles={vehicles.filter(
                           (v) => v.validation_id === currentValidationId,
                         )}
+                        selectedCheck={validationTitle}
                       />
                     )}
                   </>
