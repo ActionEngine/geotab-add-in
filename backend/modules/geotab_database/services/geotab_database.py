@@ -1,6 +1,6 @@
 import asyncio
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func, distinct
 import mygeotab
 from logging_config import configure_logger
@@ -296,12 +296,12 @@ async def ingest_log_records(
                     geotab_database_id=geotab_database_id,
                     object_type="LogRecord",
                     feed_version=feed_version,
-                    last_sync=datetime.utcnow(),
+                    last_sync=datetime.now(timezone.utc),
                 )
                 session.add(feed_entry)
             else:
                 feed_entry.feed_version = feed_version
-                feed_entry.last_sync = datetime.utcnow()
+                feed_entry.last_sync = datetime.now(timezone.utc)
 
             await session.commit()
 
@@ -325,10 +325,12 @@ async def ingest_log_records(
 
             if db_entry:
                 db_entry.ingestion_status = IngestionStatus.DONE
-                db_entry.last_sync = datetime.utcnow()
+                db_entry.last_sync = datetime.now(timezone.utc)
                 await session.commit()
 
-        logger.info(f"Ingestion process completed for database_id={geotab_database_id}, status set to DONE")
+        logger.info(
+            f"Ingestion process completed for database_id={geotab_database_id}, status set to DONE"
+        )
 
     except Exception as e:
         logger.error(f"Error during log record ingestion: {e}")
@@ -486,12 +488,12 @@ async def ingest_status_data(
                     geotab_database_id=geotab_database_id,
                     object_type="StatusData",
                     feed_version=feed_version,
-                    last_sync=datetime.utcnow(),
+                    last_sync=datetime.now(timezone.utc),
                 )
                 session.add(feed_entry)
             else:
                 feed_entry.feed_version = feed_version
-                feed_entry.last_sync = datetime.utcnow()
+                feed_entry.last_sync = datetime.now(timezone.utc)
 
             await session.commit()
 

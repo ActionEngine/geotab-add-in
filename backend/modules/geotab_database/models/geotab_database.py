@@ -14,4 +14,4 @@ class GeotabDatabase(Base):
         nullable=False,
         default=IngestionStatus.NONE,
     )
-    last_sync = Column(DateTime, nullable=True)
+    last_sync = Column(DateTime(timezone=True), nullable=True)
